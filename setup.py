@@ -14,6 +14,8 @@ setup(name='grumbel_nalu',
           'tqdm',
           'torch',
           'scipy',
+          'tensorboardX',
+          'tensorboard'
       ],
       test_suite='nose.collector',
       tests_require=['nose'],

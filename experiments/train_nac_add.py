@@ -10,13 +10,13 @@ batch_train = torch.utils.data.DataLoader(
     shuffle=False,
     sampler=torch.utils.data.SequentialSampler(dataset_train))
 
-model = grumbel_nalu.network.SimpleFunctionStaticNetwork('linear')
+model = grumbel_nalu.network.SimpleFunctionStaticNetwork('NAC')
 model.reset_parameters()
 
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for epoch_i, (x_train, t_train) in zip(range(1000), batch_train):
+for epoch_i, (x_train, t_train) in zip(range(10000), batch_train):
     # zero the parameter gradients
     optimizer.zero_grad()
 
