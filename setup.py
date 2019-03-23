@@ -1,14 +1,14 @@
 
 from setuptools import setup
 
-setup(name='grumbel_nalu',
+setup(name='stable_nalu',
       version='0.1.0',
-      description='Implementation of NALU with Grumbel Weight',
-      url='https://github.com/AndreasMadsen/publication-grumbel-nalu',
+      description='Implementation of NALU with stable training',
+      url='https://github.com/AndreasMadsen/publication-stable-nalu',
       author='Andreas Madsen',
       author_email='amwebdk@gmail.com',
       license='MIT',
-      packages=['grumbel_nalu'],
+      packages=['stable_nalu'],
       install_requires=[
           'numpy',
           'tqdm',

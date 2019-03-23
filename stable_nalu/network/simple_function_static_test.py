@@ -4,8 +4,8 @@ from nose.tools import *
 import torch
 import numpy as np
 
-from grumbel_nalu.dataset import SimpleFunctionStaticDataset
-from grumbel_nalu.network import SimpleFunctionStaticNetwork
+from stable_nalu.dataset import SimpleFunctionStaticDataset
+from stable_nalu.network import SimpleFunctionStaticNetwork
 
 def test_linear_solves_add():
     dataset = SimpleFunctionStaticDataset('add', input_size=100, seed=0)

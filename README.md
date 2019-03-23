@@ -1,4 +1,4 @@
-# Grumbel NALU
+# Stable NALU
 
 ### Install
 

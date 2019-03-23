@@ -1,11 +1,11 @@
 
 import numpy as np
 import torch
-import grumbel_nalu
+import stable_nalu
 
 def test_linear_add_can_have_zero_loss():
     # Prepear data
-    dataset_train = grumbel_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5)
+    dataset_train = stable_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5)
     batch_train = torch.utils.data.DataLoader(
         dataset_train,
         batch_size=64,
@@ -13,7 +13,7 @@ def test_linear_add_can_have_zero_loss():
         sampler=torch.utils.data.SequentialSampler(dataset_train))
 
     # Setup pre-solved model
-    model = grumbel_nalu.network.SimpleFunctionStaticNetwork('linear')
+    model = stable_nalu.network.SimpleFunctionStaticNetwork('linear')
 
     w_1 = np.zeros((100, 2), dtype=np.float32)
     w_1[dataset_train.a_start:dataset_train.a_end, 0] = 1
@@ -34,7 +34,7 @@ def test_linear_add_can_have_zero_loss():
         )
 
 def test_linear_add_is_trainable():
-    dataset_train = grumbel_nalu.dataset.SimpleFunctionStaticDataset(
+    dataset_train = stable_nalu.dataset.SimpleFunctionStaticDataset(
         operation='add',
         input_range=5,
         seed=0)
@@ -45,7 +45,7 @@ def test_linear_add_is_trainable():
         sampler=torch.utils.data.SequentialSampler(dataset_train))
 
     torch.manual_seed(0)
-    model = grumbel_nalu.network.SimpleFunctionStaticNetwork('linear')
+    model = stable_nalu.network.SimpleFunctionStaticNetwork('linear')
     model.reset_parameters()
 
     criterion = torch.nn.MSELoss()

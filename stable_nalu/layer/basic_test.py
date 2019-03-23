@@ -4,7 +4,7 @@ from nose.tools import *
 import numpy as np
 import torch
 
-from grumbel_nalu.layer import BasicLayer
+from stable_nalu.layer import BasicLayer
 
 def test_basic_layer_linear():
     x_np = np.random.RandomState(1).randn(64, 100).astype(np.float32)

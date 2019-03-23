@@ -1,16 +1,16 @@
 
 import numpy as np
 import torch
-import grumbel_nalu
+import stable_nalu
 
-dataset_train = grumbel_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5, seed=0)
+dataset_train = stable_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5, seed=0)
 batch_train = torch.utils.data.DataLoader(
     dataset_train,
     batch_size=64,
     shuffle=False,
     sampler=torch.utils.data.SequentialSampler(dataset_train))
 
-model = grumbel_nalu.network.SimpleFunctionStaticNetwork('linear')
+model = stable_nalu.network.SimpleFunctionStaticNetwork('linear')
 model.reset_parameters()
 
 criterion = torch.nn.MSELoss()

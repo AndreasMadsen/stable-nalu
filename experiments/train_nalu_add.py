@@ -1,17 +1,17 @@
 
 import numpy as np
 import torch
-import grumbel_nalu
+import stable_nalu
 
-writer = grumbel_nalu.writer.SummaryWriter(log_dir='runs/nalu')
-dataset_train = grumbel_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5, seed=0)
+writer = stable_nalu.writer.SummaryWriter(log_dir='runs/nalu')
+dataset_train = stable_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5, seed=0)
 batch_train = torch.utils.data.DataLoader(
     dataset_train,
     batch_size=128,
     shuffle=False,
     sampler=torch.utils.data.SequentialSampler(dataset_train))
 
-model = grumbel_nalu.network.SimpleFunctionStaticNetwork('NALU', writer=writer.namespace('network'))
+model = stable_nalu.network.SimpleFunctionStaticNetwork('NALU', writer=writer.namespace('network'))
 model.reset_parameters()
 
 criterion = torch.nn.MSELoss()

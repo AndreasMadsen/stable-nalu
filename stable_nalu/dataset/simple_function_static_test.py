@@ -5,7 +5,7 @@ import scipy.stats
 import torch
 import numpy as np
 
-from grumbel_nalu.dataset import SimpleFunctionStaticDataset
+from stable_nalu.dataset import SimpleFunctionStaticDataset
 
 def test_solveable_by_linear_algebra():
     dataset = SimpleFunctionStaticDataset('add', seed=0)
