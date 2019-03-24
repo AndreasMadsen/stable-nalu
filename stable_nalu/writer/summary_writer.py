@@ -42,6 +42,9 @@ class SummaryWriter(SummaryWriterNamespace):
     def get_iteration(self):
         return self._iteration
 
+    def close(self):
+        self.writer.close()
+
 class DummyWriter():
     def __init__(self):
         pass

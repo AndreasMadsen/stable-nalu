@@ -3,13 +3,13 @@ import math
 import torch
 
 ACTIVATIONS = {
-    'Tanh': torch.nn.functional.tanh,
-    'Sigmoid': torch.nn.functional.sigmoid,
+    'Tanh': torch.tanh,
+    'Sigmoid': torch.sigmoid,
     'ReLU6': torch.nn.functional.relu6,
     'Softsign': torch.nn.functional.softsign,
-    'SELU': torch.nn.functional.selu,
+    'SELU': torch.selu,
     'ELU': torch.nn.functional.elu,
-    'ReLU': torch.nn.functional.relu,
+    'ReLU': torch.relu,
     'linear': lambda x: x
 }
 
@@ -56,11 +56,12 @@ class BasicLayer(torch.nn.Module):
         self.initializer = INITIALIZATIONS[activation]
 
         self.weight = torch.nn.Parameter(torch.Tensor(out_features, in_features))
-        self.register_parameter('bias', None)
+        self.bias = torch.nn.Parameter(torch.Tensor(out_features))
         self.reset_parameters()
 
     def reset_parameters(self):
         self.initializer(self.weight)
+        torch.nn.init.zeros_(self.bias)
 
     def forward(self, input):
         return self.activation_fn(

@@ -14,12 +14,14 @@ ARITHMETIC_FUNCTIONS = {
 
 class SimpleFunctionStaticDataset(torch.utils.data.Dataset):
     def __init__(self, operation, input_range=5,
-                 input_size=100, max_size=2**32-1, seed=None):
+                 input_size=100, max_size=2**32-1, seed=None,
+                 use_cuda=False):
         self._operation = ARITHMETIC_FUNCTIONS[operation]
         self._input_range = input_range
         self._input_size = input_size
         self._rng = np.random.RandomState(seed)
         self._max_size = max_size
+        self._tensor_constructor = torch.cuda.tensor if use_cuda else torch.tensor
 
         self.a_start = self._rng.randint(0, self._input_size)
         a_size = self._rng.randint(1, self._input_size - self.a_start + 1)
@@ -48,8 +50,8 @@ class SimpleFunctionStaticDataset(torch.utils.data.Dataset):
         output_scalar = self._operation(a, b)
 
         return (
-            torch.tensor(input_vector, dtype=torch.float32),
-            torch.tensor([output_scalar], dtype=torch.float32)
+            self._tensor_constructor(input_vector, dtype=torch.float32),
+            self._tensor_constructor([output_scalar], dtype=torch.float32)
         )
 
     def __len__(self):
