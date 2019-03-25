@@ -123,13 +123,11 @@ for layer_type, operation, seed in itertools.product(
         writer.add_scalar('loss/train', loss_train)
         if epoch_i % 100 == 0 or stop_training:
             x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
-            y_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
-            loss_valid_inter = criterion(y_valid_inter, t_valid_inter)
+            loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
             writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
 
             x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
-            y_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
-            loss_valid_extra = criterion(y_valid_extra, t_valid_extra)
+            loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
             writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
         if epoch_i % 1000 == 0 or stop_training:
