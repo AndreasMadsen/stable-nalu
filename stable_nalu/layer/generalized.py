@@ -91,8 +91,8 @@ class GeneralizedCell(torch.nn.Module):
     def reset_parameters(self):
         self.cell.reset_parameters()
 
-    def forward(self, *args):
-        return self.cell.forward(*args)
+    def forward(self, x_t, h_tm1):
+        return self.cell.forward(x_t, h_tm1)
 
     def extra_repr(self):
         return 'input_size={}, hidden_size={}, unit_name={}'.format(

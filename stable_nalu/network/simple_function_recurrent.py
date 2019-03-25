@@ -3,12 +3,6 @@ import torch
 from ..layer import GeneralizedLayer, GeneralizedCell
 from ..writer import DummyWriter
 
-def _always_tuple(maybe_tuple):
-    if (isinstance(maybe_tuple, tuple)):
-        return maybe_tuple
-    else:
-        return (maybe_tuple, )
-
 class SimpleFunctionRecurrentNetwork(torch.nn.Module):
     def __init__(self, unit_name, input_size=10,
                  writer=DummyWriter(), **kwags):
@@ -22,14 +16,12 @@ class SimpleFunctionRecurrentNetwork(torch.nn.Module):
         # 'add' problem it should be 0. The zero_states are allowed to be
         # # optimized.
         if unit_name == 'LSTM':
-            self.zero_states = torch.nn.ParameterDict({
+            self.zero_state = torch.nn.ParameterDict({
                 'h_t0': torch.nn.Parameter(torch.Tensor(self.hidden_size)),
                 'c_t0': torch.nn.Parameter(torch.Tensor(self.hidden_size))
             })
         else:
-            self.zero_states = torch.nn.ParameterDict({
-                'h_t0': torch.nn.Parameter(torch.Tensor(self.hidden_size))
-            })
+            self.zero_state = torch.nn.Parameter(torch.Tensor(self.hidden_size))
 
         self.recurent_cell = GeneralizedCell(input_size, self.hidden_size,
                                              unit_name,
@@ -41,8 +33,12 @@ class SimpleFunctionRecurrentNetwork(torch.nn.Module):
                                              **kwags)
 
     def reset_parameters(self):
-        for zero_state in self.zero_states.values():
-            torch.nn.init.zeros_(zero_state)
+        if self.unit_name == 'LSTM':
+            for zero_state in self.zero_state.values():
+                torch.nn.init.zeros_(zero_state)
+        else:
+            torch.nn.init.zeros_(self.zero_state)
+
         self.recurent_cell.reset_parameters()
         self.output_layer.reset_parameters()
 
@@ -53,14 +49,18 @@ class SimpleFunctionRecurrentNetwork(torch.nn.Module):
             input: Expected to have the shape [obs, time, dims]
         """
         # Perform recurrent iterations over the input
-        h_tm1 = tuple(zero_state.repeat(x.size(0), 1) for zero_state in self.zero_states.values())
+        if self.unit_name == 'LSTM':
+            h_tm1 = tuple(zero_state.repeat(x.size(0), 1) for zero_state in self.zero_state.values())
+        else:
+            h_tm1 = self.zero_state.repeat(x.size(0), 1)
+
         for t in range(x.size(1)):
             x_t = x[:, t]
-            h_t = _always_tuple(self.recurent_cell.forward(x_t, *h_tm1))
+            h_t = self.recurent_cell.forward(x_t, h_tm1)
             h_tm1 = h_t
 
         # Grap the final hidden output and use as the output from the recurrent layer
-        z_1 = h_t[0]
+        z_1 = h_t[0] if self.unit_name == 'LSTM' else h_t
         z_2 = self.output_layer.forward(z_1)
         return z_2
 
