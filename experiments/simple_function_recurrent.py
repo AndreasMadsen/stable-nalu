@@ -9,7 +9,7 @@ import multiprocessing
 use_cuda = torch.cuda.is_available()
 
 def make_batch_dataset(operation, batch_size=128, num_workers=0, use_cuda=False, **kwargs):
-    dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
+    dataset = stable_nalu.dataset.SimpleFunctionRecurrentDataset(
         operation=operation, num_workers=num_workers, **kwargs)
     batcher = torch.utils.data.DataLoader(
         dataset,
@@ -26,14 +26,10 @@ def make_batch_dataset(operation, batch_size=128, num_workers=0, use_cuda=False,
 
 
 layer_types = [
-    'Tanh',
-    #'Sigmoid',
-    'ReLU6',
-    #'Softsign',
-    #'SELU',
-    #'ELU',
-    'ReLU',
-    'linear',
+    'RNN-tanh',
+    'RNN-ReLU',
+    'GRU',
+    'LSTM',
     'NAC',
     'NALU'
 ]
@@ -55,7 +51,7 @@ loss_diff_threshold = 0.5
 max_iterations = 100000
 
 os.makedirs("results", exist_ok=True)
-fp = open('results/simple_function_static.ndjson', 'w')
+fp = open('results/simple_function_recurrent.ndjson', 'w')
 
 for layer_type, operation, seed in itertools.product(
     layer_types, operations, seeds
@@ -63,27 +59,27 @@ for layer_type, operation, seed in itertools.product(
     print(f'running layer_type: {layer_type}, operation: {operation}, seed: {seed}')
 
     writer = stable_nalu.writer.SummaryWriter(
-        log_dir=f'runs/static/{layer_type.lower()}_{operation.lower()}_{seed}')
+        log_dir=f'runs/recurrent/{layer_type.lower()}_{operation.lower()}_{seed}')
 
     # Setup datasets
     dataset_train = iter(make_batch_dataset(
-        operation, input_range=5,
+        operation, input_range=5, time_length=10,
         batch_size=128,
         seed=seed * 3 * num_workers + 0 * num_workers,
         use_cuda=use_cuda, num_workers=num_workers))
     dataset_valid_interpolation = iter(make_batch_dataset(
-        operation, input_range=5,
+        operation, input_range=5, time_length=10,
         batch_size=2048,
         seed=seed * 3 * num_workers + 1 * num_workers,
         use_cuda=use_cuda, num_workers=num_workers))
     dataset_valid_extrapolation = iter(make_batch_dataset(
-        operation, input_range=20,
+        operation, input_range=5, time_length=1000,
         batch_size=2048,
         seed=seed * 3 * num_workers + 2 * num_workers,
         use_cuda=use_cuda, num_workers=num_workers))
 
     # setup model
-    model = stable_nalu.network.SimpleFunctionStaticNetwork(layer_type)
+    model = stable_nalu.network.SimpleFunctionRecurrentNetwork(layer_type)
     if use_cuda:
         model.cuda()
     torch.manual_seed(seed)

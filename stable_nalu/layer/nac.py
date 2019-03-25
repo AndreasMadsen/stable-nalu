@@ -69,3 +69,27 @@ class NACLayer(torch.nn.Module):
         return 'in_features={}, out_features={}'.format(
             self.in_features, self.out_features
         )
+
+class NACCell(torch.nn.Module):
+    """Implements the NAC (Neural Accumulator) as a recurrent cell
+
+    Arguments:
+        input_size: number of ingoing features
+        hidden_size: number of outgoing features
+    """
+    def __init__(self, input_size, hidden_size, writer=DummyWriter()):
+        super().__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.nac = NACLayer(input_size + hidden_size, hidden_size, writer=writer)
+
+    def reset_parameters(self):
+        self.nac.reset_parameters()
+
+    def forward(self, x_t, h_tm1):
+        return self.nac(torch.cat((x_t, h_tm1), dim=1))
+
+    def extra_repr(self):
+        return 'input_size={}, hidden_size={}'.format(
+            self.input_size, self.hidden_size
+        )

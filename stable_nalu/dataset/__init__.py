@@ -1,2 +1,3 @@
 
 from .simple_function_static import SimpleFunctionStaticDataset
+from .simple_function_recurrent import SimpleFunctionRecurrentDataset
