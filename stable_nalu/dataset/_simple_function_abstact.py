@@ -17,7 +17,7 @@ class ARITHMETIC_FUNCTIONS:
         return a * b
 
     def div(a, b):
-        return np.nan_to_num(np.divide(a, b))
+        return a / b
 
     def squared(a, b):
         return a * a
@@ -27,7 +27,7 @@ class ARITHMETIC_FUNCTIONS:
 
 class SimpleFunctionDataset(torch.utils.data.Dataset):
     def __init__(self, operation, shape,
-                 input_range=5,
+                 input_range=1,
                  seed=None,
                  num_workers=1,
                  max_size=2**32-1):
@@ -35,8 +35,7 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
 
         self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
         self._max_size = max_size
-        self._lower_input_range = 0 if operation == 'root' else input_range
-        self._upper_input_range = input_range
+        self._input_range = input_range
         self._shape = shape
         self._input_size = shape[-1]
         self._rngs = [
@@ -58,8 +57,8 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         input_vector = self._rngs[self._worker_id].uniform(
-            low=-self._lower_input_range,
-            high=self._upper_input_range,
+            low=0,
+            high=self._input_range,
             size=self._shape)
 
         # Compute a and b values

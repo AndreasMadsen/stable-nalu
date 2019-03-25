@@ -1,0 +1,55 @@
+---
+title: "simple-function-expectation"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+```
+
+$$
+p(S) = \frac{1}{100} \\
+E[S] = \sum_{s=0}^{100 - 1} s \cdot p(S=s) = \sum_{s=0}^{99} s \cdot \frac{1}{100} = 49.5
+$$
+
+```{r}
+start.index.a = ceiling(runif(100000, 0, 99))
+start.index.b = ceiling(runif(100000, 0, 99))
+print(c(mean(start.index.a), mean(start.index.b)))
+```
+
+$$
+p(Z | S=s) = \frac{1}{100 - s} \\
+p(Z) = \sum_{s=0}^{99} P(Z | S=s)P(S = s) = \sum_{s = 0}^{99} \frac{1}{100 - s} \frac{1}{100} \approx 0.05187378 \\
+E[Z] =  \sum_{z=0}^{100} z \cdot p(Z=z) = \sum_{z=0}^{100} z \cdot 0.05187378 = 261.9626 \ (?)
+$$
+
+```{r}
+slice.size.a = sapply(start.index.a, function (s) ceiling(runif(1, 0, 100 - s)))
+slice.size.b = sapply(start.index.b, function (s) ceiling(runif(1, 0, 100 - s)))
+
+print(c(mean(slice.size.a), mean(slice.size.b)))
+```
+
+```{r}
+output = apply(data.frame(
+  a.start = start.index.a,
+  a.size = slice.size.a,
+  b.start = start.index.b,
+  b.size = slice.size.b
+), 1, function (row) {
+  # looks like extrapolation is U[0, 5] and interpolation is U[0, 1]
+  v = runif(100, 0, 5)
+  a = sum(v[getElement(row, "a.start"):(getElement(row, "a.start")+getElement(row, "a.size"))])
+  b = sum(v[getElement(row, "b.start"):(getElement(row, "b.start")+getElement(row, "b.size"))])
+  return(a * b)
+})
+print(mean(output))
+```
+
+```{r}
+p = ggplot(data.frame(list(output = output))) +
+  geom_histogram(aes(x = output, y = ..density..)) + 
+  scale_x_continuous(trans='log')
+print(p)
+```

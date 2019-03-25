@@ -67,17 +67,17 @@ for layer_type, operation, seed in itertools.product(
 
     # Setup datasets
     dataset_train = iter(make_batch_dataset(
-        operation, input_range=5,
+        operation, input_range=1,
         batch_size=128,
         seed=seed * 3 * num_workers + 0 * num_workers,
         use_cuda=use_cuda, num_workers=num_workers))
     dataset_valid_interpolation = iter(make_batch_dataset(
-        operation, input_range=5,
+        operation, input_range=1,
         batch_size=2048,
         seed=seed * 3 * num_workers + 1 * num_workers,
         use_cuda=use_cuda, num_workers=num_workers))
     dataset_valid_extrapolation = iter(make_batch_dataset(
-        operation, input_range=20,
+        operation, input_range=5,
         batch_size=2048,
         seed=seed * 3 * num_workers + 2 * num_workers,
         use_cuda=use_cuda, num_workers=num_workers))
