@@ -96,7 +96,7 @@ Then for $\mathrm{E}[\tanh(\hat{M})^2]$:
 
 $$
 \begin{aligned}
-\mathrm{E}[\tanh(\hat{W})^2] &= \int_{-\infty}^{\infty} \sigma(x)^2 f_{U[-r, r]}(x)\ \mathrm{d}x \\
+\mathrm{E}[\sigma(\hat{M})^2] &= \int_{-\infty}^{\infty} \sigma(x)^2 f_{U[-r, r]}(x)\ \mathrm{d}x \\
 &= \frac{1}{2r} \int_{-r}^{r} \sigma(x)^2\ \mathrm{d}x \\
 &= \frac{1}{2r} \left(r - \tanh\left(\frac{r}{2}\right)\right)
 \end{aligned}

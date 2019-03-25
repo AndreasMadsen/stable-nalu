@@ -51,7 +51,7 @@ def test_linear_add_is_trainable():
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
 
-    for epoch_i, (x_train, t_train) in zip(range(100), batch_train):
+    for epoch_i, (x_train, t_train) in zip(range(200), batch_train):
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -64,5 +64,6 @@ def test_linear_add_is_trainable():
     # Check that last loss is 0
     np.testing.assert_almost_equal(
         loss.detach().numpy(),
-        0
+        0,
+        decimal=5
     )

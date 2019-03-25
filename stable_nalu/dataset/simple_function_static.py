@@ -3,44 +3,58 @@ import numpy as np
 import torch
 import torch.utils.data
 
-ARITHMETIC_FUNCTIONS = {
-    'add': lambda a, b: a + b,
-    'sub': lambda a, b: a - b,
-    'mul': lambda a, b: a * b,
-    'div': lambda a, b: a / b,
-    'squared': lambda a, b: a * a,
-    'root': lambda a, b: torch.sqrt(a)
-}
+class ARITHMETIC_FUNCTIONS:
+    @staticmethod
+    def add(a, b):
+        return a + b
+
+    @staticmethod
+    def sub(a, b):
+        return a - b
+
+    @staticmethod
+    def mul(a, b):
+        return a * b
+
+    def div(a, b):
+        return np.nan_to_num(np.divide(a, b))
+
+    def squared(a, b):
+        return a * a
+
+    def root(a, b):
+        return np.sqrt(a)
 
 class SimpleFunctionStaticDataset(torch.utils.data.Dataset):
     def __init__(self, operation, input_range=5,
                  input_size=100, max_size=2**32-1, seed=None,
-                 use_cuda=False):
-        self._operation = ARITHMETIC_FUNCTIONS[operation]
-        self._input_range = input_range
-        self._input_size = input_size
-        self._rng = np.random.RandomState(seed)
+                 num_workers=1):
+        self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
         self._max_size = max_size
-        self._tensor_constructor = torch.cuda.tensor if use_cuda else torch.tensor
+        self._lower_input_range = 0 if operation == 'root' else input_range
+        self._upper_input_range = input_range
+        self._input_size = input_size
+        self._rngs = [
+            np.random.RandomState(None if seed is None else seed + i)
+            for i in range(max(1, num_workers))
+        ]
+        self._worker_id = 0
 
-        self.a_start = self._rng.randint(0, self._input_size)
-        a_size = self._rng.randint(1, self._input_size - self.a_start + 1)
+        self.a_start = self._rngs[0].randint(0, self._input_size)
+        a_size = self._rngs[0].randint(1, self._input_size - self.a_start + 1)
         self.a_end = self.a_start + a_size
 
-        self.b_start = self._rng.randint(0, self._input_size)
-        b_size = self._rng.randint(1, self._input_size - self.b_start + 1)
+        self.b_start = self._rngs[0].randint(0, self._input_size)
+        b_size = self._rngs[0].randint(1, self._input_size - self.b_start + 1)
         self.b_end = self.b_start + b_size
 
-        self._last_index = -1
+    def worker_init_fn(self, worker_id):
+        self._worker_id = worker_id
 
     def __getitem__(self, index):
-        if (self._last_index + 1 != index):
-            raise RuntimeError('expected incrementing index in SimpleFunction Dataset')
-        self._last_index += 1
-
-        input_vector = self._rng.uniform(
-            low=-self._input_range,
-            high=self._input_range,
+        input_vector = self._rngs[self._worker_id].uniform(
+            low=-self._lower_input_range,
+            high=self._upper_input_range,
             size=self._input_size)
 
         # COmpute a and b values
@@ -50,8 +64,8 @@ class SimpleFunctionStaticDataset(torch.utils.data.Dataset):
         output_scalar = self._operation(a, b)
 
         return (
-            self._tensor_constructor(input_vector, dtype=torch.float32),
-            self._tensor_constructor([output_scalar], dtype=torch.float32)
+            torch.tensor(input_vector, dtype=torch.float32),
+            torch.tensor([output_scalar], dtype=torch.float32)
         )
 
     def __len__(self):

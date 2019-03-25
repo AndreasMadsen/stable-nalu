@@ -4,26 +4,34 @@ import json
 import torch
 import stable_nalu
 import itertools
+import multiprocessing
 
-use_cuda = False
+use_cuda = torch.cuda.is_available()
 
-def make_batch_dataset(operation, batch_size=128, **kwargs):
+def make_batch_dataset(operation, batch_size=128, num_workers=0, use_cuda=False, **kwargs):
     dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
-        operation=operation, **kwargs)
-    return torch.utils.data.DataLoader(
+        operation=operation, num_workers=num_workers, **kwargs)
+    batcher = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=False,
-        sampler=torch.utils.data.SequentialSampler(dataset))
+        sampler=torch.utils.data.SequentialSampler(dataset),
+        num_workers=num_workers,
+        worker_init_fn=dataset.worker_init_fn)
+
+    if use_cuda:
+        return map(lambda args: (arg.cuda() for arg in args), batcher)
+    else:
+        return batcher
 
 
 layer_types = [
     'Tanh',
-    'Sigmoid',
+    #'Sigmoid',
     'ReLU6',
-    'Softsign',
-    'SELU',
-    'ELU',
+    #'Softsign',
+    #'SELU',
+    #'ELU',
     'ReLU',
     'linear',
     'NAC',
@@ -41,9 +49,10 @@ operations = [
 
 seeds = range(1)
 
+num_workers = min(8, multiprocessing.cpu_count())
 loss_diff_running_mean_memory = 0.99
 loss_diff_threshold = 0.5
-max_iterations = 10000
+max_iterations = 100000
 
 os.makedirs("results", exist_ok=True)
 fp = open('results/simple_function_static.ndjson', 'w')
@@ -59,13 +68,16 @@ for layer_type, operation, seed in itertools.product(
     # Setup datasets
     dataset_train = iter(make_batch_dataset(
         operation, input_range=5,
-        seed=seed, use_cuda=use_cuda))
+        seed=seed * 3 * num_workers + 0 * num_workers,
+        use_cuda=use_cuda, num_workers=num_workers))
     dataset_valid_interpolation = iter(make_batch_dataset(
         operation, input_range=5,
-        seed=len(seeds) + seed, use_cuda=use_cuda))
+        seed=seed * 3 * num_workers + 1 * num_workers,
+        use_cuda=use_cuda, num_workers=num_workers))
     dataset_valid_extrapolation = iter(make_batch_dataset(
         operation, input_range=20,
-        seed=2 * len(seeds) + seed, use_cuda=use_cuda))
+        seed=seed * 3 * num_workers + 2 * num_workers,
+        use_cuda=use_cuda, num_workers=num_workers))
 
     # setup model
     model = stable_nalu.network.SimpleFunctionStaticNetwork(layer_type)
@@ -90,7 +102,7 @@ for layer_type, operation, seed in itertools.product(
 
         # Do running mean of diff(loss) to stop training before max-epoch
         stop_training = False
-        loss_train_value = loss_train.detach().numpy().item(0)
+        loss_train_value = loss_train.detach().cpu().numpy().item(0)
         if previous_loss is not None:
             loss_diff = abs(previous_loss - loss_train_value)
 
@@ -145,11 +157,11 @@ for layer_type, operation, seed in itertools.product(
         'operation': operation,
         'seed': seed,
         'epochs': epoch_i,
-        'loss_train': loss_train.detach().numpy().item(0),
-        'loss_valid_inter': loss_valid_inter.detach().numpy().item(0),
-        'loss_valid_extra': loss_valid_extra.detach().numpy().item(0)
+        'loss_train': loss_train.detach().cpu().numpy().item(0),
+        'loss_valid_inter': loss_valid_inter.detach().cpu().numpy().item(0),
+        'loss_valid_extra': loss_valid_extra.detach().cpu().numpy().item(0)
     }) + '\n')
 
     writer.close()
 
-close(fp)
+fp.close()

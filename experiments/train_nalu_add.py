@@ -9,13 +9,15 @@ batch_train = torch.utils.data.DataLoader(
     dataset_train,
     batch_size=128,
     shuffle=False,
-    sampler=torch.utils.data.SequentialSampler(dataset_train))
+    sampler=torch.utils.data.SequentialSampler(dataset),
+    num_workers=num_workers,
+    worker_init_fn=dataset.worker_init_fn)
 
 model = stable_nalu.network.SimpleFunctionStaticNetwork('NALU', writer=writer.namespace('network'))
 model.reset_parameters()
 
 criterion = torch.nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-5)
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
 
 for epoch_i, (x_train, t_train) in zip(range(100000), batch_train):
     writer.set_iteration(epoch_i)
