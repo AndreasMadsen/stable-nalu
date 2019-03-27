@@ -62,10 +62,10 @@ class NALUCell(torch.nn.Module):
         super().__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.nalu = NACLayer(input_size + hidden_size, hidden_size, writer=writer)
+        self.nalu = NALULayer(input_size + hidden_size, hidden_size, writer=writer)
 
     def reset_parameters(self):
-        self.nac.reset_parameters()
+        self.nalu.reset_parameters()
 
     def forward(self, x_t, h_tm1):
         return self.nalu(torch.cat((x_t, h_tm1), dim=1))
