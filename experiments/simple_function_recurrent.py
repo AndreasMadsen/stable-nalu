@@ -8,23 +8,6 @@ import multiprocessing
 
 use_cuda = torch.cuda.is_available()
 
-def make_batch_dataset(operation, batch_size=128, num_workers=0, use_cuda=False, **kwargs):
-    dataset = stable_nalu.dataset.SimpleFunctionRecurrentDataset(
-        operation=operation, num_workers=num_workers, **kwargs)
-    batcher = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        sampler=torch.utils.data.SequentialSampler(dataset),
-        num_workers=num_workers,
-        worker_init_fn=dataset.worker_init_fn)
-
-    if use_cuda:
-        return map(lambda args: (arg.cuda() for arg in args), batcher)
-    else:
-        return batcher
-
-
 layer_types = [
     'RNN-tanh',
     'RNN-ReLU',
@@ -61,28 +44,39 @@ for layer_type, operation, seed in itertools.product(
     writer = stable_nalu.writer.SummaryWriter(
         log_dir=f'runs/recurrent/{layer_type.lower()}_{operation.lower()}_{seed}')
 
+    # Set seed
+    torch.manual_seed(seed)
+
     # Setup datasets
-    dataset_train = iter(make_batch_dataset(
-        operation, input_range=1, time_length=10,
+    dataset_train = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
+        operation='add',
         batch_size=128,
+        num_workers=num_workers,
+        input_range=1,
+        time_length=10,
         seed=seed * 3 * num_workers + 0 * num_workers,
-        use_cuda=use_cuda, num_workers=num_workers))
-    dataset_valid_interpolation = iter(make_batch_dataset(
-        operation, input_range=1, time_length=10,
+        use_cuda=use_cuda))
+    dataset_valid_interpolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
+        operation='add',
         batch_size=2048,
+        num_workers=num_workers,
+        input_range=1,
+        time_length=10,
         seed=seed * 3 * num_workers + 1 * num_workers,
-        use_cuda=use_cuda, num_workers=num_workers))
-    dataset_valid_extrapolation = iter(make_batch_dataset(
-        operation, input_range=1, time_length=1000,
+        use_cuda=use_cuda))
+    dataset_valid_extrapolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
+        operation='add',
         batch_size=2048,
+        num_workers=num_workers,
+        input_range=1,
+        time_length=1000,
         seed=seed * 3 * num_workers + 2 * num_workers,
-        use_cuda=use_cuda, num_workers=num_workers))
+        use_cuda=use_cuda))
 
     # setup model
     model = stable_nalu.network.SimpleFunctionRecurrentNetwork(layer_type)
     if use_cuda:
         model.cuda()
-    torch.manual_seed(seed)
     model.reset_parameters()
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters())

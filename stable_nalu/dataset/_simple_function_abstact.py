@@ -52,7 +52,7 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
         b_size = self._rngs[0].randint(1, self._input_size - self.b_start + 1)
         self.b_end = self.b_start + b_size
 
-    def worker_init_fn(self, worker_id):
+    def _worker_init_fn(self, worker_id):
         self._worker_id = worker_id
 
     def __getitem__(self, index):
@@ -74,3 +74,23 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return self._max_size
+
+    @classmethod
+    def dataloader(cls, operation=None, batch_size=128, num_workers=0, use_cuda=False, **kwargs):
+        print(cls)
+        if operation is None:
+            raise ValueError('operation must be specified')
+
+        dataset = cls(operation, num_workers=num_workers, **kwargs)
+        batcher = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            sampler=torch.utils.data.SequentialSampler(dataset),
+            num_workers=num_workers,
+            worker_init_fn=dataset._worker_init_fn)
+
+        if use_cuda:
+            return map(lambda X, t: (X.cuda(), t.cuda()), batcher)
+        else:
+            return batcher

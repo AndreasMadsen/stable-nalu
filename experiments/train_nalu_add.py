@@ -3,21 +3,19 @@ import numpy as np
 import torch
 import stable_nalu
 
-writer = stable_nalu.writer.SummaryWriter(log_dir='runs/nalu')
-dataset_train = stable_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5, seed=0)
-batch_train = torch.utils.data.DataLoader(
-    dataset_train,
+writer = stable_nalu.writer.SummaryWriter(log_dir='runs/debug/nalu')
+batch_train = stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
+    operation='add',
     batch_size=128,
-    shuffle=False,
-    sampler=torch.utils.data.SequentialSampler(dataset),
-    num_workers=num_workers,
-    worker_init_fn=dataset.worker_init_fn)
-
+    num_workers=0,
+    input_range=1,
+    seed=0
+)
 model = stable_nalu.network.SimpleFunctionStaticNetwork('NALU', writer=writer.namespace('network'))
 model.reset_parameters()
 
 criterion = torch.nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
+optimizer = torch.optim.Adam(model.parameters())
 
 for epoch_i, (x_train, t_train) in zip(range(100000), batch_train):
     writer.set_iteration(epoch_i)
@@ -27,15 +25,26 @@ for epoch_i, (x_train, t_train) in zip(range(100000), batch_train):
 
     # forward + backward + optimize
     y_train = model(x_train)
+    writer.add_summary('train/y', y_train)
     loss = criterion(y_train, t_train)
-    writer.add_scalar('loss', loss)
+    writer.add_scalar('train/loss', loss)
     loss.backward()
-    optimizer.step()
 
-    for index, weight in enumerate(model.parameters(), start=1):
-        gradient, *_ = weight.grad.data
-        writer.add_summary(f'grad/{index}', gradient)
+    if np.isnan(loss.detach().cpu().numpy().item(0)):
+        break
 
     if epoch_i % 100 == 0:
         print(f'{epoch_i}: {loss.item()}')
 
+        for index, weight in enumerate(model.parameters(), start=1):
+            gradient, *_ = weight.grad.data
+            writer.add_summary(f'grad/{index}', gradient)
+
+        torch.save({
+            'epoch': epoch_i,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss
+        }, 'weights/debug/nalu')
+
+    optimizer.step()

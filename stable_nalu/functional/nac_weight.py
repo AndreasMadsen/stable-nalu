@@ -1,0 +1,36 @@
+
+import torch
+
+class NACWeight(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, w_hat, m_hat):
+        tanh_w_hat = torch.tanh(w_hat)
+        sigmoid_m_hat = torch.sigmoid(m_hat)
+        ctx.save_for_backward(tanh_w_hat, sigmoid_m_hat)
+        return tanh_w_hat * sigmoid_m_hat
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        tanh_w_hat, sigmoid_m_hat = ctx.saved_tensors
+
+        return (
+            grad_output * (1 - tanh_w_hat*tanh_w_hat)*sigmoid_m_hat,
+            grad_output * tanh_w_hat*sigmoid_m_hat*(1-sigmoid_m_hat)
+        )
+
+class NACWeightRescaled(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, w_hat, m_hat):
+        tanh_w_hat = torch.tanh(w_hat)
+        sigmoid_m_hat = torch.sigmoid(m_hat)
+        ctx.save_for_backward(w_hat, tanh_w_hat, sigmoid_m_hat)
+        return tanh_w_hat * sigmoid_m_hat
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        w_hat, tanh_w_hat, sigmoid_m_hat = ctx.saved_tensors
+
+        return (
+            grad_output * (1 - tanh_w_hat*tanh_w_hat)*sigmoid_m_hat,
+            grad_output * 0.1*torch.sign(w_hat)*sigmoid_m_hat*(1-sigmoid_m_hat)
+        )

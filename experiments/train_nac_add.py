@@ -3,12 +3,12 @@ import numpy as np
 import torch
 import stable_nalu
 
-dataset_train = stable_nalu.dataset.SimpleFunctionStaticDataset(operation='add', input_range=5, seed=0)
-batch_train = torch.utils.data.DataLoader(
-    dataset_train,
-    batch_size=64,
-    shuffle=False,
-    sampler=torch.utils.data.SequentialSampler(dataset_train))
+batch_train = stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
+    operation='add',
+    batch_size=128,
+    num_workers=0,
+    input_range=1
+)
 
 model = stable_nalu.network.SimpleFunctionStaticNetwork('NAC')
 model.reset_parameters()
