@@ -3,16 +3,22 @@ import numpy as np
 import torch
 import stable_nalu
 
+use_cuda = torch.cuda.is_available()
+torch.manual_seed(0)
+
 writer = stable_nalu.writer.SummaryWriter(log_dir='runs/debug/nalu')
 batch_train = stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
     operation='add',
     batch_size=128,
-    num_workers=0,
+    num_workers=4,
     input_range=1,
-    seed=0
+    seed=0,
+    use_cuda=use_cuda
 )
 model = stable_nalu.network.SimpleFunctionStaticNetwork('NALU', writer=writer.namespace('network'))
 model.reset_parameters()
+if use_cuda:
+    model.cuda()
 
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())

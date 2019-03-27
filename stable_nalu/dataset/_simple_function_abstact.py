@@ -1,4 +1,5 @@
 
+import itertools
 import numpy as np
 import torch
 import torch.utils.data
@@ -77,7 +78,6 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
 
     @classmethod
     def dataloader(cls, operation=None, batch_size=128, num_workers=0, use_cuda=False, **kwargs):
-        print(cls)
         if operation is None:
             raise ValueError('operation must be specified')
 
@@ -91,6 +91,6 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
             worker_init_fn=dataset._worker_init_fn)
 
         if use_cuda:
-            return map(lambda X, t: (X.cuda(), t.cuda()), batcher)
+            return itertools.starmap(lambda X, t: (X.cuda(), t.cuda()), batcher)
         else:
             return batcher
