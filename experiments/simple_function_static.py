@@ -32,9 +32,7 @@ operations = [
 
 seeds = range(1)
 
-num_workers = min(8, multiprocessing.cpu_count())
-loss_diff_running_mean_memory = 0.99
-loss_diff_threshold = 0.5
+num_workers = 1  # min(8, multiprocessing.cpu_count())
 max_iterations = 100000
 
 os.makedirs("results", exist_ok=True)
@@ -53,21 +51,21 @@ for layer_type, operation, seed in itertools.product(
 
     # Setup datasets
     dataset_train = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-        operation='add',
+        operation=operation,
         batch_size=128,
         num_workers=num_workers,
         input_range=1,
         seed=seed * 3 * num_workers + 0 * num_workers,
         use_cuda=use_cuda))
     dataset_valid_interpolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-        operation='add',
+        operation=operation,
         batch_size=2048,
         num_workers=num_workers,
         input_range=1,
         seed=seed * 3 * num_workers + 1 * num_workers,
         use_cuda=use_cuda))
     dataset_valid_extrapolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-        operation='add',
+        operation=operation,
         batch_size=2048,
         num_workers=num_workers,
         input_range=5,
@@ -83,8 +81,6 @@ for layer_type, operation, seed in itertools.product(
     optimizer = torch.optim.Adam(model.parameters())
 
     # Train model
-    previous_loss = None
-    loss_diff_running_mean = None
     for epoch_i, (x_train, t_train) in zip(range(max_iterations + 1), dataset_train):
         writer.set_iteration(epoch_i)
 
@@ -95,28 +91,9 @@ for layer_type, operation, seed in itertools.product(
         y_train = model(x_train)
         loss_train = criterion(y_train, t_train)
 
-        # Do running mean of diff(loss) to stop training before max-epoch
-        stop_training = False
-        loss_train_value = loss_train.detach().cpu().numpy().item(0)
-        if previous_loss is not None:
-            loss_diff = abs(previous_loss - loss_train_value)
-
-            if loss_diff_running_mean is None:
-                loss_diff_running_mean = loss_diff
-            else:
-                loss_diff_running_mean = (
-                    loss_diff_running_mean_memory * loss_diff_running_mean +
-                    (1 - loss_diff_running_mean_memory) * loss_diff
-                )
-
-        # stop training if diff(loss) is small
-        if (loss_diff_running_mean is not None and
-                loss_diff_running_mean < loss_diff_threshold):
-            stop_training = True
-
         # Log loss
         writer.add_scalar('loss/train', loss_train)
-        if epoch_i % 100 == 0 or stop_training:
+        if epoch_i % 100 == 0:
             x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
             loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
             writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
@@ -125,19 +102,12 @@ for layer_type, operation, seed in itertools.product(
             loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
             writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
-        if epoch_i % 1000 == 0 or stop_training:
-            print(f'  {epoch_i}: {loss_train_value}')
+        if epoch_i % 1000 == 0:
+            print(f'  {epoch_i}: {loss_train}')
 
         # Backward + optimize model
-        if not stop_training:
-            loss_train.backward()
-            optimizer.step()
-
-        # save loss for next iteration
-        previous_loss = loss_train_value
-        # early stop based on diff(training loss)
-        if stop_training:
-            break
+        loss_train.backward()
+        optimizer.step()
 
     # Write results for this training
     print(f'  finished:')
@@ -154,6 +124,7 @@ for layer_type, operation, seed in itertools.product(
         'loss_valid_inter': loss_valid_inter.detach().cpu().numpy().item(0),
         'loss_valid_extra': loss_valid_extra.detach().cpu().numpy().item(0)
     }) + '\n')
+    fp.flush()
 
     writer.close()
 
