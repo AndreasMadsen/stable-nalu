@@ -3,12 +3,13 @@ import numpy as np
 import torch
 import stable_nalu
 
-batch_train = stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
+dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation='add',
-    batch_size=128,
-    num_workers=0,
-    input_range=1
+    use_cuda=False,
+    num_workers=1,
+    seed=0
 )
+dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
 
 model = stable_nalu.network.SimpleFunctionStaticNetwork('linear')
 model.reset_parameters()
@@ -16,7 +17,7 @@ model.reset_parameters()
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for epoch_i, (x_train, t_train) in zip(range(1000), batch_train):
+for epoch_i, (x_train, t_train) in zip(range(1000), dataset_train):
     # zero the parameter gradients
     optimizer.zero_grad()
 

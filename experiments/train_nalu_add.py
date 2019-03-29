@@ -11,28 +11,15 @@ torch.manual_seed(seed)
 print(f'running with seed: {seed}')
 
 writer = stable_nalu.writer.SummaryWriter(log_dir=f'runs/repeat/static/nalu/add/seed_{seed}')
-batch_train = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
+dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation='add',
-    batch_size=128,
-    num_workers=0,
-    input_range=1,
-    seed=seed * 3 + 0,
-    use_cuda=use_cuda
-))
-dataset_valid_interpolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-    operation='add',
-    batch_size=2048,
-    num_workers=0,
-    input_range=1,
-    seed=seed * 3 + 1,
-    use_cuda=use_cuda))
-dataset_valid_extrapolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-    operation='add',
-    batch_size=2048,
-    num_workers=0,
-    input_range=5,
-    seed=seed * 3 + 2,
-    use_cuda=use_cuda))
+    use_cuda=use_cuda,
+    num_workers=1,
+    seed=seed
+)
+dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
+dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
+dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))
 
 model = stable_nalu.network.SimpleFunctionStaticNetwork('NALU', writer=writer.namespace('network'))
 model.reset_parameters()
@@ -42,7 +29,7 @@ if use_cuda:
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-for epoch_i, (x_train, t_train) in zip(range(100000), batch_train):
+for epoch_i, (x_train, t_train) in zip(range(100000), dataset_train):
     writer.set_iteration(epoch_i)
 
     # zero the parameter gradients

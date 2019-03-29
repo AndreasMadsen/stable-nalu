@@ -4,7 +4,6 @@ import numpy as np
 import torch
 
 from ..writer import DummyWriter
-from ..functional import NACWeightRescaled
 
 def nac_w_variance(r):
     """Calculates the variance of W.

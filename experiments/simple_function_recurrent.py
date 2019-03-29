@@ -28,7 +28,6 @@ operations = [
 
 seeds = range(1)
 
-num_workers = 1  # min(8, multiprocessing.cpu_count())
 max_iterations = 100000
 
 os.makedirs("results", exist_ok=True)
@@ -46,30 +45,15 @@ for layer_type, operation, seed in itertools.product(
     torch.manual_seed(seed)
 
     # Setup datasets
-    dataset_train = iter(stable_nalu.dataset.SimpleFunctionRecurrentDataset.dataloader(
-        operation=operation,
-        batch_size=128,
-        num_workers=num_workers,
-        input_range=1,
-        time_length=10,
-        seed=seed * 3 * num_workers + 0 * num_workers,
-        use_cuda=use_cuda))
-    dataset_valid_interpolation = iter(stable_nalu.dataset.SimpleFunctionRecurrentDataset.dataloader(
-        operation=operation,
-        batch_size=2048,
-        num_workers=num_workers,
-        input_range=1,
-        time_length=10,
-        seed=seed * 3 * num_workers + 1 * num_workers,
-        use_cuda=use_cuda))
-    dataset_valid_extrapolation = iter(stable_nalu.dataset.SimpleFunctionRecurrentDataset.dataloader(
-        operation=operation,
-        batch_size=2048,
-        num_workers=num_workers,
-        input_range=1,
-        time_length=1000,
-        seed=seed * 3 * num_workers + 2 * num_workers,
-        use_cuda=use_cuda))
+    dataset = stable_nalu.dataset.SimpleFunctionRecurrentDataset(
+        operation='add',
+        use_cuda=use_cuda,
+        num_workers=1,
+        seed=seed
+    )
+    dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
+    dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
+    dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))
 
     # setup model
     model = stable_nalu.network.SimpleFunctionRecurrentNetwork(layer_type)
@@ -92,7 +76,7 @@ for layer_type, operation, seed in itertools.product(
 
         # Log loss
         writer.add_scalar('loss/train', loss_train)
-        if epoch_i % 100 == 0 or stop_training:
+        if epoch_i % 100 == 0:
             x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
             loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
             writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
@@ -101,8 +85,8 @@ for layer_type, operation, seed in itertools.product(
             loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
             writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
-        if epoch_i % 1000 == 0 or stop_training:
-            print(f'  {epoch_i}: {loss_train_value}')
+        if epoch_i % 1000 == 0:
+            print(f'  {epoch_i}: {loss_train}')
 
         # Backward + optimize model
         loss_train.backward()

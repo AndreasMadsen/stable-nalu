@@ -8,14 +8,11 @@ import numpy as np
 from stable_nalu.dataset import SimpleFunctionStaticDataset
 
 def test_solveable_by_linear_algebra():
-    dataset = SimpleFunctionStaticDataset('add', seed=0)
-    x_batch = []
-    t_batch = []
-    for i in range(100):
-        x, t = dataset[i]
-        x_batch.append(x.numpy())
-        t_batch.append(t.numpy())
-
+    dataset = SimpleFunctionStaticDataset(
+        operation='add', seed=0
+    )
+    dataset_test = iter(dataset.fork(input_range=1).dataloader(batch_size=100))
+    x_batch, t_batch = next(dataset_test)
     x_batch_np = np.stack(x_batch)
     t_batch_np = np.stack(t_batch)
 
@@ -24,15 +21,15 @@ def test_solveable_by_linear_algebra():
 
     # W is whole numbers
     np.testing.assert_almost_equal(
-        w_merged_np - np.around(w_merged_np, 0),
+        w_merged_np - w_merged_np_int,
         np.zeros(100),
-        decimal=5
+        decimal=4
     )
     # W is either 0, 1, 2
     # NOTE: a different seed might not result in an overlap, thus {2} might
     # not be present.
     assert_equal(
-        set(np.round(w_merged_np, 0).astype('int8').tolist()),
+        set(w_merged_np_int.tolist()),
         {0, 1, 2}
     )
 
@@ -64,17 +61,24 @@ def test_solveable_by_linear_algebra():
     assert_equal(b_end, dataset.b_end)
 
 def test_input_range():
-    dataset = SimpleFunctionStaticDataset('add', input_size=10000, seed=0)
-    x, t = dataset[0]
+    dataset = SimpleFunctionStaticDataset(
+        operation='add',
+        vector_size=10000,
+        seed=0
+    )
+    x, t = dataset.fork(input_range=5)[0]
     _, p = scipy.stats.kstest(
         x,
-        scipy.stats.uniform(loc=-5, scale=10).cdf
+        scipy.stats.uniform(loc=0, scale=5).cdf
     )
     assert p > 0.5
 
 def test_output_shape():
-    dataset = SimpleFunctionStaticDataset('add', seed=0)
-    x, t = dataset[0]
+    dataset = SimpleFunctionStaticDataset(
+        operation='add',
+        seed=0
+    )
+    x, t = dataset.fork(input_range=5)[0]
     assert_equal(x.shape, (100, ))
     # Note, t.shape should be a 1-long vector, not a scalar. Otherwise
     # the loss function gets confused about what the observation dimention

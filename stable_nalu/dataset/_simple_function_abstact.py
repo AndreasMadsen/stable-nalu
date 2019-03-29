@@ -26,32 +26,57 @@ class ARITHMETIC_FUNCTIONS:
     def root(a, b):
         return np.sqrt(a)
 
-class SimpleFunctionDataset(torch.utils.data.Dataset):
-    def __init__(self, operation, shape,
-                 input_range=1,
+class SimpleFunctionDataset:
+    def __init__(self, operation, vector_size,
                  seed=None,
-                 num_workers=1,
+                 num_workers=0,
+                 use_cuda=False,
                  max_size=2**32-1):
         super().__init__()
 
         self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
         self._max_size = max_size
-        self._input_range = input_range
-        self._shape = shape
-        self._input_size = shape[-1]
-        self._rngs = [
-            np.random.RandomState(None if seed is None else seed + i)
-            for i in range(max(1, num_workers))
-        ]
-        self._worker_id = 0
+        self._vector_size = vector_size
+        self._num_workers = num_workers
+        self._use_cuda = use_cuda
+        self._rng = np.random.RandomState(seed)
 
-        self.a_start = self._rngs[0].randint(0, self._input_size)
-        a_size = self._rngs[0].randint(1, self._input_size - self.a_start + 1)
+        self.a_start = self._rng.randint(0, self._vector_size)
+        a_size = self._rng.randint(1, self._vector_size - self.a_start + 1)
         self.a_end = self.a_start + a_size
 
-        self.b_start = self._rngs[0].randint(0, self._input_size)
-        b_size = self._rngs[0].randint(1, self._input_size - self.b_start + 1)
+        self.b_start = self._rng.randint(0, self._vector_size)
+        b_size = self._rng.randint(1, self._vector_size - self.b_start + 1)
         self.b_end = self.b_start + b_size
+
+    def fork(self, shape, input_range):
+        assert shape[-1] == self._vector_size
+
+        rngs = [
+            np.random.RandomState(self._rng.randint(0, 2**32 - 1))
+            for i in range(max(1, self._num_workers))
+        ]
+        return SimpleFunctionDatasetFork(self, shape, input_range, rngs)
+
+class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
+    def __init__(self, parent, shape, input_range, rngs):
+        super().__init__()
+
+        self._shape = shape
+        self._input_range = input_range
+        self._rngs = rngs
+
+        self._operation = parent._operation
+        self._max_size = parent._max_size
+        self._num_workers = parent._num_workers
+        self._use_cuda = parent._use_cuda
+
+        self._a_start = parent.a_start
+        self._a_end = parent.a_end
+        self._b_start = parent.b_start
+        self._b_end = parent.b_end
+
+        self._worker_id = 0
 
     def _worker_init_fn(self, worker_id):
         self._worker_id = worker_id
@@ -63,8 +88,8 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
             size=self._shape)
 
         # Compute a and b values
-        a = np.sum(input_vector[..., self.a_start:self.a_end])
-        b = np.sum(input_vector[..., self.b_start:self.b_end])
+        a = np.sum(input_vector[..., self._a_start:self._a_end])
+        b = np.sum(input_vector[..., self._b_start:self._b_end])
         # Compute result of arithmetic operation
         output_scalar = self._operation(a, b)
 
@@ -76,21 +101,16 @@ class SimpleFunctionDataset(torch.utils.data.Dataset):
     def __len__(self):
         return self._max_size
 
-    @classmethod
-    def dataloader(cls, operation=None, batch_size=128, num_workers=0, use_cuda=False, **kwargs):
-        if operation is None:
-            raise ValueError('operation must be specified')
-
-        dataset = cls(operation, num_workers=num_workers, **kwargs)
+    def dataloader(self, batch_size=128):
         batcher = torch.utils.data.DataLoader(
-            dataset,
+            self,
             batch_size=batch_size,
             shuffle=False,
-            sampler=torch.utils.data.SequentialSampler(dataset),
-            num_workers=num_workers,
-            worker_init_fn=dataset._worker_init_fn)
+            sampler=torch.utils.data.SequentialSampler(self),
+            num_workers=self._num_workers,
+            worker_init_fn=self._worker_init_fn)
 
-        if use_cuda:
+        if self._use_cuda:
             return itertools.starmap(lambda X, t: (X.cuda(), t.cuda()), batcher)
         else:
             return batcher

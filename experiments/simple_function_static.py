@@ -32,7 +32,6 @@ operations = [
 
 seeds = range(1)
 
-num_workers = 1  # min(8, multiprocessing.cpu_count())
 max_iterations = 100000
 
 os.makedirs("results", exist_ok=True)
@@ -50,27 +49,15 @@ for layer_type, operation, seed in itertools.product(
     torch.manual_seed(seed)
 
     # Setup datasets
-    dataset_train = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-        operation=operation,
-        batch_size=128,
-        num_workers=num_workers,
-        input_range=1,
-        seed=seed * 3 * num_workers + 0 * num_workers,
-        use_cuda=use_cuda))
-    dataset_valid_interpolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-        operation=operation,
-        batch_size=2048,
-        num_workers=num_workers,
-        input_range=1,
-        seed=seed * 3 * num_workers + 1 * num_workers,
-        use_cuda=use_cuda))
-    dataset_valid_extrapolation = iter(stable_nalu.dataset.SimpleFunctionStaticDataset.dataloader(
-        operation=operation,
-        batch_size=2048,
-        num_workers=num_workers,
-        input_range=5,
-        seed=seed * 3 * num_workers + 2 * num_workers,
-        use_cuda=use_cuda))
+    dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
+        operation='add',
+        use_cuda=use_cuda,
+        num_workers=1,
+        seed=seed
+    )
+    dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
+    dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
+    dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))
 
     # setup model
     model = stable_nalu.network.SimpleFunctionStaticNetwork(layer_type)
