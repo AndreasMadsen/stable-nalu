@@ -39,7 +39,7 @@ for layer_type, operation, seed in itertools.product(
     print(f'running layer_type: {layer_type}, operation: {operation}, seed: {seed}')
 
     writer = stable_nalu.writer.SummaryWriter(
-        log_dir=f'runs/recurrent/{layer_type.lower()}_{operation.lower()}_{seed}')
+        log_dir=f'tensorboard/recurrent/{layer_type.lower()}_{operation.lower()}_{seed}')
 
     # Set seed
     torch.manual_seed(seed)
@@ -77,13 +77,14 @@ for layer_type, operation, seed in itertools.product(
         # Log loss
         writer.add_scalar('loss/train', loss_train)
         if epoch_i % 100 == 0:
-            x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
-            loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
-            writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
+            with torch.no_grad():
+                x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
+                loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
+                writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
 
-            x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
-            loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
-            writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
+                x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
+                loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
+                writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
         if epoch_i % 1000 == 0:
             print(f'  {epoch_i}: {loss_train}')

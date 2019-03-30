@@ -10,7 +10,7 @@ torch.manual_seed(seed)
 
 print(f'running with seed: {seed}')
 
-writer = stable_nalu.writer.SummaryWriter(log_dir=f'runs/repeat/static/nalu/add/seed_{seed}')
+writer = stable_nalu.writer.SummaryWriter(log_dir=f'tensorboard/repeat/static/nalu/add/seed_{seed}')
 dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation='add',
     use_cuda=use_cuda,
@@ -48,14 +48,15 @@ for epoch_i, (x_train, t_train) in zip(range(100000), dataset_train):
     if epoch_i % 100 == 0:
         print(f'{epoch_i}: {loss_train.item()}')
 
-        # Log loss
-        x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
-        loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
-        writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
+        with torch.no_grad():
+            # Log loss
+            x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
+            loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
+            writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
 
-        x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
-        loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
-        writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
+            x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
+            loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
+            writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
         # Log weights
         for index, weight in enumerate(model.parameters(), start=1):
