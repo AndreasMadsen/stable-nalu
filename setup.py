@@ -13,6 +13,7 @@ setup(name='stable_nalu',
           'numpy',
           'tqdm',
           'torch',
+          'torchvision',
           'scipy',
           'tensorboardX',
           'tensorboard'

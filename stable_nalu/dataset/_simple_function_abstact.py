@@ -4,6 +4,8 @@ import numpy as np
 import torch
 import torch.utils.data
 
+from ._dataloader_cuda_wrapper import DataLoaderCudaWrapper
+
 class ARITHMETIC_FUNCTIONS:
     @staticmethod
     def add(a, b):
@@ -111,6 +113,6 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
             worker_init_fn=self._worker_init_fn)
 
         if self._use_cuda:
-            return itertools.starmap(lambda X, t: (X.cuda(), t.cuda()), batcher)
+            return DataLoaderCudaWrapper(batcher)
         else:
             return batcher

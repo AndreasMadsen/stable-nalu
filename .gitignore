@@ -1,6 +1,7 @@
 logs/
-runs/
+tensorboard/
 results/
+stable_nalu/dataset/data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
