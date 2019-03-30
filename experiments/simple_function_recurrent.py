@@ -51,9 +51,9 @@ for layer_type, operation, seed in itertools.product(
         num_workers=1,
         seed=seed
     )
-    dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
-    dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
-    dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))
+    dataset_train = iter(dataset.fork(seq_length=10).dataloader(batch_size=128))
+    dataset_valid_interpolation = iter(dataset.fork(seq_length=10).dataloader(batch_size=2048))
+    dataset_valid_extrapolation = iter(dataset.fork(seq_length=1000).dataloader(batch_size=2048))
 
     # setup model
     model = stable_nalu.network.SimpleFunctionRecurrentNetwork(layer_type)
