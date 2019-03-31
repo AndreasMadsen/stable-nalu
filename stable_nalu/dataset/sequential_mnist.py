@@ -24,7 +24,7 @@ DATA_DIR = path.join(THIS_DIR, 'data')
 
 class SequentialMnistDataset:
     def __init__(self, operation,
-                 num_workers=0,
+                 num_workers=1,
                  seed=None,
                  use_cuda=False):
         super().__init__()

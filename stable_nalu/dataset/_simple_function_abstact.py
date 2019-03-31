@@ -31,7 +31,7 @@ class ARITHMETIC_FUNCTIONS:
 class SimpleFunctionDataset:
     def __init__(self, operation, vector_size,
                  seed=None,
-                 num_workers=0,
+                 num_workers=1,
                  use_cuda=False,
                  max_size=2**32-1):
         super().__init__()
