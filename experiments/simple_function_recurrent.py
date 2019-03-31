@@ -48,7 +48,6 @@ for layer_type, operation, seed in itertools.product(
     dataset = stable_nalu.dataset.SimpleFunctionRecurrentDataset(
         operation='add',
         use_cuda=use_cuda,
-        num_workers=1,
         seed=seed
     )
     dataset_train = iter(dataset.fork(seq_length=10).dataloader(batch_size=128))

@@ -14,7 +14,6 @@ writer = stable_nalu.writer.SummaryWriter(log_dir=f'tensorboard/repeat/static/na
 dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation='add',
     use_cuda=use_cuda,
-    num_workers=1,
     seed=seed
 )
 dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))

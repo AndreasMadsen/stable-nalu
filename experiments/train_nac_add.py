@@ -6,7 +6,6 @@ import stable_nalu
 dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation='add',
     use_cuda=False,
-    num_workers=1,
     seed=0
 )
 dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
