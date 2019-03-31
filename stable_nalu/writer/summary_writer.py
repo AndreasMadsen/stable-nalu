@@ -1,6 +1,10 @@
 
+import os.path as path
 import torch
 from tensorboardX import SummaryWriter as SummaryWriterRaw
+
+THIS_DIR = path.dirname(path.realpath(__file__))
+TENSORBOARD_DIR = path.join(THIS_DIR, '../../tensorboard')
 
 class SummaryWriterNamespace:
     def __init__(self, namespace='', root=None):
@@ -31,10 +35,12 @@ class SummaryWriterNamespace:
         )
 
 class SummaryWriter(SummaryWriterNamespace):
-    def __init__(self, **kwargs):
+    def __init__(self, name, **kwargs):
         super().__init__()
         self._iteration = 0
-        self.writer = SummaryWriterRaw(**kwargs)
+        self.writer = SummaryWriterRaw(
+            log_dir=path.join(TENSORBOARD_DIR, name),
+            **kwargs)
 
     def set_iteration(self, iteration):
         self._iteration = iteration
@@ -44,6 +50,9 @@ class SummaryWriter(SummaryWriterNamespace):
 
     def close(self):
         self.writer.close()
+
+    def __del__(self):
+        self.close()
 
 class DummyWriter():
     def __init__(self):

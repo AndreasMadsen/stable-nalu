@@ -1,118 +1,137 @@
 
-import os
-import json
 import torch
 import stable_nalu
-import itertools
-import multiprocessing
+import argparse
 
-use_cuda = torch.cuda.is_available()
+# Parse arguments
+parser = argparse.ArgumentParser(description='Runs the simple function static task')
+parser.add_argument('--layer-type',
+                    action='store',
+                    default='NALU',
+                    choices=[
+                        'Tanh', 'Sigmoid', 'ReLU6', 'Softsign', 'SELU',
+                        'ELU', 'ReLU', 'linear', 'NAC', 'NALU'
+                    ],
+                    type=str,
+                    help='Specify the layer type, e.g. Tanh, ReLU, NAC, NALU')
+parser.add_argument('--operation',
+                    action='store',
+                    default='add',
+                    choices=[
+                        'add', 'sub', 'mul', 'div', 'squared', 'root'
+                    ],
+                    type=str,
+                    help='Specify the operation to use, e.g. add, mul, squared')
+parser.add_argument('--seed',
+                    action='store',
+                    default=0,
+                    type=int,
+                    help='Specify the seed to use')
+parser.add_argument('--max-iterations',
+                    action='store',
+                    default=100000,
+                    type=int,
+                    help='Specify the max number of iterations to use')
+parser.add_argument('--cuda',
+                    action='store',
+                    default=torch.cuda.is_available(),
+                    type=bool,
+                    help='Should CUDA be used')
+parser.add_argument('--verbose',
+                    action='store_true',
+                    default=False,
+                    help='Should network measures (e.g. gates) and gradients be shown')
+args = parser.parse_args()
 
-layer_types = [
-    'Tanh',
-    #'Sigmoid',
-    'ReLU6',
-    #'Softsign',
-    #'SELU',
-    #'ELU',
-    'ReLU',
-    'linear',
-    'NAC',
-    'NALU'
-]
+# Print configuration
+print(f'running')
+print(f'  seed: {args.seed}')
+print(f'  operation: {args.operation}')
+print(f'  layer_type: {args.layer_type}')
+print(f'  cuda: {args.cuda}')
+print(f'  verbose: {args.verbose}')
+print(f'  max_iterations: {args.max_iterations}')
 
-operations = [
-    'add',
-    'sub',
-    'mul',
-    'div',
-    'squared',
-    'root'
-]
+# Prepear logging
+results_writer = stable_nalu.writer.ResultsWriter('simple_function_static')
+summary_writer = stable_nalu.writer.SummaryWriter(
+    f'simple_function_static/{args.layer_type.lower()}_{args.operation.lower()}_{args.seed}'
+)
 
-seeds = range(1)
+# Set seed
+torch.manual_seed(args.seed)
 
-max_iterations = 100000
+# Setup datasets
+dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
+    operation=args.operation,
+    use_cuda=args.cuda,
+    seed=args.seed
+)
+dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
+dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
+dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))
 
-os.makedirs("results", exist_ok=True)
-fp = open('results/simple_function_static.ndjson', 'w')
+# setup model
+model = stable_nalu.network.SimpleFunctionStaticNetwork(
+    args.layer_type,
+    writer=summary_writer if args.verbose else stable_nalu.writer.DummyWriter()
+)
+if args.cuda:
+    model.cuda()
+model.reset_parameters()
+criterion = torch.nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters())
 
-for layer_type, operation, seed in itertools.product(
-    layer_types, operations, seeds
-):
-    print(f'running layer_type: {layer_type}, operation: {operation}, seed: {seed}')
+# Train model
+for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_train):
+    summary_writer.set_iteration(epoch_i)
 
-    writer = stable_nalu.writer.SummaryWriter(
-        log_dir=f'tensorboard/static/{layer_type.lower()}_{operation.lower()}_{seed}')
+    # zero the parameter gradients
+    optimizer.zero_grad()
 
-    # Set seed
-    torch.manual_seed(seed)
+    # forward
+    y_train = model(x_train)
+    loss_train = criterion(y_train, t_train)
 
-    # Setup datasets
-    dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
-        operation='add',
-        use_cuda=use_cuda,
-        seed=seed
-    )
-    dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
-    dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
-    dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))
+    # Log loss
+    summary_writer.add_scalar('loss/train', loss_train)
+    if epoch_i % 1000 == 0:
+        with torch.no_grad():
+            x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
+            loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
+            summary_writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
 
-    # setup model
-    model = stable_nalu.network.SimpleFunctionStaticNetwork(layer_type)
-    if use_cuda:
-        model.cuda()
-    model.reset_parameters()
-    criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters())
+            x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
+            loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
+            summary_writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
-    # Train model
-    for epoch_i, (x_train, t_train) in zip(range(max_iterations + 1), dataset_train):
-        writer.set_iteration(epoch_i)
+        print(f'  {epoch_i}: train: {loss_train}')
 
-        # zero the parameter gradients
-        optimizer.zero_grad()
+    # Backward + optimize model
+    loss_train.backward()
+    optimizer.step()
 
-        # forward
-        y_train = model(x_train)
-        loss_train = criterion(y_train, t_train)
+    # Log gradients if in verbose mode
+    if args.verbose and epoch_i % 1000 == 0:
+        for index, weight in enumerate(model.parameters(), start=1):
+            gradient, *_ = weight.grad.data
+            writer.add_summary(f'grad/{index}', gradient)
 
-        # Log loss
-        writer.add_scalar('loss/train', loss_train)
-        if epoch_i % 100 == 0:
-            with torch.no_grad():
-                x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
-                loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
-                writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
+# Write results for this training
+print(f'  finished:')
+print(f'  - loss_train: {loss_train}')
+print(f'  - loss_valid_inter: {loss_valid_inter}')
+print(f'  - loss_valid_extra: {loss_valid_extra}')
 
-                x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
-                loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
-                writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
-
-        if epoch_i % 1000 == 0:
-            print(f'  {epoch_i}: {loss_train}')
-
-        # Backward + optimize model
-        loss_train.backward()
-        optimizer.step()
-
-    # Write results for this training
-    print(f'  finished:')
-    print(f'  - epochs: {epoch_i}')
-    print(f'  - loss_train: {loss_train}')
-    print(f'  - loss_valid_inter: {loss_valid_inter}')
-    print(f'  - loss_valid_extra: {loss_valid_extra}')
-    fp.write(json.dumps({
-        'layer_type': layer_type,
-        'operation': operation,
-        'seed': seed,
-        'epochs': epoch_i,
-        'loss_train': loss_train.detach().cpu().numpy().item(0),
-        'loss_valid_inter': loss_valid_inter.detach().cpu().numpy().item(0),
-        'loss_valid_extra': loss_valid_extra.detach().cpu().numpy().item(0)
-    }) + '\n')
-    fp.flush()
-
-    writer.close()
-
-fp.close()
+# save results
+results_writer.add({
+    'seed': args.seed,
+    'operation': args.operation,
+    'layer_type': args.layer_type,
+    'cuda': args.cuda,
+    'verbose': args.verbose,
+    'max_iterations': args.max_iterations,
+    'loss_train': loss_train,
+    'loss_valid_inter': loss_valid_inter,
+    'loss_valid_extra': loss_valid_extra
+})
