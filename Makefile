@@ -13,4 +13,6 @@ fetch:
 	-e ssh computationally:~/workspace/stable-nalu/logs/ ./logs
 
 clean:
-	rm -rvf runs/*
+	rm -rvf tensorboard/*
+	rm -rvf results/*
+	rm -rvf logs/*
