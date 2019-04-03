@@ -104,7 +104,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
             loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
             summary_writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
-        print(f'  {epoch_i}: train: {loss_train}')
+        print(f'  train {epoch_i}: {loss_train}')
 
     # Backward + optimize model
     loss_train.backward()

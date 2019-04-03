@@ -1,19 +1,19 @@
 #!/bin/bash
-mkdir -p logs
+mkdir -p logs/simple_function_recurrent
 
 layer_types=( RNN-tanh RNN-ReLU GRU LSTM NAC NALU )
 operations=( add sub mul div squared root )
 seeds=( 0 1 2 3 4 5 6 7 8 9 )
 
-for operation in "${operations[@]}"
+for seed in "${seeds[@]}"
 do
-    for layer_type in "${layer_types[@]}"
+    for operation in "${operations[@]}"
     do
-        for seed in "${seeds[@]}"
+        for layer_type in "${layer_types[@]}"
         do
-            python3 -u experiments/simple_function_recurrent.py --max-iterations 1 \
-                --operation $operation --layer-type $layer_type --seed $seed \
-                |& tee logs/simple_function_recurrent_$operation_$layer_type_$seed.log
+            python3 -u experiments/simple_function_recurrent.py \
+                --operation ${operation} --layer-type ${layer_type} --seed ${seed} \
+                | tee logs/simple_function_recurrent/${operation,,}_${layer_type,,}_${seed,,}.log
         done
     done
 done
