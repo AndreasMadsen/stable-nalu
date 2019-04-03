@@ -44,12 +44,12 @@ args = parser.parse_args()
 
 # Print configuration
 print(f'running')
-print(f'  seed: {args.seed}')
-print(f'  operation: {args.operation}')
-print(f'  layer_type: {args.layer_type}')
-print(f'  cuda: {args.cuda}')
-print(f'  verbose: {args.verbose}')
-print(f'  max_iterations: {args.max_iterations}')
+print(f'  - seed: {args.seed}')
+print(f'  - operation: {args.operation}')
+print(f'  - layer_type: {args.layer_type}')
+print(f'  - cuda: {args.cuda}')
+print(f'  - verbose: {args.verbose}')
+print(f'  - max_iterations: {args.max_iterations}')
 
 # Prepear logging
 results_writer = stable_nalu.writer.ResultsWriter('simple_function_recurrent')
@@ -104,7 +104,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
             loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
             summary_writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
 
-        print(f'  train {epoch_i}: {loss_train}')
+        print(f'train {epoch_i}: {loss_train}')
 
     # Backward + optimize model
     loss_train.backward()
@@ -117,7 +117,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
             writer.add_summary(f'grad/{index}', gradient)
 
 # Write results for this training
-print(f'  finished:')
+print(f'finished:')
 print(f'  - loss_train: {loss_train}')
 print(f'  - loss_valid_inter: {loss_valid_inter}')
 print(f'  - loss_valid_extra: {loss_valid_extra}')
