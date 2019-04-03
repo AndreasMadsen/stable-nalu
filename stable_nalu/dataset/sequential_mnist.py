@@ -4,8 +4,13 @@ import numpy as np
 import torch
 import torch.utils.data
 import torchvision
+from typing import Tuple, NamedTuple, Union
 
 from ._dataloader_cuda_wrapper import DataLoaderCudaWrapper
+
+class ItemShape(NamedTuple):
+    input: Tuple[Union[None, int], ...]
+    target: Tuple[Union[None, int], ...]
 
 class OPERATIONS:
     @staticmethod
@@ -33,6 +38,12 @@ class SequentialMnistDataset:
         self._num_workers = num_workers
         self._use_cuda = use_cuda
         self._rng = np.random.RandomState(seed)
+
+    def get_item_shape(self):
+        if self._operation == 'sum':
+            return ItemShape((None, 28, 28), (1, ))
+        else:
+            return ItemShape((None, 28, 28), (10, ))
 
     def fork(self, seq_length=10, subset='train'):
         if subset not in {'train', 'test'}:
@@ -73,7 +84,7 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
             mnist_images.append(image)  # image.size() = [1, 28, 28]
             mnist_targets.append(target)
 
-        data = torch.cat(mnist_images)  # data.size() = [seq_length, 28, 28]
+        data = torch.stack(mnist_images)  # data.size() = [seq_length, 1, 28, 28]
         target = self._operation(np.stack(mnist_targets))
 
         return (
