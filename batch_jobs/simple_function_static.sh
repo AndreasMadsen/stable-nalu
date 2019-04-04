@@ -2,7 +2,7 @@
 mkdir -p logs/simple_function_static
 
 #layer_types=( Tanh Sigmoid ReLU6 Softsign SELU ELU ReLU linear NAC NALU )
-layer_types=( ReLU6 linear NAC NALU )
+layer_types=( ReLU6 ReLU linear NAC NALU )
 operations=( add sub mul div squared root )
 seeds=( 0 1 2 3 4 5 6 7 8 9 )
 
