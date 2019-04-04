@@ -8,6 +8,7 @@ import torchvision
 from ._dataloader_cuda_wrapper import DataLoaderCudaWrapper
 
 id2token = [
+    '<pad>',
     'and',
     'one',
     'two',
@@ -38,10 +39,11 @@ id2token = [
     'ninety',
     'hundred'
 ]
-first_ten_tokens = id2token[1:10]
-first_twenty_tokens = id2token[1:20]
-tens_tokens = id2token[20:28]
-and_token = id2token[0]
+first_ten_tokens = id2token[2:11]
+first_twenty_tokens = id2token[2:21]
+tens_tokens = id2token[21:29]
+pad_token = id2token[0]
+and_token = id2token[1]
 hundred_token = id2token[-1]
 
 token2id = {
@@ -65,7 +67,7 @@ class NumberTranslationDataset:
         self._test_samples = []
 
         # add the first 19 tokens
-        missing_train_ids = set(token2id.values())
+        missing_train_ids = set(token2id.values()) - set([pad_token])
         for number in range(1, 20):
             ids = self.encode(number)
             self._train_samples.append((ids, number))
@@ -130,7 +132,9 @@ class NumberTranslationDataset:
         if as_strings:
             return tokens
         else:
-            return np.asarray([token2id[token] for token in tokens], dtype=np.int32)
+            # pad tokens to have length 6
+            tokens += [pad_token] * (5 - len(tokens))
+            return np.asarray([token2id[token] for token in tokens], dtype=np.int64)
 
     def fork(self, subset='train'):
         if subset not in {'train', 'valid', 'test'}:
@@ -158,7 +162,7 @@ class NumberTranslationDatasetFork(torch.utils.data.Dataset):
         x, t = self._dataset[index]
 
         return (
-            torch.tensor(x, dtype=torch.int32),
+            torch.tensor(x, dtype=torch.int64),
             torch.tensor([t], dtype=torch.float32)
         )
 

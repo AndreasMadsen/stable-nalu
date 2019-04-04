@@ -27,8 +27,8 @@ class _Image2LabelCNN(torch.nn.Module):
         x = torch.nn.functional.max_pool2d(x, 2, 2)
         x = x.view(-1, 4*4*50)
         x = torch.nn.functional.relu(self.fc1(x))
-        x = self.fc2(x)
-        return torch.nn.functional.softmax(x, dim=1)  # do we want a softmax?
+        return self.fc2(x)
+        # return torch.nn.functional.softmax(x, dim=1)  # do we want a softmax?
 
 class SequentialMnistNetwork(torch.nn.Module):
     def __init__(self, unit_name, output_size,
@@ -37,18 +37,16 @@ class SequentialMnistNetwork(torch.nn.Module):
         self.unit_name = unit_name
         self.output_size = output_size
 
-        # Since for the 'mul' problem, the zero_state should be 1, and for the
-        # 'add' problem it should be 0. The zero_states are allowed to be
-        # # optimized.
+        # TODO: maybe don't make them learnable, properly zero will surfise here
         if unit_name == 'LSTM':
-            self.zero_state = torch.nn.ParameterDict({
-                'h_t0': torch.nn.Parameter(torch.Tensor(self.output_size)),
-                'c_t0': torch.nn.Parameter(torch.Tensor(self.output_size))
-            })
+            self.zero_state = {
+                'h_t0': torch.Tensor(self.output_size),
+                'c_t0': torch.Tensor(self.output_size)
+            }
         else:
-            self.zero_state = torch.nn.Parameter(torch.Tensor(self.output_size))
+            self.zero_state = torch.Tensor(self.output_size)
 
-        self._image2label = _Image2LabelCNN()
+        self.image2label = _Image2LabelCNN()
         self.recurent_cell = GeneralizedCell(10, self.output_size,
                                              unit_name,
                                              writer=writer.namespace('recurrent_layer'),
@@ -61,7 +59,7 @@ class SequentialMnistNetwork(torch.nn.Module):
         else:
             torch.nn.init.zeros_(self.zero_state)
 
-        self._image2label.reset_parameters()
+        self.image2label.reset_parameters()
         self.recurent_cell.reset_parameters()
 
     def forward(self, x):
@@ -78,12 +76,13 @@ class SequentialMnistNetwork(torch.nn.Module):
 
         for t in range(x.size(1)):
             x_t = x[:, t]
-            l_t = self._image2label(x_t)
-            h_t = self.recurent_cell.forward(l_t, h_tm1)
+            l_t = self.image2label(x_t)
+            h_t = self.recurent_cell(l_t, h_tm1)
             h_tm1 = h_t
 
         # Grap the final hidden output and use as the output from the recurrent layer
         z_1 = h_t[0] if self.unit_name == 'LSTM' else h_t
+
         return z_1
 
     def extra_repr(self):

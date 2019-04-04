@@ -25,8 +25,8 @@ class SimpleFunctionStaticNetwork(torch.nn.Module):
         self.layer_2.reset_parameters()
 
     def forward(self, input):
-        z_1 = self.layer_1.forward(input)
-        z_2 = self.layer_2.forward(z_1)
+        z_1 = self.layer_1(input)
+        z_2 = self.layer_2(z_1)
         return z_2
 
     def extra_repr(self):

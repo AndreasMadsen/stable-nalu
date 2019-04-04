@@ -40,7 +40,7 @@ class SequentialMnistDataset:
         self._rng = np.random.RandomState(seed)
 
     def get_item_shape(self):
-        if self._operation == 'sum':
+        if self._operation == OPERATIONS.sum:
             return ItemShape((None, 28, 28), (1, ))
         else:
             return ItemShape((None, 28, 28), (10, ))

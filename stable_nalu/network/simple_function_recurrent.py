@@ -56,12 +56,12 @@ class SimpleFunctionRecurrentNetwork(torch.nn.Module):
 
         for t in range(x.size(1)):
             x_t = x[:, t]
-            h_t = self.recurent_cell.forward(x_t, h_tm1)
+            h_t = self.recurent_cell(x_t, h_tm1)
             h_tm1 = h_t
 
         # Grap the final hidden output and use as the output from the recurrent layer
         z_1 = h_t[0] if self.unit_name == 'LSTM' else h_t
-        z_2 = self.output_layer.forward(z_1)
+        z_2 = self.output_layer(z_1)
         return z_2
 
     def extra_repr(self):

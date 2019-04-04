@@ -40,7 +40,7 @@ class GeneralizedLayer(torch.nn.Module):
         self.layer.reset_parameters()
 
     def forward(self, input):
-        return self.layer.forward(input)
+        return self.layer(input)
 
     def extra_repr(self):
         return 'in_features={}, out_features={}, unit_name={}'.format(
@@ -92,7 +92,7 @@ class GeneralizedCell(torch.nn.Module):
         self.cell.reset_parameters()
 
     def forward(self, x_t, h_tm1):
-        return self.cell.forward(x_t, h_tm1)
+        return self.cell(x_t, h_tm1)
 
     def extra_repr(self):
         return 'input_size={}, hidden_size={}, unit_name={}'.format(
