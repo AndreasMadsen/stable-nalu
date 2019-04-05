@@ -6,7 +6,7 @@ sync:
 
 fetch:
 	rsync --info=progress2 -urltv --delete \
-	-e ssh computationally:~/workspace/stable-nalu/runs/ ./tensorboard
+	-e ssh computationally:~/workspace/stable-nalu/tensorboard/ ./tensorboard
 	rsync --info=progress2 -urltv --delete \
 	-e ssh computationally:~/workspace/stable-nalu/results/ ./results
 	rsync --info=progress2 -urltv --delete \

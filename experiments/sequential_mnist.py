@@ -28,7 +28,7 @@ parser.add_argument('--seed',
                     help='Specify the seed to use')
 parser.add_argument('--max-epochs',
                     action='store',
-                    default=100,
+                    default=1000,
                     type=int,
                     help='Specify the max number of epochs to use')
 parser.add_argument('--cuda',
@@ -94,7 +94,7 @@ def test_model(dataloader):
 
 # Train model
 global_step = 0
-for epoch_i in range(args.max_epochs):
+for epoch_i in range(0, args.max_epochs + 1):
     for i_train, (x_train, t_train) in enumerate(dataset_train):
         global_step += 1
         summary_writer.set_iteration(global_step)
@@ -111,17 +111,18 @@ for epoch_i in range(args.max_epochs):
             print(f'train {epoch_i} [{round(i_train / len(dataset_train) * 100)}%]: {loss_train}')
         summary_writer.add_scalar('loss/train', loss_train)
 
+        if epoch_i % 10 == 0 and i_train == 0:
+            loss_valid_interpolation = test_model(dataset_valid_interpolation)
+            loss_valid_extrapolation_100 = test_model(dataset_valid_extrapolation_100)
+            loss_valid_extrapolation_1000 = test_model(dataset_valid_extrapolation_1000)
+
+            summary_writer.add_scalar('loss/valid/interpolation', loss_valid_interpolation)
+            summary_writer.add_scalar('loss/valid/extrapolation/100', loss_valid_extrapolation_100)
+            summary_writer.add_scalar('loss/valid/extrapolation/1000', loss_valid_extrapolation_1000)
+
         # Backward + optimize model
         loss_train.backward()
         optimizer.step()
-
-    loss_valid_interpolation = test_model(dataset_valid_interpolation)
-    loss_valid_extrapolation_100 = test_model(dataset_valid_extrapolation_100)
-    loss_valid_extrapolation_1000 = test_model(dataset_valid_extrapolation_1000)
-
-    summary_writer.add_scalar('loss/valid/interpolation', loss_valid_interpolation)
-    summary_writer.add_scalar('loss/valid/extrapolation/100', loss_valid_extrapolation_100)
-    summary_writer.add_scalar('loss/valid/extrapolation/1000', loss_valid_extrapolation_1000)
 
 # Write results for this training
 print(f'finished:')

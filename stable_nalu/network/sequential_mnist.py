@@ -39,12 +39,10 @@ class SequentialMnistNetwork(torch.nn.Module):
 
         # TODO: maybe don't make them learnable, properly zero will surfise here
         if unit_name == 'LSTM':
-            self.zero_state = {
-                'h_t0': torch.Tensor(self.output_size),
-                'c_t0': torch.Tensor(self.output_size)
-            }
+            self.register_buffer('zero_state_h', torch.Tensor(self.output_size))
+            self.register_buffer('zero_state_c', torch.Tensor(self.output_size))
         else:
-            self.zero_state = torch.Tensor(self.output_size)
+            self.register_buffer('zero_state', torch.Tensor(self.output_size))
 
         self.image2label = _Image2LabelCNN()
         self.recurent_cell = GeneralizedCell(10, self.output_size,
@@ -54,8 +52,8 @@ class SequentialMnistNetwork(torch.nn.Module):
 
     def reset_parameters(self):
         if self.unit_name == 'LSTM':
-            for zero_state in self.zero_state.values():
-                torch.nn.init.zeros_(zero_state)
+            torch.nn.init.zeros_(self.zero_state_h)
+            torch.nn.init.zeros_(self.zero_state_c)
         else:
             torch.nn.init.zeros_(self.zero_state)
 
@@ -70,7 +68,10 @@ class SequentialMnistNetwork(torch.nn.Module):
         """
         # Perform recurrent iterations over the input
         if self.unit_name == 'LSTM':
-            h_tm1 = tuple(zero_state.repeat(x.size(0), 1) for zero_state in self.zero_state.values())
+            h_tm1 = (
+                self.zero_state_h.repeat(x.size(0), 1),
+                self.zero_state_c.repeat(x.size(0), 1)
+            )
         else:
             h_tm1 = self.zero_state.repeat(x.size(0), 1)
 

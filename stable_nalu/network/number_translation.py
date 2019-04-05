@@ -15,9 +15,9 @@ class NumberTranslationNetwork(torch.nn.Module):
         self.hidden_size = hidden_size
         self.dictionary_size = dictionary_size
 
-        self.lstm_zero_state_h = torch.Tensor(hidden_size)
-        self.lstm_zero_state_c = torch.Tensor(hidden_size)
-        self.output_zero_state = torch.Tensor(1)
+        self.register_buffer('lstm_zero_state_h', torch.Tensor(hidden_size))
+        self.register_buffer('lstm_zero_state_c', torch.Tensor(hidden_size))
+        self.register_buffer('output_zero_state', torch.Tensor(1))
 
         self.embedding = torch.nn.Embedding(dictionary_size, embedding_size)
         self.lstm_cell = torch.nn.LSTMCell(embedding_size, hidden_size)
