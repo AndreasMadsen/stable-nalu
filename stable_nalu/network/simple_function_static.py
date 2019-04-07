@@ -16,7 +16,9 @@ class SimpleFunctionStaticNetwork(torch.nn.Module):
                                         writer=writer.namespace('layer1'),
                                         **kwags)
         self.layer_2 = GeneralizedLayer(2, 1,
-                                        unit_name if unit_name in {'NAC', 'NALU'} else 'linear',
+                                        unit_name
+                                            if unit_name in {'GrumbelNAC', 'NAC', 'GrumbelNALU', 'NALU'}
+                                            else 'linear',
                                         writer=writer.namespace('layer2'),
                                         **kwags)
 

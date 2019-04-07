@@ -1,0 +1,90 @@
+---
+title: "Grumbel NAC Initialization"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+$$
+W \sim -1 \cdot Y_1 + 0 \cdot Y_2 + 1 \cdot Y_3 \\
+(Y_1, Y_2, Y_3) \sim \mathrm{GrumbelSoftmax}(\pi_1, \pi_2, \pi_3, \tau = 1) \\
+(\pi_1, \pi_2, \pi_3) \sim \mathrm{Dirichlet}(r, r, r)
+$$
+
+$$
+\begin{aligned}
+y_i &= \frac{\exp\left(\frac{\log(\pi_i) + g_i}{\tau}\right)}{\sum_{j=1}^K \exp\left(\frac{\log(\pi_j) + g_j}{\tau}\right)} \\
+\pi_i &= \frac{\exp\left(w_i\right)}{\sum_{j=1}^K \exp\left(w_j\right)} \\
+\log(\pi_i) &= w_i - \sum_{j=1}^K \exp\left(w_j\right) \\
+y_i &= \frac{\exp\left(\frac{w_i - \sum_{j=1}^K \exp\left(w_j\right) + g_i}{\tau}\right)}{\sum_{j=1}^K \exp\left(\frac{w_j - \sum_{j'=1}^K \exp\left(w_j'\right) + g_j}{\tau}\right)} \\
+y_i &= \frac{\exp\left(\frac{w_i + g_i}{\tau}\right)}{\sum_{j=1}^K \exp\left(\frac{w_j + g_j}{\tau}\right)}
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+E[W] &= -E[Y_1] + 0 \cdot E[Y_2] + E[Y_3] \\
+&= -E[Y_i] + E[Y_i] \\
+&= 0
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+Var[W] &= Cov(-Y_1, -Y_1) + Cov(-Y_1, 0) + Cov(-Y_1, Y_3) \\
+&+ Cov(0, -Y_1) + Cov(0, 0) + Cov(0, Y_3) \\
+&+ Cov(Y_3, -Y_1) + Cov(Y_3, 0) + Cov(Y_3, Y_3) \\
+&= Var(Y_1) - Cov(Y_1, Y_3) - Cov(Y_3, Y_1) + Var(Y_3) \\
+&= Var(Y_1) + Var(Y_3) \\
+&= 2 \cdot Var(Y_i)
+\end{aligned}
+$$
+
+https://en.wikipedia.org/wiki/Compound_probability_distribution
+https://en.wikipedia.org/wiki/Law_of_the_unconscious_statistician
+https://en.wikipedia.org/wiki/Taylor_expansions_for_the_moments_of_functions_of_random_variables
+https://arxiv.org/pdf/1703.00091.pdf
+
+
+$$
+Var[Y_i] = E_{Dir}[Var_{GS}[Y_i|\pi_1, \pi_2, \pi_3]] + Var_{Dir}[E_{GS}[Y_i|\pi_1, \pi_2, \pi_3]] \\
+Var_{GS}[Y_i|\pi_1, \pi_2, \pi_3] =\ ? \\
+E_{GS}[Y_i|\pi_1, \pi_2, \pi_3] = \int_0^1 \int_0^1 \int_0^1 y_1 y_2 y_3 \Gamma(k) \tau^{k-1} \left(\sum_{i=1}^k \frac{\pi_i}{y_i^\tau} \right) \prod_{i=1}^k \left(\sum_{i=1}^k \frac{\pi_i}{y_i^{\tau+1}} \right)\ dy_1\ dy_2\ dy_3
+$$
+
+# From Grumbel
+
+$$
+g_i \sim Grumbel(0, 1) \\
+(\pi_1, \pi_2, \pi_3) \sim Dir(r, r, r) \\
+\ell_i \sim \frac{\log(\pi_i) + g_i}{\tau} \\
+y_i \sim softmax(\ell_1, \ell_2, \ell_3)
+$$
+
+$$
+E[g_i] = \gamma \\
+E[log(\pi_i)] = \psi(r) - \psi(k\cdot r) \\
+E[\ell_i] = \frac{\psi(r) - \psi(k\cdot r) + \gamma}{\tau} \\
+E[y_i] = E_\ell[E_{softmax}[y_i|\ell_1,\ell_2,\ell_3]]  \\
+E[y_i] = E_\ell[softmax_i(\ell)] = E_\ell\left[\frac{\exp(\ell_i)}{\exp(\ell_1) + \exp(\ell_2) + \exp(\ell_3)}\right] \\
+E[y_i] \approx softmax_i(E[\ell]) + \sum \frac{1}{2} H(softmax_i(\ell)) \biggr\rvert_{\ell=E[\ell_i]} Cov(\ell, \ell)
+$$
+
+$$
+Var[g_i] = \frac{\pi^2}{6} \\
+Var[log(\pi_i)] = \psi'(r) - \psi'(k \cdot r) \\
+Var[\ell_i] = \frac{\psi'(r) - \psi'(k \cdot r) + \frac{\pi^2}{6}}{\tau^2} \\
+Var[y_i] = E_\ell[Var_{softmax}[y_i|\ell_1,\ell_2,\ell_3]] + Var_\ell[E_{softmax}[y_i|\ell_1,\ell_2,\ell_3]] \\
+= E_{\ell}\left[\left(1 - \frac{\exp(\ell_i)}{\exp(\ell_1) + \exp(\ell_2) + \exp(\ell_3)}\right)\left(\frac{\exp(\ell_i)}{\exp(\ell_1) + \exp(\ell_2) + \exp(\ell_3)}\right)\right] + Var_\ell\left[\frac{\exp(\ell_i)}{\exp(\ell_1) + \exp(\ell_2) + \exp(\ell_3)}\right] \\
+= \left(1 - E_{\ell}\left[\frac{\exp(\ell_i)}{\exp(\ell_1) + \exp(\ell_2) + \exp(\ell_3)}\right]\right) E_\ell\left[\frac{\exp(\ell_i)}{\exp(\ell_1) + \exp(\ell_2) + \exp(\ell_3)}\right] + Var_\ell\left[\frac{\exp(\ell_i)}{\exp(\ell_1) + \exp(\ell_2) + \exp(\ell_3)}\right] \\
+= (1 - E[y_i]) E[y_i] + Var_\ell[softmax_i(\ell)] \\
+Var_\ell[softmax_i(\ell)] \approx \sum D(softmax_i(\ell)) Var[\ell]
+$$
+
+$$
+Cov[g_i, g_j] = \frac{\pi^2}{6} \delta_{i,j} \\
+Cov[log(\pi_i), \log(\pi_j)] = \psi'(\pi_i) \delta_{i,j} - \psi_i'(\alpha_0) \\
+Cov[\ell_i, \ell_j] = \frac{1}{\tau^2}Cov[log(\pi_i) + g_i, log(\pi_j) + g_j] = \frac{1}{\tau^2}\left(\psi'(\pi_i) \delta_{i,j} - \psi_i'(\alpha_0) + \frac{\pi^2}{6} \delta_{i,j}\right)
+$$

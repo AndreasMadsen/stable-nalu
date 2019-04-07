@@ -1,4 +1,5 @@
 
+import math
 import torch
 import stable_nalu
 import argparse
@@ -10,7 +11,7 @@ parser.add_argument('--layer-type',
                     default='NALU',
                     choices=[
                         'Tanh', 'Sigmoid', 'ReLU6', 'Softsign', 'SELU',
-                        'ELU', 'ReLU', 'linear', 'NAC', 'NALU'
+                        'ELU', 'ReLU', 'linear', 'GrumbelNAC', 'NAC', 'GrumbelNALU', 'NALU'
                     ],
                     type=str,
                     help='Specify the layer type, e.g. Tanh, ReLU, NAC, NALU')
@@ -82,12 +83,22 @@ model.reset_parameters()
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
+# Collect temperatures
+parameter_tau = []
+for name, parameter in model.named_parameters():
+    if (name[-4:] == '.tau'):
+        parameter_tau.append(parameter)
+
 # Train model
 for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_train):
     summary_writer.set_iteration(epoch_i)
 
     # zero the parameter gradients
     optimizer.zero_grad()
+
+    # Set temperature
+    for tau in parameter_tau:
+        tau.fill_(max(0.5, math.exp(-1e-5 * epoch_i)))
 
     # forward
     y_train = model(x_train)
@@ -113,9 +124,9 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
 
     # Log gradients if in verbose mode
     if args.verbose and epoch_i % 1000 == 0:
-        for index, weight in enumerate(model.parameters(), start=1):
+        for name, weight in model.named_parameters():
             gradient, *_ = weight.grad.data
-            writer.add_summary(f'grad/{index}', gradient)
+            writer.add_summary(f'grad/{name}', gradient)
 
 # Write results for this training
 print(f'finished:')

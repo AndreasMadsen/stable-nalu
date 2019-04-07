@@ -9,7 +9,7 @@ parser.add_argument('--layer-type',
                     action='store',
                     default='NALU',
                     choices=[
-                        'RNN-tanh', 'RNN-ReLU', 'GRU', 'LSTM', 'NAC', 'NALU'
+                        'RNN-tanh', 'RNN-ReLU', 'GRU', 'LSTM', 'GrumbelNAC', 'NAC', 'GrumbelNALU', 'NALU'
                     ],
                     type=str,
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')
@@ -112,9 +112,9 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
 
     # Log gradients if in verbose mode
     if args.verbose and epoch_i % 1000 == 0:
-        for index, weight in enumerate(model.parameters(), start=1):
+        for name, weight in model.named_parameters():
             gradient, *_ = weight.grad.data
-            writer.add_summary(f'grad/{index}', gradient)
+            writer.add_summary(f'grad/{name}', gradient)
 
 # Write results for this training
 print(f'finished:')
