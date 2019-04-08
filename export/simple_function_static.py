@@ -63,19 +63,12 @@ df['loss/norm/train'] = df['loss/train'] / df['baseline/interpolation']
 df['loss/norm/valid/interpolation'] = df['loss/valid/interpolation'] / df['baseline/interpolation']
 df['loss/norm/valid/extrapolation'] = df['loss/valid/extrapolation'] / df['baseline/extrapolation']
 
-del df['loss/norm/train']
-del df['loss/train']
-del df['loss/valid/interpolation']
-del df['baseline/interpolation']
-del df['loss/valid/extrapolation']
-del df['baseline/extrapolation']
-
-df['succes/interpolation'] = df['loss/norm/valid/interpolation'] < 0.1 / 100
-df['succes/extrapolation'] = df['loss/norm/valid/extrapolation'] < 0.1 / 100
+df['success/interpolation'] = df['loss/norm/valid/interpolation'] < 0.1 / 100
+df['success/extrapolation'] = df['loss/norm/valid/extrapolation'] < 0.1 / 100
 
 agg_df = df.groupby(['model', 'operation']).agg({
-    'succes/interpolation': 'mean',
-    'succes/extrapolation': 'mean',
+    'success/interpolation': 'mean',
+    'success/extrapolation': 'mean',
     'loss/norm/valid/interpolation': 'mean',
     'loss/norm/valid/extrapolation': 'mean',
     'seed': 'count'
