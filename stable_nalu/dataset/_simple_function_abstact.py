@@ -131,7 +131,7 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
             input_vector, target_scalar = self[index]
             target_guess = self.baseline_guess(input_vector.numpy())
             squared_error += (target_scalar.numpy().item(0) - target_guess.numpy().item(0))**2
-        return squared_error / 128
+        return squared_error / batch_size
 
     def dataloader(self, batch_size=128):
         batcher = torch.utils.data.DataLoader(

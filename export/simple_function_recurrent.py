@@ -44,26 +44,22 @@ data_df = pd.read_pickle('debug_simple_function_recurrent.pkl')
 # Compute baselines
 baselines = []
 for operation in tqdm(['add', 'sub', 'mul', 'div', 'squared', 'root']):
-    interpolation_error = 0
-    extrapolation_error = 0
     for seed in range(10):
         dataset = stable_nalu.dataset.SimpleFunctionRecurrentDataset(
             operation=operation,
             seed=seed
         )
 
-        interpolation_error = dataset.fork(seq_length=10).baseline_error(batch_size=128)
-        extrapolation_error = dataset.fork(seq_length=1000).baseline_error(batch_size=128)
-
-    baselines.append({
-        'operation': operation,
-        'baseline/interpolation': interpolation_error / 10,
-        'baseline/extrapolation': extrapolation_error / 10
-    })
+        baselines.append({
+            'operation': operation,
+            'seed': str(seed),
+            'baseline/interpolation': dataset.fork(seq_length=10).baseline_error(batch_size=2048),
+            'baseline/extrapolation': dataset.fork(seq_length=1000).baseline_error(batch_size=2048)
+        })
 
 baselines_df = pd.DataFrame.from_records(baselines)
 
-df = pd.merge(data_df, baselines_df, how='left', on='operation')
+df = pd.merge(data_df, baselines_df, how='left', on=['operation', 'seed'])
 df['loss/norm/train'] = df['loss/train'] / df['baseline/interpolation']
 df['loss/norm/valid/interpolation'] = df['loss/valid/interpolation'] / df['baseline/interpolation']
 df['loss/norm/valid/extrapolation'] = df['loss/valid/extrapolation'] / df['baseline/extrapolation']
@@ -75,14 +71,23 @@ del df['baseline/interpolation']
 del df['loss/valid/extrapolation']
 del df['baseline/extrapolation']
 
-df['succes/interpolation'] = df['loss/norm/valid/interpolation'] < 0.001
-df['succes/extrapolation'] = df['loss/norm/valid/extrapolation'] < 0.001
-del df['loss/norm/valid/interpolation']
-del df['loss/norm/valid/extrapolation']
+df['succes/interpolation'] = df['loss/norm/valid/interpolation'] < 1 / 100
+df['succes/extrapolation'] = df['loss/norm/valid/extrapolation'] < 1 / 100
 
 agg_df = df.groupby(['model', 'operation']).agg({
     'succes/interpolation': 'mean',
     'succes/extrapolation': 'mean',
+    'loss/norm/valid/interpolation': 'mean',
+    'loss/norm/valid/extrapolation': 'mean',
     'seed': 'count'
 })
 print(agg_df)
+
+latex_df = agg_df.copy()
+del latex_df['seed']
+del latex_df['loss/norm/valid/interpolation']
+del latex_df['loss/norm/valid/extrapolation']
+latex_df = latex_df.reset_index()
+latex_df = pd.melt(latex_df, id_vars=['model', 'operation'], var_name="dataset", value_name="value")
+latex_df = latex_df.pivot_table('value', ['dataset', 'operation'], 'model')
+print(latex_df)
