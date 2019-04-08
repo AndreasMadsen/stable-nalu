@@ -69,6 +69,7 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         self._rngs = rngs
 
         self._operation = parent._operation
+        self._vector_size = parent._vector_size
         self._max_size = parent._max_size
         self._num_workers = parent._num_workers
         self._use_cuda = parent._use_cuda
@@ -102,6 +103,35 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
 
     def __len__(self):
         return self._max_size
+
+    def baseline_guess(self, input_vector):
+        rng = self._rngs[self._worker_id]
+
+        # Guess and a and b range
+        a_start = rng.randint(0, self._vector_size)
+        a_size = rng.randint(1, self._vector_size - a_start + 1)
+        a_end = a_start + a_size
+
+        b_start = rng.randint(0, self._vector_size)
+        b_size = rng.randint(1, self._vector_size - b_start + 1)
+        b_end = b_start + b_size
+
+        # Compute a and b values
+        a = np.sum(input_vector[..., a_start:a_end])
+        b = np.sum(input_vector[..., b_start:b_end])
+
+        # Compute result of arithmetic operation
+        output_scalar = self._operation(a, b)
+
+        return torch.tensor([output_scalar], dtype=torch.float32)
+
+    def baseline_error(self, batch_size=128):
+        squared_error = 0
+        for index in range(0, batch_size):
+            input_vector, target_scalar = self[index]
+            target_guess = self.baseline_guess(input_vector.numpy())
+            squared_error += (target_scalar.numpy().item(0) - target_guess.numpy().item(0))**2
+        return squared_error / 128
 
     def dataloader(self, batch_size=128):
         batcher = torch.utils.data.DataLoader(
