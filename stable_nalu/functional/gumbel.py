@@ -1,11 +1,14 @@
 
 import torch
 
-def sample_gumbel(placeholder, eps=1e-10):
+def sample_gumbel(placeholder, eps=1e-10, reuse=False):
     """Samples Gumbel(0, 1) values into the placeholder"""
 
     # Uniform sample between [eps, 1)
-    uniform = placeholder.uniform_(eps, 1)
+    if reuse:
+        uniform = placeholder
+    else:
+        uniform = placeholder.uniform_(eps, 1)
 
     # Inverse transform
     g = -torch.log(-torch.log(uniform))

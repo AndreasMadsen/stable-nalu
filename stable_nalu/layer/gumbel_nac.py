@@ -43,16 +43,16 @@ class GumbelNACLayer(torch.nn.Module):
         torch.nn.init.constant_(self.W_hat_k, 1/3)
         torch.nn.init.constant_(self.tau, 1)
 
-    def forward(self, input):
+    def forward(self, input, reuse=False):
         # Concat trainable and non-trainable weights
         W_hat_full = torch.cat((self.W_hat, self.W_hat_k), dim=-1)  # size = [out, in, 3]
 
         # NOTE: softmax(log(softmax(w)) + g) can be simplified to softmax(w + g)
+        #   y = sample_gumbel_softmax(self.U, W_hat_full, self.tau)
         # Convert to log-properbilities
         log_pi = torch.nn.functional.log_softmax(W_hat_full, dim=-1)
         # Sample a quazi-1-hot encoding
-        y = sample_gumbel_softmax(self.U, log_pi, self.tau)
-        # y = sample_gumbel_softmax(self.U, W_hat_full, self.tau)
+        y = sample_gumbel_softmax(self.U, log_pi, self.tau, reuse=reuse)
 
         # The final weight matrix (W), is computed by selecting from the target_weights
         W = y @ self.target_weights

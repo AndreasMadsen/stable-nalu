@@ -39,7 +39,7 @@ class AbstractNALULayer(torch.nn.Module):
         a = self.nac(x)
         # m = exp(W log(|x| + eps)) = exp(nac(log(|x| + eps)))
         m = torch.exp(self.nac(
-            torch.log(torch.abs(x) + self.eps)
+            torch.log(torch.abs(x) + self.eps), reuse=True
         ))
         # y = g (*) a + (1 - g) (*) m
         y = g * a + (1 - g) * m

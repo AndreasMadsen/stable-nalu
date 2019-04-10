@@ -125,8 +125,9 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     # Log gradients if in verbose mode
     if args.verbose and epoch_i % 1000 == 0:
         for name, weight in model.named_parameters():
-            gradient, *_ = weight.grad.data
-            writer.add_summary(f'grad/{name}', gradient)
+            if weight.requires_grad:
+                gradient, *_ = weight.grad.data
+                summary_writer.add_summary(f'grad/{name}', gradient)
 
 # Write results for this training
 print(f'finished:')

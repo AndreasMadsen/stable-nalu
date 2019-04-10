@@ -51,7 +51,7 @@ class NACLayer(torch.nn.Module):
         torch.nn.init.uniform_(self.W_hat, a=-r, b=r)
         torch.nn.init.uniform_(self.M_hat, a=-r, b=r)
 
-    def forward(self, input):
+    def forward(self, input, reuse=False):
         self.writer.add_summary('w_hat', self.W_hat)
         self.writer.add_summary('m_hat', self.M_hat)
 
