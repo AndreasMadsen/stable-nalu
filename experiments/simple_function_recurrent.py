@@ -9,7 +9,7 @@ parser.add_argument('--layer-type',
                     action='store',
                     default='NALU',
                     choices=[
-                        'RNN-tanh', 'RNN-ReLU', 'GRU', 'LSTM', 'GrumbelNAC', 'NAC', 'GrumbelNALU', 'NALU'
+                        'RNN-tanh', 'RNN-ReLU', 'GRU', 'LSTM', 'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'
                     ],
                     type=str,
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')

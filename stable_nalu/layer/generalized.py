@@ -2,8 +2,8 @@
 import torch
 
 from .nac import NACLayer, NACCell
-from .grumbel_nac import GrumbelNACLayer, GrumbelNACCell
-from .grumbel_nalu import GrumbelNALULayer, GrumbelNALUCell
+from .gumbel_nac import GumbelNACLayer, GumbelNACCell
+from .gumbel_nalu import GumbelNALULayer, GumbelNALUCell
 from .nalu import NALULayer, NALUCell
 from .basic import BasicLayer
 from ..writer import DummyWriter
@@ -28,17 +28,17 @@ class GeneralizedLayer(torch.nn.Module):
             self.layer = NACLayer(in_features, out_features,
                                   writer=writer.namespace('nac'),
                                   **kwags)
-        elif unit_name == 'GrumbelNAC':
-            self.layer = GrumbelNACLayer(in_features, out_features,
-                                         writer=writer.namespace('grumbel_nac'),
+        elif unit_name == 'GumbelNAC':
+            self.layer = GumbelNACLayer(in_features, out_features,
+                                         writer=writer.namespace('gumbel_nac'),
                                          **kwags)
         elif unit_name == 'NALU':
             self.layer = NALULayer(in_features, out_features,
                                    writer=writer.namespace('nalu'),
                                    **kwags)
-        elif unit_name == 'GrumbelNALU':
-            self.layer = GrumbelNALULayer(in_features, out_features,
-                                          writer=writer.namespace('grumbel_nalu'),
+        elif unit_name == 'GumbelNALU':
+            self.layer = GumbelNALULayer(in_features, out_features,
+                                          writer=writer.namespace('gumbel_nalu'),
                                           **kwags)
         else:
             self.layer = BasicLayer(in_features, out_features,
@@ -76,17 +76,17 @@ class GeneralizedCell(torch.nn.Module):
             self.cell = NACCell(input_size, hidden_size,
                                 writer=writer.namespace('nac'),
                                 **kwags)
-        elif unit_name == 'GrumbelNAC':
-            self.cell = GrumbelNACCell(input_size, hidden_size,
-                                       writer=writer.namespace('grumbel_nac'),
+        elif unit_name == 'GumbelNAC':
+            self.cell = GumbelNACCell(input_size, hidden_size,
+                                       writer=writer.namespace('gumbel_nac'),
                                        **kwags)
         elif unit_name == 'NALU':
             self.cell = NALUCell(input_size, hidden_size,
                                   writer=writer.namespace('nalu'),
                                   **kwags)
-        elif unit_name == 'GrumbelNALU':
-            self.cell = GrumbelNALUCell(input_size, hidden_size,
-                                        writer=writer.namespace('grumbel_nalu'),
+        elif unit_name == 'GumbelNALU':
+            self.cell = GumbelNALUCell(input_size, hidden_size,
+                                        writer=writer.namespace('gumbel_nalu'),
                                         **kwags)
         elif unit_name == 'GRU':
             self.cell = torch.nn.GRUCell(input_size, hidden_size,

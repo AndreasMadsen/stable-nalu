@@ -2,10 +2,10 @@
 import torch
 
 from ..writer import DummyWriter
-from ..functional import sample_grumbel_softmax
+from ..functional import sample_gumbel_softmax
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
-class GrumbelNACLayer(torch.nn.Module):
+class GumbelNACLayer(torch.nn.Module):
     """Implements the NAC (Neural Accumulator)
 
     Arguments:
@@ -38,7 +38,7 @@ class GrumbelNACLayer(torch.nn.Module):
         self.register_parameter('bias', None)
 
     def reset_parameters(self):
-        # Initialize to zero, the source of randomness can come from the Grumbel sampling.
+        # Initialize to zero, the source of randomness can come from the Gumbel sampling.
         torch.nn.init.constant_(self.W_hat, 1/3)
         torch.nn.init.constant_(self.W_hat_k, 1/3)
         torch.nn.init.constant_(self.tau, 1)
@@ -51,8 +51,8 @@ class GrumbelNACLayer(torch.nn.Module):
         # Convert to log-properbilities
         log_pi = torch.nn.functional.log_softmax(W_hat_full, dim=-1)
         # Sample a quazi-1-hot encoding
-        y = sample_grumbel_softmax(self.U, log_pi, self.tau)
-        # y = sample_grumbel_softmax(self.U, W_hat_full, self.tau)
+        y = sample_gumbel_softmax(self.U, log_pi, self.tau)
+        # y = sample_gumbel_softmax(self.U, W_hat_full, self.tau)
 
         # The final weight matrix (W), is computed by selecting from the target_weights
         W = y @ self.target_weights
@@ -65,12 +65,12 @@ class GrumbelNACLayer(torch.nn.Module):
             self.in_features, self.out_features
         )
 
-class GrumbelNACCell(AbstractRecurrentCell):
-    """Implements the Grumbel NAC (Grumbel Neural Accumulator) as a recurrent cell
+class GumbelNACCell(AbstractRecurrentCell):
+    """Implements the Gumbel NAC (Gumbel Neural Accumulator) as a recurrent cell
 
     Arguments:
         input_size: number of ingoing features
         hidden_size: number of outgoing features
     """
     def __init__(self, input_size, hidden_size, **kwargs):
-        super().__init__(GrumbelNACLayer, input_size, hidden_size, **kwargs)
+        super().__init__(GumbelNACLayer, input_size, hidden_size, **kwargs)

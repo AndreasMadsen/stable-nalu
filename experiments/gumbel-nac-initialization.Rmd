@@ -1,5 +1,5 @@
 ---
-title: "Grumbel NAC Initialization"
+title: "Gumbel NAC Initialization"
 output: html_document
 ---
 
@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 $$
 W \sim -1 \cdot Y_1 + 0 \cdot Y_2 + 1 \cdot Y_3 \\
-(Y_1, Y_2, Y_3) \sim \mathrm{GrumbelSoftmax}(\pi_1, \pi_2, \pi_3, \tau = 1) \\
+(Y_1, Y_2, Y_3) \sim \mathrm{GumbelSoftmax}(\pi_1, \pi_2, \pi_3, \tau = 1) \\
 (\pi_1, \pi_2, \pi_3) \sim \mathrm{Dirichlet}(r, r, r)
 $$
 
@@ -54,10 +54,10 @@ Var_{GS}[Y_i|\pi_1, \pi_2, \pi_3] =\ ? \\
 E_{GS}[Y_i|\pi_1, \pi_2, \pi_3] = \int_0^1 \int_0^1 \int_0^1 y_1 y_2 y_3 \Gamma(k) \tau^{k-1} \left(\sum_{i=1}^k \frac{\pi_i}{y_i^\tau} \right) \prod_{i=1}^k \left(\sum_{i=1}^k \frac{\pi_i}{y_i^{\tau+1}} \right)\ dy_1\ dy_2\ dy_3
 $$
 
-# From Grumbel
+# From Gumbel
 
 $$
-g_i \sim Grumbel(0, 1) \\
+g_i \sim Gumbel(0, 1) \\
 (\pi_1, \pi_2, \pi_3) \sim Dir(r, r, r) \\
 \ell_i \sim \frac{\log(\pi_i) + g_i}{\tau} \\
 y_i \sim softmax(\ell_1, \ell_2, \ell_3)

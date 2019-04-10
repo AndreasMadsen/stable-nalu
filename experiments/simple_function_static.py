@@ -11,7 +11,7 @@ parser.add_argument('--layer-type',
                     default='NALU',
                     choices=[
                         'Tanh', 'Sigmoid', 'ReLU6', 'Softsign', 'SELU',
-                        'ELU', 'ReLU', 'linear', 'GrumbelNAC', 'NAC', 'GrumbelNALU', 'NALU'
+                        'ELU', 'ReLU', 'linear', 'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'
                     ],
                     type=str,
                     help='Specify the layer type, e.g. Tanh, ReLU, NAC, NALU')

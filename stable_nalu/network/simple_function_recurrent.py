@@ -29,7 +29,7 @@ class SimpleFunctionRecurrentNetwork(torch.nn.Module):
                                              **kwags)
         self.output_layer = GeneralizedLayer(self.hidden_size, 1,
                                              unit_name
-                                                if unit_name in {'GrumbelNAC', 'NAC', 'GrumbelNALU', 'NALU'}
+                                                if unit_name in {'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'}
                                                 else 'linear',
                                              writer=writer.namespace('output_layer'),
                                              **kwags)
