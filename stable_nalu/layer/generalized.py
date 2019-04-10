@@ -76,7 +76,7 @@ class GeneralizedCell(torch.nn.Module):
             self.cell = NACCell(input_size, hidden_size,
                                 writer=writer.namespace('nac'),
                                 **kwags)
-        elif unit_name == 'NAC':
+        elif unit_name == 'GrumbelNAC':
             self.cell = GrumbelNACCell(input_size, hidden_size,
                                        writer=writer.namespace('grumbel_nac'),
                                        **kwags)
