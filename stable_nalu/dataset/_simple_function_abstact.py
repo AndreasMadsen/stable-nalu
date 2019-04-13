@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.utils.data
 
-from ._dataloader_cuda_wrapper import DataLoaderCudaWrapper
+from ._dataloader import FastDataLoader
 
 class ARITHMETIC_FUNCTIONS:
     @staticmethod
@@ -31,7 +31,6 @@ class ARITHMETIC_FUNCTIONS:
 class SimpleFunctionDataset:
     def __init__(self, operation, vector_size,
                  seed=None,
-                 num_workers=1,
                  use_cuda=False,
                  max_size=2**32-1):
         super().__init__()
@@ -39,7 +38,6 @@ class SimpleFunctionDataset:
         self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
         self._max_size = max_size
         self._vector_size = vector_size
-        self._num_workers = num_workers
         self._use_cuda = use_cuda
         self._rng = np.random.RandomState(seed)
 
@@ -54,24 +52,20 @@ class SimpleFunctionDataset:
     def fork(self, shape, input_range):
         assert shape[-1] == self._vector_size
 
-        rngs = [
-            np.random.RandomState(self._rng.randint(0, 2**32 - 1))
-            for i in range(max(1, self._num_workers))
-        ]
-        return SimpleFunctionDatasetFork(self, shape, input_range, rngs)
+        rng = np.random.RandomState(self._rng.randint(0, 2**32 - 1))
+        return SimpleFunctionDatasetFork(self, shape, input_range, rng)
 
 class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
-    def __init__(self, parent, shape, input_range, rngs):
+    def __init__(self, parent, shape, input_range, rng):
         super().__init__()
 
         self._shape = shape
         self._input_range = input_range
-        self._rngs = rngs
+        self._rng = rng
 
         self._operation = parent._operation
         self._vector_size = parent._vector_size
         self._max_size = parent._max_size
-        self._num_workers = parent._num_workers
         self._use_cuda = parent._use_cuda
 
         self._a_start = parent.a_start
@@ -79,41 +73,44 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         self._b_start = parent.b_start
         self._b_end = parent.b_end
 
-        self._worker_id = 0
+    def __getitem__(self, select):
+        # Assume select represent a batch_size by using self[0:batch_size]
+        batch_size = select.stop - select.start if isinstance(select, slice) else 1
 
-    def _worker_init_fn(self, worker_id):
-        self._worker_id = worker_id
-
-    def __getitem__(self, index):
-        input_vector = self._rngs[self._worker_id].uniform(
+        input_vector = self._rng.uniform(
             low=0,
             high=self._input_range,
-            size=self._shape)
+            size=(batch_size, ) + self._shape)
 
         # Compute a and b values
-        a = np.sum(input_vector[..., self._a_start:self._a_end])
-        b = np.sum(input_vector[..., self._b_start:self._b_end])
+        sum_axies = tuple(range(1, 1 + len(self._shape)))
+        a = np.sum(input_vector[..., self._a_start:self._a_end], axis=sum_axies)
+        b = np.sum(input_vector[..., self._b_start:self._b_end], axis=sum_axies)
+
         # Compute result of arithmetic operation
-        output_scalar = self._operation(a, b)
+        output_scalar = self._operation(a, b)[:, np.newaxis]
+
+        # If select is an index, just return the content of one row
+        if not isinstance(select, slice):
+            input_vector = input_vector[0]
+            output_scalar = output_scalar[0]
 
         return (
             torch.tensor(input_vector, dtype=torch.float32),
-            torch.tensor([output_scalar], dtype=torch.float32)
+            torch.tensor(output_scalar, dtype=torch.float32)
         )
 
     def __len__(self):
         return self._max_size
 
     def baseline_guess(self, input_vector):
-        rng = self._rngs[self._worker_id]
-
         # Guess and a and b range
-        a_start = rng.randint(0, self._vector_size)
-        a_size = rng.randint(1, self._vector_size - a_start + 1)
+        a_start = self._rng.randint(0, self._vector_size)
+        a_size = self._rng.randint(1, self._vector_size - a_start + 1)
         a_end = a_start + a_size
 
-        b_start = rng.randint(0, self._vector_size)
-        b_size = rng.randint(1, self._vector_size - b_start + 1)
+        b_start = self._rng.randint(0, self._vector_size)
+        b_size = self._rng.randint(1, self._vector_size - b_start + 1)
         b_end = b_start + b_size
 
         # Compute a and b values
@@ -134,15 +131,4 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         return squared_error / batch_size
 
     def dataloader(self, batch_size=128):
-        batcher = torch.utils.data.DataLoader(
-            self,
-            batch_size=batch_size,
-            shuffle=False,
-            sampler=torch.utils.data.SequentialSampler(self),
-            num_workers=self._num_workers,
-            worker_init_fn=self._worker_init_fn)
-
-        if self._use_cuda:
-            return DataLoaderCudaWrapper(batcher)
-        else:
-            return batcher
+        return FastDataLoader(self, batch_size, self._use_cuda)

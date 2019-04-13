@@ -5,7 +5,7 @@ import torch
 import torch.utils.data
 import torchvision
 
-from ._dataloader_cuda_wrapper import DataLoaderCudaWrapper
+from ._dataloader import DataLoaderCudaWrapper
 
 id2token = [
     '<pad>',

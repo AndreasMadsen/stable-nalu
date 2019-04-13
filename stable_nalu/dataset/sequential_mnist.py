@@ -6,7 +6,7 @@ import torch.utils.data
 import torchvision
 from typing import Tuple, NamedTuple, Union
 
-from ._dataloader_cuda_wrapper import DataLoaderCudaWrapper
+from ._dataloader import DataLoaderCudaWrapper
 
 class ItemShape(NamedTuple):
     input: Tuple[Union[None, int], ...]

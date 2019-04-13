@@ -20,11 +20,11 @@ class GumbelNACLayer(torch.nn.Module):
         self.writer = writer
 
         # Define the temperature tau
-        self.tau = torch.nn.Parameter(torch.Tensor(1), requires_grad=False)
+        self.tau = torch.nn.Parameter(torch.tensor(1, dtype=torch.float32), requires_grad=False)
 
         # Define the target weights. Also, put 0 last such that p1 = p2 = 0
         # corresponds to p3 = 1 => w = 0.
-        self.register_buffer('target_weights', torch.Tensor([1, -1, 0]))
+        self.register_buffer('target_weights', torch.tensor([1, -1, 0], dtype=torch.float32))
 
         # Initialize a tensor, that will be the placeholder for the uniform samples
         self.register_buffer('U', torch.Tensor(out_features, in_features, 3))
@@ -39,8 +39,8 @@ class GumbelNACLayer(torch.nn.Module):
 
     def reset_parameters(self):
         # Initialize to zero, the source of randomness can come from the Gumbel sampling.
-        torch.nn.init.constant_(self.W_hat, 1/3)
-        torch.nn.init.constant_(self.W_hat_k, 1/3)
+        torch.nn.init.constant_(self.W_hat, 0)
+        torch.nn.init.constant_(self.W_hat_k, 0)
         torch.nn.init.constant_(self.tau, 1)
 
     def forward(self, input, reuse=False):
@@ -52,7 +52,7 @@ class GumbelNACLayer(torch.nn.Module):
         # Convert to log-properbilities
         log_pi = torch.nn.functional.log_softmax(W_hat_full, dim=-1)
         # Sample a quazi-1-hot encoding
-        y = sample_gumbel_softmax(self.U, log_pi, self.tau, reuse=reuse)
+        y = sample_gumbel_softmax(self.U, log_pi, tau=self.tau, reuse=reuse)
 
         # The final weight matrix (W), is computed by selecting from the target_weights
         W = y @ self.target_weights
