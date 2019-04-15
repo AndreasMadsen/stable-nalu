@@ -5,6 +5,8 @@ from .nac import NACLayer, NACCell
 from .nalu import NALULayer, NALUCell
 from .gumbel_nac import GumbelNACLayer, GumbelNACCell
 from .gumbel_nalu import GumbelNALULayer, GumbelNALUCell
+from .regualized_linear_nac import RegualizedLinearNACLayer, RegualizedLinearNACCell
+from .regualized_linear_nalu import RegualizedLinearNALULayer, RegualizedLinearNALUCell
 from .basic import BasicLayer, BasicCell
 from ..abstract import ExtendedTorchModule
 
@@ -12,14 +14,18 @@ unit_name_to_layer_class = {
     'NAC': NACLayer,
     'NALU': NALULayer,
     'GumbelNAC': NACLayer,
-    'GumbelNALU': GumbelNALULayer
+    'GumbelNALU': GumbelNALULayer,
+    'RegualizedLinearNAC': RegualizedLinearNACLayer,
+    'RegualizedLinearNALU': RegualizedLinearNACLayer,
 }
 
 unit_name_to_cell_class = {
     'NAC': NACCell,
     'NALU': NALUCell,
     'GumbelNAC': GumbelNACCell,
-    'GumbelNALU': GumbelNALUCell
+    'GumbelNALU': GumbelNALUCell,
+    'RegualizedLinearNAC': RegualizedLinearNACCell,
+    'RegualizedLinearNALU': RegualizedLinearNACCell,
 }
 
 class GeneralizedLayer(ExtendedTorchModule):
