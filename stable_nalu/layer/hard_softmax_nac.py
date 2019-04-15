@@ -23,7 +23,7 @@ class HardSoftmaxNACLayer(ExtendedTorchModule):
         self.register_buffer('target_weights', torch.tensor([1, -1, 0], dtype=torch.float32))
 
         # Initialize a tensor, that will be the placeholder for the hard samples
-        self.register_buffer('W_hard', torch.LongTensor(out_features, in_features))
+        self.register_buffer('sample', torch.LongTensor(out_features, in_features))
 
         # We will only two parameters per weight, this is to prevent the redundancy
         # there would otherwise exist. This also makes it much more comparable with
@@ -54,8 +54,8 @@ class HardSoftmaxNACLayer(ExtendedTorchModule):
 
         # Compute W_hard
         if not reuse:
-            torch.multinomial(pi.view(-1, 3), 1, True, out=self.W_hard.view(-1))
-        W_hard = self.target_weights[self.W_hard]
+            torch.multinomial(pi.view(-1, 3), 1, True, out=self.sample.view(-1))
+        W_hard = self.target_weights[self.sample]
 
         # Use W_hard in the forward pass, but use W_soft for the gradients.
         # This implementation trick comes from torch.nn.functional.gumble_softmax(hard=True)

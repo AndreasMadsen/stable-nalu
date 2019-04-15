@@ -111,9 +111,10 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
 
         print(f'train {epoch_i}: {loss_train}')
 
-    # Backward + optimize model
-    loss_train.backward()
-    optimizer.step()
+    # Optimize model
+    if loss_train.requires_grad:
+        loss_train.backward()
+        optimizer.step()
     model.optimize(loss_train_criterion)
 
     # Log gradients if in verbose mode

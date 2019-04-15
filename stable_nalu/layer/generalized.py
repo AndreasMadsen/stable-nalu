@@ -11,6 +11,8 @@ from .softmax_nac import SoftmaxNACLayer, SoftmaxNACCell
 from .softmax_nalu import SoftmaxNALULayer, SoftmaxNALUCell
 from .hard_softmax_nac import HardSoftmaxNACLayer, HardSoftmaxNACCell
 from .hard_softmax_nalu import HardSoftmaxNALULayer, HardSoftmaxNALUCell
+from .gradient_bandit_nac import GradientBanditNACLayer, GradientBanditNACCell
+from .gradient_bandit_nalu import GradientBanditNALULayer, GradientBanditNALUCell
 from .regualized_linear_nac import RegualizedLinearNACLayer, RegualizedLinearNACCell
 from .regualized_linear_nalu import RegualizedLinearNALULayer, RegualizedLinearNALUCell
 from ..abstract import ExtendedTorchModule
@@ -24,6 +26,8 @@ unit_name_to_layer_class = {
     'SoftmaxNALU': SoftmaxNALULayer,
     'HardSoftmaxNAC': HardSoftmaxNACLayer,
     'HardSoftmaxNALU': HardSoftmaxNALULayer,
+    'GradientBanditNAC': GradientBanditNACLayer,
+    'GradientBanditNALU': GradientBanditNALULayer,
     'RegualizedLinearNAC': RegualizedLinearNACLayer,
     'RegualizedLinearNALU': RegualizedLinearNACLayer,
 }
@@ -37,6 +41,8 @@ unit_name_to_cell_class = {
     'SoftmaxNALU': SoftmaxNALUCell,
     'HardSoftmaxNAC': HardSoftmaxNACCell,
     'HardSoftmaxNALU': HardSoftmaxNALUCell,
+    'GradientBanditNAC': GradientBanditNACCell,
+    'GradientBanditNALU': GradientBanditNALUCell,
     'RegualizedLinearNAC': RegualizedLinearNACCell,
     'RegualizedLinearNALU': RegualizedLinearNACCell,
 }
