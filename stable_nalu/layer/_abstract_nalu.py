@@ -11,14 +11,14 @@ class AbstractNALULayer(torch.nn.Module):
         out_features: number of outgoing features
     """
 
-    def __init__(self, NACOp, in_features, out_features, eps=1e-7, bias=False, writer=DummyWriter()):
+    def __init__(self, NACOp, in_features, out_features, eps=1e-7, bias=False, writer=DummyWriter(), **kwargs):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.eps = eps
         self.writer = writer
 
-        self.nac = NACOp(in_features, out_features, writer=writer.namespace('nac'))
+        self.nac = NACOp(in_features, out_features, writer=writer.namespace('nac'), **kwargs)
         self.G = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         if bias:
             self.bias = torch.nn.Parameter(torch.Tensor(out_features))

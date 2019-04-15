@@ -2,7 +2,7 @@
 import torch
 
 from ..writer import DummyWriter
-from ..functional import sample_gumbel_softmax
+from ..functional import sample_gumbel_softmax, batch_linear
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 class GumbelNACLayer(torch.nn.Module):
@@ -13,11 +13,12 @@ class GumbelNACLayer(torch.nn.Module):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, writer=DummyWriter()):
+    def __init__(self, in_features, out_features, writer=DummyWriter(), sample_each_observation=False):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.writer = writer
+        self.sample_each_observation = sample_each_observation
 
         # Define the temperature tau
         self.tau = torch.nn.Parameter(torch.tensor(1, dtype=torch.float32), requires_grad=False)
@@ -47,18 +48,31 @@ class GumbelNACLayer(torch.nn.Module):
         # Concat trainable and non-trainable weights
         W_hat_full = torch.cat((self.W_hat, self.W_hat_k), dim=-1)  # size = [out, in, 3]
 
-        # NOTE: softmax(log(softmax(w)) + g) can be simplified to softmax(w + g)
-        #   y = sample_gumbel_softmax(self.U, W_hat_full, self.tau)
         # Convert to log-properbilities
+        # NOTE: softmax(log(softmax(w)) + g) can be simplified to softmax(w + g), taking
+        #           pi = softmax(W_hat_full) is just more interpretable.
+        #       log_pi = W_hat_full
         log_pi = torch.nn.functional.log_softmax(W_hat_full, dim=-1)
-        # Sample a quazi-1-hot encoding
-        y = sample_gumbel_softmax(self.U, log_pi, tau=self.tau, reuse=reuse)
 
-        # The final weight matrix (W), is computed by selecting from the target_weights
-        W = y @ self.target_weights
+        if self.sample_each_observation:
+            # resize U, to fit the observations
+            obs = input.size()[0]
+            self.U.resize_(obs, self.out_features, self.in_features, 3)
 
-        # Compute the linear multiplication as usual
-        return torch.nn.functional.linear(input, W, self.bias)
+            # Sample for each observation
+            y = sample_gumbel_softmax(self.U, log_pi.expand(obs, -1, -1, -1), tau=self.tau, reuse=reuse)
+            # select from target_weights
+            W = y @ self.target_weights
+
+            return batch_linear(input, W, self.bias)
+        else:
+            # Sample a quazi-1-hot encoding
+            y = sample_gumbel_softmax(self.U, log_pi, tau=self.tau, reuse=reuse)
+            # The final weight matrix (W), is computed by selecting from the target_weights
+            W = y @ self.target_weights
+
+            # Compute the linear multiplication as usual
+            return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):
         return 'in_features={}, out_features={}'.format(
