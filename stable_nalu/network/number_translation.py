@@ -4,6 +4,8 @@ from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer, GeneralizedCell
 
 class NumberTranslationNetwork(ExtendedTorchModule):
+    UNIT_NAMES = GeneralizedCell.UNIT_NAMES
+
     def __init__(self, unit_name,
                  embedding_size=2,  # 1 for the number, 1 for the gate ?
                  hidden_size=2,  # 1 for the number, 1 for the gate ?
@@ -23,10 +25,10 @@ class NumberTranslationNetwork(ExtendedTorchModule):
         self.embedding = torch.nn.Embedding(dictionary_size, embedding_size)
         self.lstm_cell = torch.nn.LSTMCell(embedding_size, hidden_size)
         self.output_cell = GeneralizedCell(hidden_size, 1,
-                                             unit_name,
-                                             writer=self.writer,
-                                             name='recurrent_output',
-                                             **kwags)
+                                        unit_name,
+                                        writer=self.writer,
+                                        name='recurrent_output',
+                                        **kwags)
         self.reset_parameters()
 
     def reset_parameters(self):

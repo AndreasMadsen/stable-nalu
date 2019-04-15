@@ -4,6 +4,8 @@ from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer, GeneralizedCell
 
 class SimpleFunctionRecurrentNetwork(ExtendedTorchModule):
+    UNIT_NAMES = GeneralizedCell.UNIT_NAMES
+
     def __init__(self, unit_name, input_size=10, writer=None, **kwargs):
         super().__init__('network', writer=writer, **kwargs)
 
@@ -28,9 +30,9 @@ class SimpleFunctionRecurrentNetwork(ExtendedTorchModule):
                                              name='recurrent_layer',
                                              **kwargs)
         self.output_layer = GeneralizedLayer(self.hidden_size, 1,
-                                             unit_name
-                                                if unit_name in {'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'}
-                                                else 'linear',
+                                            'linear'
+                                                if unit_name in {'GRU', 'LSTM', 'RNN-tanh', 'RNN-ReLU'}
+                                                else unit_name,
                                              writer=self.writer,
                                              name='output_layer',
                                              **kwargs)

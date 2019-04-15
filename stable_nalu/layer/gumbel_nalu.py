@@ -22,4 +22,3 @@ class GumbelNALUCell(AbstractRecurrentCell):
     """
     def __init__(self, input_size, hidden_size, **kwargs):
         super().__init__(GumbelNALULayer, input_size, hidden_size, **kwargs)
-

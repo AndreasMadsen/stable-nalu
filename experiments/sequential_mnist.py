@@ -8,9 +8,7 @@ parser = argparse.ArgumentParser(description='Run either the MNIST counting or M
 parser.add_argument('--layer-type',
                     action='store',
                     default='NALU',
-                    choices=[
-                        'RNN-tanh', 'RNN-ReLU', 'GRU', 'LSTM', 'NAC', 'NALU'
-                    ],
+                    choices=list(stable_nalu.network.SequentialMnistNetwork.UNIT_NAMES),
                     type=str,
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')
 parser.add_argument('--operation',

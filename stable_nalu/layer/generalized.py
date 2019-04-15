@@ -2,11 +2,25 @@
 import torch
 
 from .nac import NACLayer, NACCell
+from .nalu import NALULayer, NALUCell
 from .gumbel_nac import GumbelNACLayer, GumbelNACCell
 from .gumbel_nalu import GumbelNALULayer, GumbelNALUCell
-from .nalu import NALULayer, NALUCell
-from .basic import BasicLayer
+from .basic import BasicLayer, BasicCell
 from ..abstract import ExtendedTorchModule
+
+unit_name_to_layer_class = {
+    'NAC': NACLayer,
+    'NALU': NALULayer,
+    'GumbelNAC': NACLayer,
+    'GumbelNALU': GumbelNALULayer
+}
+
+unit_name_to_cell_class = {
+    'NAC': NACCell,
+    'NALU': NALUCell,
+    'GumbelNAC': GumbelNACCell,
+    'GumbelNALU': GumbelNALUCell
+}
 
 class GeneralizedLayer(ExtendedTorchModule):
     """Abstracts all layers, both basic, NAC and NALU
@@ -16,6 +30,7 @@ class GeneralizedLayer(ExtendedTorchModule):
         out_features: number of outgoing features
         unit_name: name of the unit (e.g. NAC, Sigmoid, Tanh)
     """
+    UNIT_NAMES = set(unit_name_to_layer_class.keys()) | BasicLayer.ACTIVATIONS
 
     def __init__(self, in_features, out_features, unit_name, writer=None, **kwags):
         super().__init__('layer', writer=writer, **kwags)
@@ -23,22 +38,11 @@ class GeneralizedLayer(ExtendedTorchModule):
         self.out_features = out_features
         self.unit_name = unit_name
 
-        if unit_name == 'NAC':
-            self.layer = NACLayer(in_features, out_features,
-                                  writer=self.writer,
-                                  **kwags)
-        elif unit_name == 'GumbelNAC':
-            self.layer = GumbelNACLayer(in_features, out_features,
-                                        writer=self.writer,
-                                        **kwags)
-        elif unit_name == 'NALU':
-            self.layer = NALULayer(in_features, out_features,
-                                   writer=self.writer,
-                                   **kwags)
-        elif unit_name == 'GumbelNALU':
-            self.layer = GumbelNALULayer(in_features, out_features,
-                                         writer=self.writer,
-                                         **kwags)
+        if unit_name in unit_name_to_layer_class:
+            Layer = unit_name_to_layer_class[unit_name]
+            self.layer = Layer(in_features, out_features,
+                               writer=self.writer,
+                               **kwags)
         else:
             self.layer = BasicLayer(in_features, out_features,
                                     activation=unit_name,
@@ -64,27 +68,21 @@ class GeneralizedCell(ExtendedTorchModule):
         hidden_size: number of outgoing features
         unit_name: name of the unit (e.g. RNN-tanh, LSTM, NAC)
     """
+    UNIT_NAMES = set(unit_name_to_cell_class.keys()) | {'GRU', 'LSTM', 'RNN-tanh', 'RNN-ReLU', 'RNN-linear'}
+
     def __init__(self, input_size, hidden_size, unit_name, writer=None, **kwags):
         super().__init__('cell', writer=writer, **kwags)
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.unit_name = unit_name
 
-        if unit_name == 'NAC':
-            self.cell = NACCell(input_size, hidden_size,
-                                writer=self.writer,
-                                **kwags)
-        elif unit_name == 'GumbelNAC':
-            self.cell = GumbelNACCell(input_size, hidden_size,
-                                      writer=self.writer,
-                                      **kwags)
-        elif unit_name == 'NALU':
-            self.cell = NALUCell(input_size, hidden_size,
-                                 writer=self.writer,
-                                 **kwags)
-        elif unit_name == 'GumbelNALU':
-            self.cell = GumbelNALUCell(input_size, hidden_size,
-                                       writer=self.writer,
+        if unit_name in unit_name_to_cell_class:
+            Cell = unit_name_to_cell_class[unit_name]
+            self.cell = Cell(input_size, hidden_size,
+                             writer=self.writer,
+                             **kwags)
+        elif unit_name == 'none':
+            self.cell = PassThoughCell(input_size, hidden_size,
                                        **kwags)
         elif unit_name == 'GRU':
             self.cell = torch.nn.GRUCell(input_size, hidden_size,
@@ -100,6 +98,11 @@ class GeneralizedCell(ExtendedTorchModule):
             self.cell = torch.nn.RNNCell(input_size, hidden_size,
                                          nonlinearity='relu',
                                          **kwags)
+        elif unit_name == 'RNN-linear':
+            self.cell = BasicCell(input_size, hidden_size,
+                                  activation='linear',
+                                  writer=self.writer,
+                                  **kwags)
         else:
             raise NotImplementedError(
                 f'{unit_name} is not an implemented cell type')

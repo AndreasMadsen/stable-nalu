@@ -4,13 +4,11 @@ import stable_nalu
 import argparse
 
 # Parse arguments
-parser = argparse.ArgumentParser(description='Run either the MNIST counting or MNIST Arithmetic task')
+parser = argparse.ArgumentParser(description='Run the number translation task')
 parser.add_argument('--layer-type',
                     action='store',
                     default='NALU',
-                    choices=[
-                        'linear', 'NAC', 'NALU'
-                    ],
+                    choices=list(stable_nalu.network.NumberTranslationNetwork.UNIT_NAMES),
                     type=str,
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')
 parser.add_argument('--seed',

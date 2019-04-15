@@ -2,6 +2,7 @@
 import math
 import torch
 from ..abstract import ExtendedTorchModule
+from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 ACTIVATIONS = {
     'Tanh': torch.tanh,
@@ -43,6 +44,8 @@ INITIALIZATIONS = {
 }
 
 class BasicLayer(ExtendedTorchModule):
+    ACTIVATIONS = set(ACTIVATIONS.keys())
+
     def __init__(self, in_features, out_features, activation='linear', **kwargs):
         super().__init__('basic', **kwargs)
         self.in_features = in_features
@@ -72,3 +75,7 @@ class BasicLayer(ExtendedTorchModule):
         return 'in_features={}, out_features={}, activation={}'.format(
             self.in_features, self.out_features, self.activation
         )
+
+class BasicCell(AbstractRecurrentCell):
+    def __init__(self, input_size, hidden_size, **kwargs):
+        super().__init__(BasicLayer, input_size, hidden_size, **kwargs)

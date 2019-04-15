@@ -1,9 +1,11 @@
 
 import torch
 from ..abstract import ExtendedTorchModule
-from ..layer import GeneralizedLayer
+from ..layer import GeneralizedLayer, BasicLayer
 
 class SimpleFunctionStaticNetwork(ExtendedTorchModule):
+    UNIT_NAMES = GeneralizedLayer.UNIT_NAMES
+
     def __init__(self, unit_name, input_size=100, writer=None, **kwags):
         super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
@@ -15,9 +17,7 @@ class SimpleFunctionStaticNetwork(ExtendedTorchModule):
                                         name='layer_1',
                                         **kwags)
         self.layer_2 = GeneralizedLayer(2, 1,
-                                        unit_name
-                                            if unit_name in {'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'}
-                                            else 'linear',
+                                        'linear' if unit_name in BasicLayer.ACTIVATIONS else unit_name,
                                         writer=self.writer,
                                         name='layer_2',
                                         **kwags)

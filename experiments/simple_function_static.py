@@ -9,10 +9,7 @@ parser = argparse.ArgumentParser(description='Runs the simple function static ta
 parser.add_argument('--layer-type',
                     action='store',
                     default='NALU',
-                    choices=[
-                        'Tanh', 'Sigmoid', 'ReLU6', 'Softsign', 'SELU',
-                        'ELU', 'ReLU', 'linear', 'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'
-                    ],
+                    choices=list(stable_nalu.network.SimpleFunctionStaticNetwork.UNIT_NAMES),
                     type=str,
                     help='Specify the layer type, e.g. Tanh, ReLU, NAC, NALU')
 parser.add_argument('--operation',
@@ -93,10 +90,15 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
 
     # forward
     y_train = model(x_train)
-    loss_train = criterion(y_train, t_train)
+    loss_train_criterion = criterion(y_train, t_train)
+    loss_train_regualizer = 0.1 * (1 - math.exp(-1e-5 * epoch_i)) * model.regualizer()
+    loss_train = loss_train_criterion + loss_train_regualizer
 
     # Log loss
-    summary_writer.add_scalar('loss/train', loss_train)
+    summary_writer.add_scalar('loss/train/critation', loss_train_criterion)
+    summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
+    summary_writer.add_scalar('loss/train/total', loss_train)
+
     if epoch_i % 1000 == 0:
         with torch.no_grad():
             x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
@@ -112,6 +114,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     # Backward + optimize model
     loss_train.backward()
     optimizer.step()
+    model.optimize(loss_train_criterion)
 
     # Log gradients if in verbose mode
     if args.verbose and epoch_i % 1000 == 0:

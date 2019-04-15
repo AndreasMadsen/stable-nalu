@@ -8,9 +8,7 @@ parser = argparse.ArgumentParser(description='Runs the simple function static ta
 parser.add_argument('--layer-type',
                     action='store',
                     default='NALU',
-                    choices=[
-                        'RNN-tanh', 'RNN-ReLU', 'GRU', 'LSTM', 'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'
-                    ],
+                    choices=list(stable_nalu.network.SimpleFunctionRecurrentNetwork.UNIT_NAMES),
                     type=str,
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')
 parser.add_argument('--operation',

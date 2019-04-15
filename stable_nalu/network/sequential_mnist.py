@@ -31,6 +31,8 @@ class _Image2LabelCNN(ExtendedTorchModule):
         # return torch.nn.functional.softmax(x, dim=1)  # do we want a softmax?
 
 class SequentialMnistNetwork(ExtendedTorchModule):
+    UNIT_NAMES = GeneralizedCell.UNIT_NAMES
+
     def __init__(self, unit_name, output_size, writer=None, **kwags):
         super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
