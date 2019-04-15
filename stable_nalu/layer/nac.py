@@ -3,7 +3,7 @@ import scipy.optimize
 import numpy as np
 import torch
 
-from ..writer import DummyWriter
+from ..abstract import ExtendedTorchModule
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 def nac_w_variance(r):
@@ -28,7 +28,7 @@ def nac_w_optimal_r(fan_in, fan_out):
     r = scipy.optimize.bisect(lambda r: fan * nac_w_variance(r) - 2, 0, 10)
     return r
 
-class NACLayer(torch.nn.Module):
+class NACLayer(ExtendedTorchModule):
     """Implements the NAC (Neural Accumulator)
 
     Arguments:
@@ -36,11 +36,10 @@ class NACLayer(torch.nn.Module):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, writer=DummyWriter()):
-        super().__init__()
+    def __init__(self, in_features, out_features, **kwargs):
+        super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
-        self.writer = writer
 
         self.W_hat = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.M_hat = torch.nn.Parameter(torch.Tensor(out_features, in_features))

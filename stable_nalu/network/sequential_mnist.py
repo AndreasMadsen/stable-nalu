@@ -1,14 +1,14 @@
 
 import torch
+from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer, GeneralizedCell
-from ..writer import DummyWriter
 
 # Copied from https://github.com/pytorch/examples/blob/master/mnist/main.py, just added a
 # reset_parameters method and changed log_softmax to softmax.
 
-class _Image2LabelCNN(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
+class _Image2LabelCNN(ExtendedTorchModule):
+    def __init__(self, **kwargs):
+        super().__init__('cnn', **kwargs)
         self.conv1 = torch.nn.Conv2d(1, 20, 5, 1)
         self.conv2 = torch.nn.Conv2d(20, 50, 5, 1)
         self.fc1 = torch.nn.Linear(4*4*50, 500)
@@ -30,10 +30,9 @@ class _Image2LabelCNN(torch.nn.Module):
         return self.fc2(x)
         # return torch.nn.functional.softmax(x, dim=1)  # do we want a softmax?
 
-class SequentialMnistNetwork(torch.nn.Module):
-    def __init__(self, unit_name, output_size,
-                 writer=DummyWriter(), **kwags):
-        super().__init__()
+class SequentialMnistNetwork(ExtendedTorchModule):
+    def __init__(self, unit_name, output_size, writer=None, **kwags):
+        super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
         self.output_size = output_size
 
@@ -47,8 +46,9 @@ class SequentialMnistNetwork(torch.nn.Module):
         self.image2label = _Image2LabelCNN()
         self.recurent_cell = GeneralizedCell(10, self.output_size,
                                              unit_name,
-                                             writer=writer.namespace('recurrent_layer'),
+                                             writer=self.writer,
                                              **kwags)
+        self.reset_parameters()
 
     def reset_parameters(self):
         if self.unit_name == 'LSTM':

@@ -1,6 +1,7 @@
 
 import math
 import torch
+from ..abstract import ExtendedTorchModule
 
 ACTIVATIONS = {
     'Tanh': torch.tanh,
@@ -41,9 +42,9 @@ INITIALIZATIONS = {
         W, gain=torch.nn.init.calculate_gain('linear'))
 }
 
-class BasicLayer(torch.nn.Module):
-    def __init__(self, in_features, out_features, activation='linear', writer=None):
-        super().__init__()
+class BasicLayer(ExtendedTorchModule):
+    def __init__(self, in_features, out_features, activation='linear', **kwargs):
+        super().__init__('basic', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
         self.activation = activation
@@ -57,7 +58,6 @@ class BasicLayer(torch.nn.Module):
 
         self.weight = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.bias = torch.nn.Parameter(torch.Tensor(out_features))
-        self.reset_parameters()
 
     def reset_parameters(self):
         self.initializer(self.weight)

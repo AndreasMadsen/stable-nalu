@@ -73,7 +73,7 @@ dataset_valid_extrapolation = iter(dataset.fork(seq_length=1000).dataloader(batc
 # setup model
 model = stable_nalu.network.SimpleFunctionRecurrentNetwork(
     args.layer_type,
-    writer=summary_writer if args.verbose else stable_nalu.writer.DummyWriter()
+    writer=summary_writer if args.verbose else None
 )
 if args.cuda:
     model.cuda()

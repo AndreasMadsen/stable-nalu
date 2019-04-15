@@ -62,7 +62,7 @@ dataset_valid = dataset.fork(subset='valid').dataloader()
 # setup model
 model = stable_nalu.network.NumberTranslationNetwork(
     args.layer_type,
-    writer=summary_writer if args.verbose else stable_nalu.writer.DummyWriter()
+    writer=summary_writer if args.verbose else None
 )
 if args.cuda:
     model.cuda()

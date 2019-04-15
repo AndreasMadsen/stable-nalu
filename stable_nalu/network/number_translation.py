@@ -1,15 +1,16 @@
 
 import torch
+from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer, GeneralizedCell
-from ..writer import DummyWriter
 
-class NumberTranslationNetwork(torch.nn.Module):
+class NumberTranslationNetwork(ExtendedTorchModule):
     def __init__(self, unit_name,
                  embedding_size=2,  # 1 for the number, 1 for the gate ?
                  hidden_size=2,  # 1 for the number, 1 for the gate ?
                  dictionary_size=30,
-                 writer=DummyWriter(), **kwags):
-        super().__init__()
+                 writer=None,
+                 **kwags):
+        super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
@@ -23,8 +24,10 @@ class NumberTranslationNetwork(torch.nn.Module):
         self.lstm_cell = torch.nn.LSTMCell(embedding_size, hidden_size)
         self.output_cell = GeneralizedCell(hidden_size, 1,
                                              unit_name,
-                                             writer=writer.namespace('recurrent_layer'),
+                                             writer=self.writer,
+                                             name='recurrent_output',
                                              **kwags)
+        self.reset_parameters()
 
     def reset_parameters(self):
         torch.nn.init.zeros_(self.lstm_zero_state_h)

@@ -54,7 +54,7 @@ class SummaryWriter(SummaryWriterNamespace):
     def __del__(self):
         self.close()
 
-class DummyWriter():
+class DummySummaryWriter():
     def __init__(self):
         pass
 

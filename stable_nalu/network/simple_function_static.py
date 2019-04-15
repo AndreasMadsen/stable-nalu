@@ -1,26 +1,27 @@
 
 import torch
+from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer
-from ..writer import DummyWriter
 
-class SimpleFunctionStaticNetwork(torch.nn.Module):
-    def __init__(self, unit_name, input_size=100,
-                 writer=DummyWriter(), **kwags):
-        super().__init__()
-
+class SimpleFunctionStaticNetwork(ExtendedTorchModule):
+    def __init__(self, unit_name, input_size=100, writer=None, **kwags):
+        super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
         self.input_size = input_size
 
         self.layer_1 = GeneralizedLayer(input_size, 2,
                                         unit_name,
-                                        writer=writer.namespace('layer1'),
+                                        writer=self.writer,
+                                        name='layer_1',
                                         **kwags)
         self.layer_2 = GeneralizedLayer(2, 1,
                                         unit_name
                                             if unit_name in {'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'}
                                             else 'linear',
-                                        writer=writer.namespace('layer2'),
+                                        writer=self.writer,
+                                        name='layer_2',
                                         **kwags)
+        self.reset_parameters()
 
     def reset_parameters(self):
         self.layer_1.reset_parameters()

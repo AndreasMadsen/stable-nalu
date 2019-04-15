@@ -1,12 +1,11 @@
 
 import torch
+from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer, GeneralizedCell
-from ..writer import DummyWriter
 
-class SimpleFunctionRecurrentNetwork(torch.nn.Module):
-    def __init__(self, unit_name, input_size=10,
-                 writer=DummyWriter(), **kwags):
-        super().__init__()
+class SimpleFunctionRecurrentNetwork(ExtendedTorchModule):
+    def __init__(self, unit_name, input_size=10, writer=None, **kwargs):
+        super().__init__('network', writer=writer, **kwargs)
 
         self.unit_name = unit_name
         self.input_size = input_size
@@ -25,14 +24,17 @@ class SimpleFunctionRecurrentNetwork(torch.nn.Module):
 
         self.recurent_cell = GeneralizedCell(input_size, self.hidden_size,
                                              unit_name,
-                                             writer=writer.namespace('recurrent_layer'),
-                                             **kwags)
+                                             writer=self.writer,
+                                             name='recurrent_layer',
+                                             **kwargs)
         self.output_layer = GeneralizedLayer(self.hidden_size, 1,
                                              unit_name
                                                 if unit_name in {'GumbelNAC', 'NAC', 'GumbelNALU', 'NALU'}
                                                 else 'linear',
-                                             writer=writer.namespace('output_layer'),
-                                             **kwags)
+                                             writer=self.writer,
+                                             name='output_layer',
+                                             **kwargs)
+        self.reset_parameters()
 
     def reset_parameters(self):
         if self.unit_name == 'LSTM':

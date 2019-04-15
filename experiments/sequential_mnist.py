@@ -75,7 +75,7 @@ dataset_valid_extrapolation_1000 = dataset.fork(seq_length=1000).dataloader()
 model = stable_nalu.network.SequentialMnistNetwork(
     args.layer_type,
     dataset.get_item_shape().target[-1],
-    writer=summary_writer if args.verbose else stable_nalu.writer.DummyWriter()
+    writer=summary_writer if args.verbose else None
 )
 if args.cuda:
     model.cuda()

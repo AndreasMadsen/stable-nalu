@@ -1,11 +1,11 @@
 
 import torch
 
-from ..writer import DummyWriter
+from ..abstract import ExtendedTorchModule
 from ..functional import sample_gumbel_softmax, batch_linear
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
-class GumbelNACLayer(torch.nn.Module):
+class GumbelNACLayer(ExtendedTorchModule):
     """Implements the NAC (Neural Accumulator)
 
     Arguments:
@@ -13,11 +13,10 @@ class GumbelNACLayer(torch.nn.Module):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, writer=DummyWriter(), sample_each_observation=False):
-        super().__init__()
+    def __init__(self, in_features, out_features, sample_each_observation=False, **kwargs):
+        super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
-        self.writer = writer
         self.sample_each_observation = sample_each_observation
 
         # Define the temperature tau
