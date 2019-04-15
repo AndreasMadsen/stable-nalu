@@ -83,22 +83,13 @@ model.reset_parameters()
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
-# Collect temperatures
-parameter_tau = []
-for name, parameter in model.named_parameters():
-    if (name[-4:] == '.tau'):
-        parameter_tau.append(parameter)
-
 # Train model
 for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_train):
     summary_writer.set_iteration(epoch_i)
 
-    # zero the parameter gradients
+    # Prepear model
+    model.set_parameter('tau', max(0.5, math.exp(-1e-5 * epoch_i)))
     optimizer.zero_grad()
-
-    # Set temperature
-    for tau in parameter_tau:
-        tau.fill_(max(0.5, math.exp(-1e-5 * epoch_i)))
 
     # forward
     y_train = model(x_train)
