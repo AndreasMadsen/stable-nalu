@@ -3,6 +3,7 @@ import scipy.optimize
 import numpy as np
 import torch
 
+from ..functional import nac_weight
 from ..abstract import ExtendedTorchModule
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
@@ -51,17 +52,7 @@ class NACLayer(ExtendedTorchModule):
         torch.nn.init.uniform_(self.M_hat, a=-r, b=r)
 
     def forward(self, input, reuse=False):
-        self.writer.add_summary('w_hat', self.W_hat)
-        self.writer.add_summary('m_hat', self.M_hat)
-
-        tanh_w_hat = torch.tanh(self.W_hat)
-        sigmoid_m_hat = torch.sigmoid(self.M_hat)
-
-        self.writer.add_summary('grad_w_hat_factor', (1 - tanh_w_hat*tanh_w_hat)*sigmoid_m_hat)
-        self.writer.add_summary('grad_m_hat_factor', tanh_w_hat*sigmoid_m_hat*(1-sigmoid_m_hat))
-
-        W = tanh_w_hat * sigmoid_m_hat
-        self.writer.add_summary('W', W)
+        W = nac_weight(self.W_hat, self.M_hat, mode='normal')
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

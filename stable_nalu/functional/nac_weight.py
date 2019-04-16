@@ -23,7 +23,8 @@ class NACWeight(torch.autograd.Function):
             grad_output * tanh_w_hat*sigmoid_m_hat*(1-sigmoid_m_hat)
         )
 
-class NACWeightRescaled(torch.autograd.Function):
+
+class NACWeightSign(torch.autograd.Function):
     r"""Implements the NAC weight operator but with a hard gradient for \hat{m}
 
     w = tanh(\hat{w}) * sigmoid(\hat{m})
@@ -46,10 +47,11 @@ class NACWeightRescaled(torch.autograd.Function):
             grad_output * 0.1*torch.sign(w_hat)*sigmoid_m_hat*(1-sigmoid_m_hat)
         )
 
-class NACWeightIndepdent(torch.autograd.Function):
+
+class NACWeightIndependent(torch.autograd.Function):
     r"""Implements the NAC weight operator but with independent optimization.
 
-    The optimiation of \hat{w} is indepdent of \hat{m} and vice versa.
+    The optimiation of \hat{w} is independent of \hat{m} and vice versa.
 
     w = tanh(\hat{w}) * sigmoid(\hat{m})
 
@@ -74,3 +76,11 @@ class NACWeightIndepdent(torch.autograd.Function):
             grad_output * (1 - tanh_w_hat*tanh_w_hat),
             grad_output * sigmoid_m_hat*(1-sigmoid_m_hat)
         )
+
+def nac_weight(w_hat, m_hat, mode='normal'):
+    if mode == 'normal':
+        return NACWeight.apply(w_hat, m_hat)
+    elif mode == 'sign':
+        return NACWeightSign.apply(w_hat, m_hat)
+    elif mode == 'independent':
+        return NACWeightIndependent.apply(w_hat, m_hat)
