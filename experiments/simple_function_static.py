@@ -50,6 +50,7 @@ print(f'running')
 print(f'  - seed: {args.seed}')
 print(f'  - operation: {args.operation}')
 print(f'  - layer_type: {args.layer_type}')
+print(f'  - simple: {args.simple}')
 print(f'  - cuda: {args.cuda}')
 print(f'  - verbose: {args.verbose}')
 print(f'  - max_iterations: {args.max_iterations}')
@@ -86,6 +87,11 @@ model.reset_parameters()
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
+def test_model(dataloader):
+    with torch.no_grad():
+        x, t = next(dataloader)
+        return criterion(model(x), t)
+
 # Train model
 for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_train):
     summary_writer.set_iteration(epoch_i)
@@ -93,6 +99,11 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     # Prepear model
     model.set_parameter('tau', max(0.5, math.exp(-1e-5 * epoch_i)))
     optimizer.zero_grad()
+
+    # Log validation
+    if epoch_i % 1000 == 0:
+        summary_writer.add_scalar('loss/valid/interpolation', test_model(dataset_valid_interpolation))
+        summary_writer.add_scalar('loss/valid/extrapolation', test_model(dataset_valid_extrapolation))
 
     # forward
     y_train = model(x_train)
@@ -104,18 +115,8 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     summary_writer.add_scalar('loss/train/critation', loss_train_criterion)
     summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
     summary_writer.add_scalar('loss/train/total', loss_train)
-
     if epoch_i % 1000 == 0:
-        with torch.no_grad():
-            x_valid_inter, t_valid_inter = next(dataset_valid_interpolation)
-            loss_valid_inter = criterion(model(x_valid_inter), t_valid_inter)
-            summary_writer.add_scalar('loss/valid/interpolation', loss_valid_inter)
-
-            x_valid_extra, t_valid_extra = next(dataset_valid_extrapolation)
-            loss_valid_extra = criterion(model(x_valid_extra), t_valid_extra)
-            summary_writer.add_scalar('loss/valid/extrapolation', loss_valid_extra)
-
-        print(f'train {epoch_i}: {loss_train}')
+        print(f'train {epoch_i}: {loss_train_criterion}')
 
     # Optimize model
     if loss_train.requires_grad:
@@ -126,6 +127,10 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     # Log gradients if in verbose mode
     if args.verbose and epoch_i % 1000 == 0:
         model.log_gradients()
+
+# Compute validation loss
+loss_valid_inter = test_model(dataset_valid_interpolation)
+loss_valid_extra = test_model(dataset_valid_extrapolation)
 
 # Write results for this training
 print(f'finished:')
@@ -138,6 +143,7 @@ results_writer.add({
     'seed': args.seed,
     'operation': args.operation,
     'layer_type': args.layer_type,
+    'simple': args.simple,
     'cuda': args.cuda,
     'verbose': args.verbose,
     'max_iterations': args.max_iterations,

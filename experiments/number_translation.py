@@ -1,4 +1,5 @@
 
+import math
 import torch
 import stable_nalu
 import argparse
@@ -60,7 +61,7 @@ dataset_valid = dataset.fork(subset='valid').dataloader()
 # setup model
 model = stable_nalu.network.NumberTranslationNetwork(
     args.layer_type,
-    writer=summary_writer if args.verbose else None
+    writer=summary_writer.every(150) if args.verbose else None
 )
 if args.cuda:
     model.cuda()
@@ -69,39 +70,56 @@ criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
 def test_model(dataloader):
-    acc_loss = 0
-    for x, t in dataloader:
-        # forward
-        y = model(x)
-        acc_loss += criterion(y, t).item() * len(t)
+    with torch.no_grad():
+        acc_loss = 0
+        for x, t in dataloader:
+            # forward
+            y = model(x)
+            acc_loss += criterion(y, t).item() * len(t)
 
-    return acc_loss / len(dataloader.dataset)
+        return acc_loss / len(dataloader.dataset)
 
 # Train model
 global_step = 0
 for epoch_i in range(args.max_epochs):
-    for x_train, t_train in dataset_train:
+    for i_train, (x_train, t_train) in enumerate(dataset_train):
         global_step += 1
         summary_writer.set_iteration(global_step)
 
-        # zero the parameter gradients
+        # Prepear model
+        model.set_parameter('tau', max(0.5, math.exp(-1e-5 * global_step)))
         optimizer.zero_grad()
+
+        # Log validation
+        if epoch_i % 50 == 0 and i_train == 0:
+            summary_writer.add_scalar('loss/valid', test_model(dataset_valid))
 
         # forward
         y_train = model(x_train)
-        loss_train = criterion(y_train, t_train)
+        loss_train_criterion = criterion(y_train, t_train)
+        loss_train_regualizer = 0.1 * (1 - math.exp(-1e-5 * global_step)) * model.regualizer()
+        loss_train = loss_train_criterion + loss_train_regualizer
 
         # Log loss
-        summary_writer.add_scalar('loss/train', loss_train)
+        summary_writer.add_scalar('loss/train/critation', loss_train_criterion)
+        summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
+        summary_writer.add_scalar('loss/train/total', loss_train)
+        if epoch_i % 50 == 0 and i_train == 0:
+            print(f'train {epoch_i}: {loss_train_criterion}')
 
-        # Backward + optimize model
-        loss_train.backward()
-        optimizer.step()
+        # Optimize model
+        if loss_train.requires_grad:
+            loss_train.backward()
+            optimizer.step()
+        model.optimize(loss_train_criterion)
 
-    if epoch_i % 50 == 0:
-        print(f'train {epoch_i}: {loss_train}')
+        # Log gradients if in verbose mode
+        if args.verbose and epoch_i % 10 == 0 and i_train == 0:
+            model.log_gradients()
 
-    summary_writer.add_scalar('loss/valid', test_model(dataset_valid))
+# Compute losses
+loss_train = test_model(dataset_train)
+loss_valid = test_model(dataset_valid)
 
 # Write results for this training
 print(f'finished:')
@@ -115,6 +133,6 @@ results_writer.add({
     'cuda': args.cuda,
     'verbose': args.verbose,
     'max_epochs': args.max_epochs,
-    'loss_train': test_model(dataset_train),
-    'loss_valid': test_model(dataset_valid),
+    'loss_train': loss_train,
+    'loss_valid': loss_valid,
 })
