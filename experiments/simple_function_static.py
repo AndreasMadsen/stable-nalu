@@ -35,6 +35,10 @@ parser.add_argument('--cuda',
                     default=torch.cuda.is_available(),
                     type=bool,
                     help='Should CUDA be used')
+parser.add_argument('--simple',
+                    action='store_true',
+                    default=False,
+                    help='Use a very simple dataset with t = sum(v[0:2]) + sum(v[4:6])')
 parser.add_argument('--verbose',
                     action='store_true',
                     default=False,
@@ -62,8 +66,9 @@ torch.manual_seed(args.seed)
 # Setup datasets
 dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation=args.operation,
+    simple=args.simple,
     use_cuda=args.cuda,
-    seed=args.seed
+    seed=args.seed,
 )
 dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
 dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
@@ -72,6 +77,7 @@ dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_
 # setup model
 model = stable_nalu.network.SimpleFunctionStaticNetwork(
     args.layer_type,
+    input_size=dataset.get_input_size(),
     writer=summary_writer if args.verbose else None
 )
 if args.cuda:

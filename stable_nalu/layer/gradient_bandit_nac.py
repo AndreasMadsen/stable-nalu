@@ -19,7 +19,7 @@ class GradientBanditNACLayer(ExtendedTorchModule):
         self.out_features = out_features
 
         # The learning rate
-        self.lr = torch.nn.Parameter(torch.tensor(1, dtype=torch.float32), requires_grad=False)
+        self.lr = torch.nn.Parameter(torch.tensor(1e-3, dtype=torch.float32), requires_grad=False)
 
         # Holds a running mean of the loss
         self.running_mean_beta = torch.nn.Parameter(torch.tensor(0.9, dtype=torch.float32), requires_grad=False)

@@ -30,6 +30,7 @@ class ARITHMETIC_FUNCTIONS:
 
 class SimpleFunctionDataset:
     def __init__(self, operation, vector_size,
+                 simple=False,
                  seed=None,
                  use_cuda=False,
                  max_size=2**32-1):
@@ -37,17 +38,29 @@ class SimpleFunctionDataset:
 
         self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
         self._max_size = max_size
-        self._vector_size = vector_size
         self._use_cuda = use_cuda
         self._rng = np.random.RandomState(seed)
 
-        self.a_start = self._rng.randint(0, self._vector_size)
-        a_size = self._rng.randint(1, self._vector_size - self.a_start + 1)
-        self.a_end = self.a_start + a_size
+        if simple:
+            self._vector_size = 6
 
-        self.b_start = self._rng.randint(0, self._vector_size)
-        b_size = self._rng.randint(1, self._vector_size - self.b_start + 1)
-        self.b_end = self.b_start + b_size
+            self.a_start = 0
+            self.a_end = 2
+            self.b_start = 4
+            self.b_end = 6
+        else:
+            self._vector_size = vector_size
+
+            self.a_start = self._rng.randint(0, self._vector_size)
+            a_size = self._rng.randint(1, self._vector_size - self.a_start + 1)
+            self.a_end = self.a_start + a_size
+
+            self.b_start = self._rng.randint(0, self._vector_size)
+            b_size = self._rng.randint(1, self._vector_size - self.b_start + 1)
+            self.b_end = self.b_start + b_size
+
+    def get_input_size(self):
+        return self._vector_size
 
     def fork(self, shape, input_range):
         assert shape[-1] == self._vector_size
