@@ -32,3 +32,14 @@ class ExtendedTorchModule(torch.nn.Module):
         for module in self.children():
             if isinstance(module, ExtendedTorchModule):
                 module.optimize(loss)
+
+    def log_gradients(self):
+        for name, parameter in self.named_parameters(recurse=False):
+            if parameter.requires_grad:
+                gradient, *_ = parameter.grad.data
+                self.writer.add_summary(f'{name}/grad', gradient)
+                self.writer.add_histogram(f'{name}/grad', gradient)
+
+        for module in self.children():
+            if isinstance(module, ExtendedTorchModule):
+                module.log_gradients()

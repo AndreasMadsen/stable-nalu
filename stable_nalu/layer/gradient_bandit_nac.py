@@ -70,6 +70,7 @@ class GradientBanditNACLayer(ExtendedTorchModule):
         W = self.target_weights[self.sample]
 
         # Compute the linear multiplication as usual
+        self.writer.add_histogram('W', W)
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

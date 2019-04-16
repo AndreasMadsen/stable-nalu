@@ -62,6 +62,7 @@ class HardSoftmaxNACLayer(ExtendedTorchModule):
         W = W_hard - W_soft.detach() + W_soft
 
         # Compute the linear multiplication as usual
+        self.writer.add_histogram('W', W)
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

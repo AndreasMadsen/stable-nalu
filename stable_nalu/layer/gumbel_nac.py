@@ -63,6 +63,7 @@ class GumbelNACLayer(ExtendedTorchModule):
             # select from target_weights
             W = y @ self.target_weights
 
+            self.writer.add_histogram('W', W)
             return batch_linear(input, W, self.bias)
         else:
             # Sample a quazi-1-hot encoding
@@ -71,6 +72,7 @@ class GumbelNACLayer(ExtendedTorchModule):
             W = y @ self.target_weights
 
             # Compute the linear multiplication as usual
+            self.writer.add_histogram('W', W)
             return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

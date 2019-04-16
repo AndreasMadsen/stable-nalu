@@ -7,8 +7,9 @@ THIS_DIR = path.dirname(path.realpath(__file__))
 TENSORBOARD_DIR = path.join(THIS_DIR, '../../tensorboard')
 
 class SummaryWriterNamespace:
-    def __init__(self, namespace='', root=None):
+    def __init__(self, namespace='', epoch_interval=1, root=None):
         self._namespace = namespace
+        self._epoch_interval = epoch_interval
 
         if root is None:
             self._root = self
@@ -21,16 +22,33 @@ class SummaryWriterNamespace:
     def get_iteration(self):
         return self._root.get_iteration()
 
+    def _is_log_iteration(self):
+        return self._root.get_iteration() % self._epoch_interval == 0
+
     def add_scalar(self, name, value):
-        self._root.writer.add_scalar(f'{self._namespace}/{name}', value, self.get_iteration())
+        if self._is_log_iteration():
+            self._root.writer.add_scalar(f'{self._namespace}/{name}', value, self.get_iteration())
 
     def add_summary(self, name, tensor):
-        self.add_scalar(f'{name}/mean', torch.mean(tensor))
-        self.add_scalar(f'{name}/var', torch.var(tensor))
+        if self._is_log_iteration():
+            self.add_scalar(f'{name}/mean', torch.mean(tensor))
+            self.add_scalar(f'{name}/var', torch.var(tensor))
+
+    def add_histogram(self, name, tensor):
+        if self._is_log_iteration():
+            self._root.writer.add_histogram(f'{self._namespace}/{name}', tensor, self.get_iteration())
 
     def namespace(self, name):
         return SummaryWriterNamespace(
             namespace=f'{self._namespace}/{name}',
+            epoch_interval=self._epoch_interval,
+            root=self._root,
+        )
+
+    def every(self, epoch_interval):
+        return SummaryWriterNamespace(
+            namespace=self._namespace,
+            epoch_interval=epoch_interval,
             root=self._root,
         )
 
@@ -64,5 +82,11 @@ class DummySummaryWriter():
     def add_summary(self, name, tensor):
         pass
 
+    def add_histogram(self, name, tensor):
+        pass
+
     def namespace(self, name):
+        return self
+
+    def every(self, epoch_interval):
         return self

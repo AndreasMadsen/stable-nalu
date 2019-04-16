@@ -29,6 +29,7 @@ class RegualizedLinearNACLayer(ExtendedTorchModule):
         return torch.sum(self.W**2 * (1 - torch.abs(self.W))**2)
 
     def forward(self, input, reuse=False):
+        self.writer.add_histogram('W', self.W)
         return torch.nn.functional.linear(input, self.W, self.bias)
 
     def extra_repr(self):

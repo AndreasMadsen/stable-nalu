@@ -28,8 +28,11 @@ class SimpleFunctionStaticNetwork(ExtendedTorchModule):
         self.layer_2.reset_parameters()
 
     def forward(self, input):
+        self.writer.add_summary('x', input)
         z_1 = self.layer_1(input)
+        self.writer.add_summary('z_1', z_1)
         z_2 = self.layer_2(z_1)
+        self.writer.add_summary('z_2', z_2)
         return z_2
 
     def extra_repr(self):

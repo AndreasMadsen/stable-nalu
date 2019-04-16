@@ -67,6 +67,7 @@ class BasicLayer(ExtendedTorchModule):
         torch.nn.init.zeros_(self.bias)
 
     def forward(self, input):
+        self.writer.add_histogram('W', self.weight)
         return self.activation_fn(
             torch.nn.functional.linear(input, self.weight, self.bias)
         )

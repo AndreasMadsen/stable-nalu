@@ -78,7 +78,7 @@ dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_
 model = stable_nalu.network.SimpleFunctionStaticNetwork(
     args.layer_type,
     input_size=dataset.get_input_size(),
-    writer=summary_writer if args.verbose else None
+    writer=summary_writer.every(1000) if args.verbose else None
 )
 if args.cuda:
     model.cuda()
@@ -125,10 +125,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
 
     # Log gradients if in verbose mode
     if args.verbose and epoch_i % 1000 == 0:
-        for name, weight in model.named_parameters():
-            if weight.requires_grad:
-                gradient, *_ = weight.grad.data
-                summary_writer.add_summary(f'grad/{name}', gradient)
+        model.log_gradients()
 
 # Write results for this training
 print(f'finished:')

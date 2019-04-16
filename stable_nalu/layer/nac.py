@@ -53,6 +53,7 @@ class NACLayer(ExtendedTorchModule):
 
     def forward(self, input, reuse=False):
         W = nac_weight(self.W_hat, self.M_hat, mode='normal')
+        self.writer.add_histogram('W', W)
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

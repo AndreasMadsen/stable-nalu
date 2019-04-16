@@ -33,7 +33,7 @@ class AbstractNALULayer(ExtendedTorchModule):
     def forward(self, x):
         # g = sigmoid(G x)
         g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias))
-        self.writer.add_summary('gate', g)
+        self.writer.add_histogram('gate', g)
         # a = W x = nac(x)
         a = self.nac(x)
         # m = exp(W log(|x| + eps)) = exp(nac(log(|x| + eps)))

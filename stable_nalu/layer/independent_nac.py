@@ -8,6 +8,7 @@ from ._abstract_recurrent_cell import AbstractRecurrentCell
 class IndependentNACLayer(NACLayer):
     def forward(self, input, reuse=False):
         W = nac_weight(self.W_hat, self.M_hat, mode='independent')
+        self.writer.add_histogram('W', W)
         return torch.nn.functional.linear(input, W, self.bias)
 
 class IndependentNACCell(AbstractRecurrentCell):
