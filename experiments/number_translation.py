@@ -26,7 +26,7 @@ parser.add_argument('--cuda',
                     action='store',
                     default=torch.cuda.is_available(),
                     type=bool,
-                    help='Should CUDA be used')
+                    help=f'Should CUDA be used (detected automatically as {torch.cuda.is_available()})')
 parser.add_argument('--verbose',
                     action='store_true',
                     default=False,
