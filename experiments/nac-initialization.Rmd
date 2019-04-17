@@ -37,10 +37,10 @@ $$
 \end{aligned}
 $$
 
-Thus, $\frac{\partial \mathcal{L}}{\partial \hat{m}_{h_{\ell-1},h_\ell}}$ is what needs to be expressed, similar to a typical MLP network.
+Thus, $\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}}$ is what needs to be expressed, similar to a typical MLP network.
 
 $$
-\frac{\partial \mathcal{L}}{\partial \hat{m}_{h_{\ell-1},h_\ell}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial \hat{m}_{h_{\ell-1},h_\ell}} = \delta_{h_\ell} z_{h_{\ell-1}}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1},h_\ell}} = \delta_{h_\ell} z_{h_{\ell-1}}
 $$
 
 Likewise the backpropergation expression for $\delta_{h_\ell}$ remains the same:
