@@ -46,7 +46,7 @@ INITIALIZATIONS = {
 class BasicLayer(ExtendedTorchModule):
     ACTIVATIONS = set(ACTIVATIONS.keys())
 
-    def __init__(self, in_features, out_features, activation='linear', **kwargs):
+    def __init__(self, in_features, out_features, activation='linear', bias=True, **kwargs):
         super().__init__('basic', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
@@ -60,13 +60,18 @@ class BasicLayer(ExtendedTorchModule):
         self.initializer = INITIALIZATIONS[activation]
 
         self.weight = torch.nn.Parameter(torch.Tensor(out_features, in_features))
-        self.bias = torch.nn.Parameter(torch.Tensor(out_features))
+        print(bias)
+        if bias:
+            self.bias = torch.nn.Parameter(torch.Tensor(out_features))
+        else:
+            self.register_parameter('bias', None)
 
     def reset_parameters(self):
         self.initializer(self.weight)
-        torch.nn.init.zeros_(self.bias)
+        if self.bias is not None:
+            torch.nn.init.zeros_(self.bias)
 
-    def forward(self, input):
+    def forward(self, input, reuse=False):
         self.writer.add_histogram('W', self.weight)
         return self.activation_fn(
             torch.nn.functional.linear(input, self.weight, self.bias)

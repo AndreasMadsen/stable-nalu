@@ -11,7 +11,7 @@ class AbstractNALULayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, NACOp, in_features, out_features, eps=1e-7, bias=False, writer=None, **kwargs):
+    def __init__(self, NACOp, in_features, out_features, eps=1e-7, nalu_bias=False, writer=None, **kwargs):
         super().__init__('nalu', writer=writer, **kwargs)
         self.in_features = in_features
         self.out_features = out_features
@@ -19,7 +19,7 @@ class AbstractNALULayer(ExtendedTorchModule):
 
         self.nac = NACOp(in_features, out_features, writer=self.writer, **kwargs)
         self.G = torch.nn.Parameter(torch.Tensor(out_features, in_features))
-        if bias:
+        if nalu_bias:
             self.bias = torch.nn.Parameter(torch.Tensor(out_features))
         else:
             self.register_parameter('bias', None)

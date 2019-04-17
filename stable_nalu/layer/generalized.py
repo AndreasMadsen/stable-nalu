@@ -9,6 +9,9 @@ from .nalu import NALULayer, NALUCell
 from .gumbel_nac import GumbelNACLayer, GumbelNACCell
 from .gumbel_nalu import GumbelNALULayer, GumbelNALUCell
 
+from .linear_nac import LinearNACLayer, LinearNACCell
+from .linear_nalu import LinearNALULayer, LinearNALUCell
+
 from .softmax_nac import SoftmaxNACLayer, SoftmaxNACCell
 from .softmax_nalu import SoftmaxNALULayer, SoftmaxNALUCell
 
@@ -32,6 +35,8 @@ unit_name_to_layer_class = {
 
     'GumbelNAC': NACLayer,
     'GumbelNALU': GumbelNALULayer,
+
+    'LinearNALU': LinearNALULayer,
 
     'SoftmaxNAC': SoftmaxNACLayer,
     'SoftmaxNALU': SoftmaxNALULayer,
