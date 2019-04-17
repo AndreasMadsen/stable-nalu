@@ -3,12 +3,12 @@ import torch
 from ..writer import DummySummaryWriter
 
 class ExtendedTorchModule(torch.nn.Module):
-    def __init__(self, default_layer_name, *args, writer=None, layer_name=None, **kwargs):
+    def __init__(self, default_name, *args, writer=None, name=None, **kwargs):
         super().__init__()
         if writer is None:
             writer = DummySummaryWriter()
 
-        self.writer = writer.namespace(default_layer_name if layer_name is None else layer_name)
+        self.writer = writer.namespace(default_name if name is None else name)
 
     def set_parameter(self, name, value):
         parameter = getattr(self, name, None)

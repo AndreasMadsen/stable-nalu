@@ -35,6 +35,18 @@ parser.add_argument('--cuda',
                     default=torch.cuda.is_available(),
                     type=bool,
                     help=f'Should CUDA be used (detected automatically as {torch.cuda.is_available()})')
+parser.add_argument('--nalu-bias',
+                    action='store_true',
+                    default=False,
+                    help='Enables bias in the NALU gate')
+parser.add_argument('--nalu-two-nac',
+                    action='store_true',
+                    default=False,
+                    help='Uses two independent NACs in the NALU Layer')
+parser.add_argument('--nalu-regualized-gate',
+                    action='store_true',
+                    default=False,
+                    help='Regualize the NALU gate to be either 0 or 1')
 parser.add_argument('--simple',
                     action='store_true',
                     default=False,
@@ -50,6 +62,9 @@ print(f'running')
 print(f'  - seed: {args.seed}')
 print(f'  - operation: {args.operation}')
 print(f'  - layer_type: {args.layer_type}')
+print(f'  - nalu_bias: {args.nalu_bias}')
+print(f'  - nalu_two_nac: {args.nalu_two_nac}')
+print(f'  - nalu_regualized_gate: {args.nalu_regualized_gate}')
 print(f'  - simple: {args.simple}')
 print(f'  - cuda: {args.cuda}')
 print(f'  - verbose: {args.verbose}')
@@ -58,7 +73,12 @@ print(f'  - max_iterations: {args.max_iterations}')
 # Prepear logging
 results_writer = stable_nalu.writer.ResultsWriter('simple_function_static')
 summary_writer = stable_nalu.writer.SummaryWriter(
-    f'simple_function_static/{args.layer_type.lower()}_{args.operation.lower()}_{args.seed}'
+    f'simple_function_static/{args.layer_type.lower()}'
+    f'{"_nalu-" if args.nalu_bias or args.nalu_two_nac or args.nalu_regualized_gate else ""}'
+    f'{"b" if args.nalu_bias else ""}'
+    f'{"2" if args.nalu_two_nac else ""}'
+    f'{"r" if args.nalu_regualized_gate else ""}'
+    f'_{args.operation.lower()}_{args.seed}'
 )
 
 # Set seed
@@ -79,7 +99,10 @@ dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_
 model = stable_nalu.network.SimpleFunctionStaticNetwork(
     args.layer_type,
     input_size=dataset.get_input_size(),
-    writer=summary_writer.every(1000) if args.verbose else None
+    writer=summary_writer.every(1000) if args.verbose else None,
+    nalu_bias=args.nalu_bias,
+    nalu_two_nac=args.nalu_two_nac,
+    nalu_regualized_gate=args.nalu_regualized_gate,
 )
 if args.cuda:
     model.cuda()

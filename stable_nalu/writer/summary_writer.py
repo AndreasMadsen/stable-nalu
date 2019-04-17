@@ -35,6 +35,11 @@ class SummaryWriterNamespace:
             self.add_scalar(f'{name}/var', torch.var(tensor))
 
     def add_histogram(self, name, tensor):
+        if torch.isnan(tensor).any():
+            print(f'nan detected in {self._namespace}/{name}')
+            tensor = torch.where(torch.isnan(tensor), torch.tensor(0, dtype=tensor.dtype), tensor)
+            raise ValueError('nan detected')
+
         if self._is_log_iteration():
             self._root.writer.add_histogram(f'{self._namespace}/{name}', tensor, self.get_iteration())
 

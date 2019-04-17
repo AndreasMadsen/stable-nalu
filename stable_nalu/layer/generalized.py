@@ -51,7 +51,7 @@ unit_name_to_layer_class = {
     'GradientBanditNALU': GradientBanditNALULayer,
 
     'RegualizedLinearNAC': RegualizedLinearNACLayer,
-    'RegualizedLinearNALU': RegualizedLinearNACLayer,
+    'RegualizedLinearNALU': RegualizedLinearNALULayer,
 }
 
 unit_name_to_cell_class = {
@@ -74,7 +74,7 @@ unit_name_to_cell_class = {
     'GradientBanditNALU': GradientBanditNALUCell,
 
     'RegualizedLinearNAC': RegualizedLinearNACCell,
-    'RegualizedLinearNALU': RegualizedLinearNACCell,
+    'RegualizedLinearNALU': RegualizedLinearNALUCell,
 }
 
 class GeneralizedLayer(ExtendedTorchModule):
@@ -87,8 +87,8 @@ class GeneralizedLayer(ExtendedTorchModule):
     """
     UNIT_NAMES = set(unit_name_to_layer_class.keys()) | BasicLayer.ACTIVATIONS
 
-    def __init__(self, in_features, out_features, unit_name, writer=None, **kwags):
-        super().__init__('layer', writer=writer, **kwags)
+    def __init__(self, in_features, out_features, unit_name, writer=None, name=None, **kwags):
+        super().__init__('layer', name=name, writer=writer, **kwags)
         self.in_features = in_features
         self.out_features = out_features
         self.unit_name = unit_name
