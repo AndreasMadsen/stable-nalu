@@ -43,3 +43,6 @@ class ExtendedTorchModule(torch.nn.Module):
         for module in self.children():
             if isinstance(module, ExtendedTorchModule):
                 module.log_gradients()
+
+    def no_internal_logging(self):
+        return self.writer.no_logging()

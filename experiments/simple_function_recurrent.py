@@ -87,7 +87,7 @@ criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
 def test_model(dataloader):
-    with torch.no_grad():
+    with torch.no_grad(), model.no_internal_logging():
         x, t = next(dataloader)
         return criterion(model(x), t)
 

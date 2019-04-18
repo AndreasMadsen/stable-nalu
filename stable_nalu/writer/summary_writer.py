@@ -6,33 +6,52 @@ from tensorboardX import SummaryWriter as SummaryWriterRaw
 THIS_DIR = path.dirname(path.realpath(__file__))
 TENSORBOARD_DIR = path.join(THIS_DIR, '../../tensorboard')
 
+class SummaryWriterNamespaceNoLoggingScope:
+    def __init__(self, writer):
+        self._writer = writer
+
+    def __enter__(self):
+        self._writer._logging_enabled = False
+
+    def __exit__(self, type, value, traceback):
+        self._writer._logging_enabled = True
+        return False
+
 class SummaryWriterNamespace:
-    def __init__(self, namespace='', epoch_interval=1, root=None):
+    def __init__(self, namespace='', epoch_interval=1, root=None, parent=None):
         self._namespace = namespace
         self._epoch_interval = epoch_interval
+        self._parent = parent
+        self._logging_enabled = True
 
         if root is None:
             self._root = self
         else:
             self._root = root
 
-    def set_iteration(self, iteration):
-        self._root.set_iteration(iteration)
-
     def get_iteration(self):
         return self._root.get_iteration()
 
-    def _is_log_iteration(self):
+    def is_log_iteration(self):
         return self._root.get_iteration() % self._epoch_interval == 0
 
+    def is_logging_enabled(self):
+        writer = self
+        while writer is not None:
+            if writer._logging_enabled:
+                writer = writer._parent
+            else:
+                return False
+        return True
+
     def add_scalar(self, name, value):
-        if self._is_log_iteration():
+        if self.is_log_iteration() and self.is_logging_enabled():
             self._root.writer.add_scalar(f'{self._namespace}/{name}', value, self.get_iteration())
 
     def add_summary(self, name, tensor):
-        if self._is_log_iteration():
-            self.add_scalar(f'{name}/mean', torch.mean(tensor))
-            self.add_scalar(f'{name}/var', torch.var(tensor))
+        if self.is_log_iteration() and self.is_logging_enabled():
+            self._root.writer.add_scalar(f'{self._namespace}/{name}/mean', torch.mean(tensor), self.get_iteration())
+            self._root.writer.add_scalar(f'{self._namespace}/{name}/var', torch.var(tensor), self.get_iteration())
 
     def add_histogram(self, name, tensor):
         if torch.isnan(tensor).any():
@@ -40,7 +59,7 @@ class SummaryWriterNamespace:
             tensor = torch.where(torch.isnan(tensor), torch.tensor(0, dtype=tensor.dtype), tensor)
             raise ValueError('nan detected')
 
-        if self._is_log_iteration():
+        if self.is_log_iteration() and self.is_logging_enabled():
             self._root.writer.add_histogram(f'{self._namespace}/{name}', tensor, self.get_iteration())
 
     def namespace(self, name):
@@ -48,6 +67,7 @@ class SummaryWriterNamespace:
             namespace=f'{self._namespace}/{name}',
             epoch_interval=self._epoch_interval,
             root=self._root,
+            parent=self,
         )
 
     def every(self, epoch_interval):
@@ -55,7 +75,11 @@ class SummaryWriterNamespace:
             namespace=self._namespace,
             epoch_interval=epoch_interval,
             root=self._root,
+            parent=self,
         )
+
+    def no_logging(self):
+        return SummaryWriterNamespaceNoLoggingScope(self)
 
 class SummaryWriter(SummaryWriterNamespace):
     def __init__(self, name, **kwargs):

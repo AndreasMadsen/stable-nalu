@@ -74,7 +74,7 @@ print(f'  - max_iterations: {args.max_iterations}')
 results_writer = stable_nalu.writer.ResultsWriter('simple_function_static')
 summary_writer = stable_nalu.writer.SummaryWriter(
     f'simple_function_static/{args.layer_type.lower()}'
-    f'{"_nalu-" if args.nalu_bias or args.nalu_two_nac or args.nalu_regualized_gate else ""}'
+    f'{"-" if args.nalu_bias or args.nalu_two_nac or args.nalu_regualized_gate else ""}'
     f'{"b" if args.nalu_bias else ""}'
     f'{"2" if args.nalu_two_nac else ""}'
     f'{"r" if args.nalu_regualized_gate else ""}'
@@ -111,7 +111,7 @@ criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
 def test_model(dataloader):
-    with torch.no_grad():
+    with torch.no_grad(), model.no_internal_logging():
         x, t = next(dataloader)
         return criterion(model(x), t)
 
