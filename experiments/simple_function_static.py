@@ -43,10 +43,12 @@ parser.add_argument('--nalu-two-nac',
                     action='store_true',
                     default=False,
                     help='Uses two independent NACs in the NALU Layer')
-parser.add_argument('--nalu-regualized-gate',
-                    action='store_true',
-                    default=False,
-                    help='Regualize the NALU gate to be either 0 or 1')
+parser.add_argument('--nalu-gate',
+                    action='store',
+                    default='normal',
+                    choices=['normal', 'regualized', 'gumbel'],
+                    type=str,
+                    help='Can be normal, regualized, or gumbel')
 parser.add_argument('--simple',
                     action='store_true',
                     default=False,
@@ -64,7 +66,7 @@ print(f'  - operation: {args.operation}')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
-print(f'  - nalu_regualized_gate: {args.nalu_regualized_gate}')
+print(f'  - nalu_gate: {args.nalu_gate}')
 print(f'  - simple: {args.simple}')
 print(f'  - cuda: {args.cuda}')
 print(f'  - verbose: {args.verbose}')
@@ -74,10 +76,11 @@ print(f'  - max_iterations: {args.max_iterations}')
 results_writer = stable_nalu.writer.ResultsWriter('simple_function_static')
 summary_writer = stable_nalu.writer.SummaryWriter(
     f'simple_function_static/{args.layer_type.lower()}'
-    f'{"-" if args.nalu_bias or args.nalu_two_nac or args.nalu_regualized_gate else ""}'
+    f'{"-" if (args.nalu_bias or args.nalu_two_nac or args.nalu_gate != "normal") else ""}'
     f'{"b" if args.nalu_bias else ""}'
     f'{"2" if args.nalu_two_nac else ""}'
-    f'{"r" if args.nalu_regualized_gate else ""}'
+    f'{"r" if args.nalu_gate == "regualized" else ""}'
+    f'{"g" if args.nalu_gate == "gumbel" else ""}'
     f'_{args.operation.lower()}_{args.seed}'
 )
 
@@ -102,7 +105,7 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     writer=summary_writer.every(1000) if args.verbose else None,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
-    nalu_regualized_gate=args.nalu_regualized_gate,
+    nalu_gate=args.nalu_gate,
 )
 if args.cuda:
     model.cuda()

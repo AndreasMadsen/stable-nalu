@@ -3,6 +3,8 @@ import torch
 
 from ..abstract import ExtendedTorchModule
 
+torch.nn.functional.gumbel_softmax
+
 class AbstractNALULayer(ExtendedTorchModule):
     """Implements the NALU (Neural Arithmetic Logic Unit)
 
@@ -12,7 +14,7 @@ class AbstractNALULayer(ExtendedTorchModule):
     """
 
     def __init__(self, NACOp, in_features, out_features, eps=1e-7,
-                 nalu_two_nac=False, nalu_bias=False, nalu_regualized_gate=False,
+                 nalu_two_nac=False, nalu_bias=False, nalu_gate='normal',
                  writer=None, name=None, **kwargs):
         super().__init__('nalu', name=name, writer=writer, **kwargs)
         self.in_features = in_features
@@ -20,7 +22,7 @@ class AbstractNALULayer(ExtendedTorchModule):
         self.eps = eps
         self.nalu_two_nac = nalu_two_nac
         self.nalu_bias = nalu_bias
-        self.nalu_regualized_gate = nalu_regualized_gate
+        self.nalu_gate = nalu_gate
 
         if nalu_two_nac:
             self.nac_add = NACOp(in_features, out_features, writer=self.writer, name='nac_add', **kwargs)
@@ -37,11 +39,10 @@ class AbstractNALULayer(ExtendedTorchModule):
             self.register_parameter('bias', None)
 
         # Don't make this a buffer, as it is not a state that we want to permanently save
-        if nalu_regualized_gate:
-            self.stored_gate = torch.tensor([0], dtype=torch.float32)
+        self.stored_gate = torch.tensor([0], dtype=torch.float32)
 
     def regualizer(self):
-        if self.nalu_regualized_gate:
+        if self.nalu_gate == 'regualized':
             # NOTE: This is almost identical to sum(g * (1 - g)). Primarily
             # sum(g * (1 - g)) is 4 times larger than sum(g^2 * (1 - g)^2), the curve
             # is also a bit wider. Besides this there is only a very small error.
@@ -70,7 +71,15 @@ class AbstractNALULayer(ExtendedTorchModule):
 
     def forward(self, x):
         # g = sigmoid(G x)
-        self.stored_gate = g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias))
+        if self.nalu_gate == 'gumbel':
+            g = torch.sigmoid(
+                torch.nn.functional.linear(x, self.G, self.bias) +
+                (-torch.log(1e-8 - torch.log(torch.rand(self.out_features) + 1e-8)))
+            )
+        else:
+            g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias))
+
+        self.stored_gate = g
         self.writer.add_histogram('gate', g)
         # a = W x = nac(x)
         a = self.nac_add(x)
