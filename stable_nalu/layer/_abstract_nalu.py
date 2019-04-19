@@ -45,9 +45,13 @@ class AbstractNALULayer(ExtendedTorchModule):
             # NOTE: This is almost identical to sum(g * (1 - g)). Primarily
             # sum(g * (1 - g)) is 4 times larger than sum(g^2 * (1 - g)^2), the curve
             # is also a bit wider. Besides this there is only a very small error.
-            return torch.sum(self.stored_gate**2 * (1 - self.stored_gate)**2)
+            regualizer = torch.sum(self.stored_gate**2 * (1 - self.stored_gate)**2)
+            self.writer.add_scalar('regualizer', regualizer)
         else:
-            return 0
+            regualizer = 0
+
+        # Continue recursion on the regualizer, such that if the NACOp has a regualizer, this is included too.
+        return regualizer + super().regualizer()
 
     def reset_parameters(self):
         if self.nalu_two_nac:
@@ -74,6 +78,7 @@ class AbstractNALULayer(ExtendedTorchModule):
         m = torch.exp(self.nac_mul(
             torch.log(torch.abs(x) + self.eps)
         ))
+
         # y = g (*) a + (1 - g) (*) m
         y = g * a + (1 - g) * m
 

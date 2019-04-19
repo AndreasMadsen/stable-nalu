@@ -26,7 +26,13 @@ class RegualizedLinearNACLayer(ExtendedTorchModule):
         torch.nn.init.xavier_uniform_(self.W)
 
     def regualizer(self):
-        return torch.sum(self.W**2 * (1 - torch.abs(self.W))**2)
+        # Divide by self.in_features. This normalizes it to have the same scale as the
+        # NALU gate regualizer, in the optimal scenario. Note, that it does not have
+        # the same scale initally. as the NAC.W is initalized to be close to zero,
+        # and the NALU.g is initialized to be close to 0.5.
+        regualizer = torch.sum(self.W**2 * (1 - torch.abs(self.W))**2) / self.in_features
+        self.writer.add_scalar('regualizer', regualizer)
+        return regualizer
 
     def forward(self, input, reuse=False):
         self.writer.add_histogram('W', self.W)
