@@ -53,6 +53,11 @@ class SummaryWriterNamespace:
             self._root.writer.add_scalar(f'{self._namespace}/{name}/mean', torch.mean(tensor), self.get_iteration())
             self._root.writer.add_scalar(f'{self._namespace}/{name}/var', torch.var(tensor), self.get_iteration())
 
+    def add_tensor(self, name, matrix):
+        if self.is_log_iteration() and self.is_logging_enabled():
+            data = matrix.detach().cpu().numpy()
+            self._root.writer.add_text(f'{self._namespace}/{name}', f'<pre>{data}</pre>', self.get_iteration())
+
     def add_histogram(self, name, tensor):
         if torch.isnan(tensor).any():
             print(f'nan detected in {self._namespace}/{name}')
