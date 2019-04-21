@@ -1,0 +1,399 @@
+---
+title: "NALU initialization"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+# Defining NALU
+
+$$
+\begin{aligned}
+a_{h_\ell} &= \sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}} \\
+m_{h_\ell} &= \exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon) \right) \\
+g_{h_\ell} &= \sigma(\hat{g}_{h_\ell}),\ \hat{g}_{h_\ell} = \sum_{h_{\ell-1}=1}^{H_{\ell-1}} G_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}} \\
+z_{h_\ell} &= g_{h_\ell} a_{h_\ell} + (1 - g_{h_\ell}) m_{h_\ell} \\
+\mathcal{L} &= \sum_{h_{L}=1}^{H_L} (z_{h_L} - t_{h_L})^2
+\end{aligned}
+$$
+
+We will not explicitly define $W_{h_{\ell}, h_{\ell-1}}$ here, as $Var[W_{h_{\ell}, h_{\ell-1}}]$ can be generalized to any construction, and we assume $E[W_{h_{\ell}, h_{\ell-1}}]$.
+
+# Deriving the expectation
+
+## Output expectation
+
+$$
+\begin{aligned}
+E[y_{h_\ell}] &= E[g_{h_\ell} a_{h_\ell} + (1 - g_{h_\ell}) m_{h_\ell}] \\
+              &= E[g_{h_\ell}] E[a_{h_\ell}] + E[1 - g_{h_\ell}] E[m_{h_\ell}] \\
+              &= E[g_{h_\ell}] E[a_{h_\ell}] + (1 - E[g_{h_\ell}]) E[m_{h_\ell}]
+\end{aligned}
+$$
+## Gate expectation
+
+$$
+\begin{aligned}
+E[g_{h_\ell}] &= E[\sigma(\hat{g}_{h_\ell})] \\
+&\approx \sigma(E[\hat{g}_{h_\ell}]) + \frac{1}{2}\sigma''(E[\hat{g}_{h_\ell}]) Var[\hat{g}_{h_\ell}] \\
+&= \frac{1}{2} + \frac{1}{2} \cdot 0 \cdot Var[\hat{g}_{h_\ell}] \\
+&= \frac{1}{2}
+\end{aligned}
+$$
+
+This is because we have $E[\hat{g}_{h_\ell}] = 0$:
+$$
+\begin{aligned}
+E[\hat{g}_{h_\ell}] &= E\left[\sum_{h_{\ell-1}=1}^{H_{\ell-1}} G_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}}\right] \\
+&= H_{\ell-1}E[G_{h_{\ell}, h_{\ell-1}}]E[z_{h_{\ell-1}}] \\
+&= H_{\ell-1} \cdot 0 \cdot E[z_{h_{\ell-1}}] \\
+&= 0
+\end{aligned}
+$$
+
+## Then the addition operator
+
+$$
+\begin{aligned}
+E[a_{h_\ell}] &= E\left[\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}}\right] \\
+&= H_{\ell-1}E[W_{h_{\ell}, h_{\ell-1}}]E[z_{h_{\ell-1}}] \\
+&= H_{\ell-1} \cdot 0 \cdot E[z_{h_{\ell-1}}] \\
+&= 0
+\end{aligned}
+$$
+
+## The the multiplication operator
+
+$$
+\begin{aligned}
+E[m_{h_\ell}] &= E\left[\exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon) \right)\right] \\
+&= E\left[\prod_{h_{\ell-1}=1}^{H_{\ell-1}} \exp(W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon)) \right] \\
+&= \prod_{h_{\ell-1}=1}^{H_{\ell-1}} E[W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon))] \\
+&= E[W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon))]^{H_{\ell-1}} \\
+&= E\left[(|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\right]^{H_{\ell-1}} \\
+&= E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{H_{\ell-1}}
+\end{aligned}
+$$
+Here we define $f$ as a non-linear transformation function of two independent stocastic variables:
+
+$$
+f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}}) = (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}
+$$
+
+We then take the second order taylor approximation of $f$, around $(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])$.
+
+$$
+\begin{aligned}
+E[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] \approx
+E\Bigg[&f(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])\\
+&+ \begin{bmatrix}
+z_{h_{\ell-1}} - E[z_{h_{\ell-1}}] \\ W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]
+\end{bmatrix}^T \begin{bmatrix}
+\frac{\partial f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}}} \\
+\frac{\partial f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial W_{h_{\ell}, h_{\ell-1}}}
+\end{bmatrix} \Bigg\rvert_{
+\begin{cases}
+z_{h_{\ell-1}} = E[z_{h_{\ell-1}}] \\
+W_{h_{\ell}, h_{\ell-1}} = E[W_{h_{\ell}, h_{\ell-1}}]
+\end{cases}
+} \\
+&+ \frac{1}{2} \begin{bmatrix}
+z_{h_{\ell-1}} - E[z_{h_{\ell-1}}] \\ W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]
+\end{bmatrix}^T \begin{bmatrix}
+\frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 z_{h_{\ell-1}}} & \frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}} \partial W_{h_{\ell}, h_{\ell-1}}} \\
+\frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}} \partial W_{h_{\ell}, h_{\ell-1}}} & \frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 W_{h_{\ell}, h_{\ell-1}}}
+\end{bmatrix} \Bigg\rvert_{
+\begin{cases}
+z_{h_{\ell-1}} = E[z_{h_{\ell-1}}] \\
+W_{h_{\ell}, h_{\ell-1}} = E[W_{h_{\ell}, h_{\ell-1}}]
+\end{cases}
+} \begin{bmatrix}
+z_{h_{\ell-1}} - E[z_{h_{\ell-1}}] \\ W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]
+\end{bmatrix}\Bigg]
+\end{aligned}
+$$
+
+Because $E[z_{h_{\ell-1}} - E[z_{h_{\ell-1}}]] = 0$, $E[W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]] = 0$, and $z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}}$ are uncorrelated. This similifies to:
+
+$$
+\begin{aligned}
+E[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] \approx
+&f(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])\\
+&+ \frac{1}{2} Var\begin{bmatrix}
+z_{h_{\ell-1}} \\ W_{h_{\ell}, h_{\ell-1}}
+\end{bmatrix}^T \begin{bmatrix}
+\frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 z_{h_{\ell-1}}} \\
+\frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 W_{h_{\ell}, h_{\ell-1}}}
+\end{bmatrix} \Bigg\rvert_{
+\begin{cases}
+z_{h_{\ell-1}} = E[z_{h_{\ell-1}}] \\
+W_{h_{\ell}, h_{\ell-1}} = E[W_{h_{\ell}, h_{\ell-1}}]
+\end{cases}
+}
+\end{aligned}
+$$
+
+Evaluating this yields:
+
+$$
+\begin{aligned}
+E[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] &\approx
+(|E[z_{h_{\ell-1}}]| + \epsilon)^{E[W_{h_{\ell}, h_{\ell-1}}]} \\
+&+ \frac{1}{2} Var[z_{h_{\ell-1}}] (|E[z_{h_{\ell-1}}]| + \epsilon)^{E[W_{h_{\ell}, h_{\ell-1}}] - 2} E[W_{h_{\ell}, h_{\ell-1}}] (E[W_{h_{\ell}, h_{\ell-1}}] - 1) \\
+&+ \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] (|E[z_{h_{\ell-1}}]| + \epsilon)^{E[W_{h_{\ell}, h_{\ell-1}}]} \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2 \\
+&=1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2
+\end{aligned}
+$$
+
+This gives the expectation:
+
+$$
+\begin{aligned}
+E[m_{h_\ell}] &= E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{H_{\ell-1}} \\
+&\approx\left(1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}}
+\end{aligned}
+$$
+
+As this expectation is of particuar interrest, we evaluate the error of the approximation, where $W_{h_{\ell}, h_{\ell-1}} \sim U[-r_w,r_w]$ and $z_{h_{\ell-1}} \sim U[0, r_z]$. These distributions are what is used in the simple function task is done.
+
+
+```{r}
+m.expectation.taylor = function (r.w, r.z) {
+  w.var = (1/3) * r.w^2;
+  z.e = (1/2) * r.z;
+  return(1 + 0.5*w.var*log(abs(z.e) + 10^-8)^2);
+}
+m.expectation.simulation = function (r.w, r.z) {
+  w.samples = runif(100000, -r.w, r.w);
+  z.samples = runif(100000, 0, r.z);
+  f.samples = exp(w.samples * log(z.samples + 10^-8));
+  return(mean(f.samples));
+}
+
+m.expectation.input = expand.grid(r.w = seq(0.001, 0.5, 0.011), r.z = seq(1, 50, 1))
+m.expectation.error = mapply(function(r.w,r.z) {
+  return(m.expectation.taylor(r.w, r.z) - m.expectation.simulation(r.w, r.z))
+}, m.expectation.input$r.w, m.expectation.input$r.z)
+```
+
+```{r}
+p = ggplot(cbind(m.expectation.input, m.expectation.error), aes(r.w, r.z)) +
+  geom_raster(aes(fill = m.expectation.error)) +
+  geom_contour(aes(z = m.expectation.error), colour='white')
+print(p)
+```
+
+## Total expectation
+
+We thus have that the expectation of $E[y_{h_\ell}]$ is:
+
+$$
+\begin{aligned}
+E[y_{h_\ell}] &= E[g_{h_\ell}] E[a_{h_\ell}] + (1 - E[g_{h_\ell}]) E[m_{h_\ell}] \\
+&\approx \frac{1}{2} \cdot 0 + \frac{1}{2} \left(1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}}
+\end{aligned}
+$$
+
+This is somewhat problematic, as even in the best case ($|E[z_{h_{\ell-1}}]| + \epsilon = 1$) we have $E[y_{h_\ell}] = \frac{1}{2}$.
+
+This problem could be solved, by using a bias parameter. Such that one have:
+
+$$
+y_{h_\ell} = g_{h_\ell} a_{h_\ell} + (1 - g_{h_\ell}) (m_{h_\ell} + b_{h_\ell}),\ E[b_{h_\ell}] = -1
+$$
+
+However, it still seams problematic as $\frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon) \approx 0$ only holds for a very small variance of $W_{h_{\ell}}$ and a very limited range of $E[z_{h_{\ell-1}}]$.
+
+# Diriving the variance
+
+## Output variance
+
+Assuming that $Cov[a_{h_\ell}, m_{h_\ell}] = 0$.
+
+$$
+\begin{aligned}
+Var[z_{h_\ell}] &\approx E[g_{h_\ell}]^2 Var[a_{h_\ell}] + E[1 - g_{h_\ell}]^2 Var[m_{h_\ell}] \\
+&+ E[a_{h_\ell}]^2 Var[g_{h_\ell}] + E[m_{h_\ell}]^2 Var[1 - g_{h_\ell}] \\
+&+ Var[g_{h_\ell}] Var[a_{h_\ell}] + Var[1 - g_{h_\ell}] Var[m_{h_\ell}] \\
+&= E[g_{h_\ell}]^2 Var[a_{h_\ell}] + \left(1 - E[g_{h_\ell}]\right)^2 Var[m_{h_\ell}] \\
+&+ E[a_{h_\ell}]^2 Var[g_{h_\ell}] + E[m_{h_\ell}]^2 Var[g_{h_\ell}] \\
+&+ Var[g_{h_\ell}] Var[a_{h_\ell}] + Var[g_{h_\ell}] Var[m_{h_\ell}]
+\end{aligned}
+$$
+
+## Gate Variance
+
+Recall that $Var[\hat{g}_{h_\ell}] = H_{\ell-1} Var[G_{h_{\ell-1}, h_\ell}] E[z_{h_\ell}^2]$ and that $E[\hat{g}_{h_\ell}] = 0$.
+
+$$
+\begin{aligned}
+Var[g_{h_\ell}] &= Var[\sigma(\hat{g}_{h_\ell})] \\
+&= \sigma'(E[\hat{g}_{h_\ell}])^2 Var[\hat{g}_{h_\ell}] + \frac{1}{2} \sigma''(E[\hat{g}_{h_\ell}])^2 Var[\hat{g}_{h_\ell}]^2 \\
+&= \left(\frac{1}{4}\right)^2 Var[\hat{g}_{h_\ell}] + \frac{1}{2} \cdot 0 \cdot Var[\hat{g}_{h_\ell}]^2 \\
+&= \frac{1}{16} Var[\hat{g}_{h_\ell}] \\
+&=\frac{1}{16} H_{\ell-1} Var\left[G_{h_{\ell}, h_{\ell-1}}\right] Var[z_{h_{\ell-1}}]
+\end{aligned}
+$$
+
+## Addition operation
+
+$$
+\begin{aligned}
+Var[a_{h_\ell}] &= Var\left[\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}}\right] \\
+&= H_{\ell-1} Var\left[W_{h_{\ell}, h_{\ell-1}}\right] Var[z_{h_{\ell-1}}]
+\end{aligned}
+$$
+
+The same result, was used for the $Var[\hat{g}_{h_\ell}]$.
+
+## Multiplication operation
+
+$$
+\begin{aligned}
+Var[m_{h_\ell}] &= Var\left[\exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon) \right)\right] \\
+&= Var\left[\prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}} \right] \\
+&= E\left[\left(\prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\right)^2 \right]
+- E\left[\prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\right]^2 \\
+&= E\left[\prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{2 \cdot W_{h_{\ell}, h_{\ell-1}}} \right]
+- E\left[\prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\right]^2 \\
+&= E\left[f(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}}) \right]^{H_{\ell-1}}
+- E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{2\cdot H_{\ell-1}}
+\end{aligned}
+$$
+
+We already have from previus results that:
+
+$$
+E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right] \approx 1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2
+$$
+
+By substitution of variable we have that:
+
+$$
+\begin{aligned}
+E\left[f(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}})\right] &\approx 1 + \frac{1}{2} Var[2 \cdot W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2 \\
+&= \approx 1 + 2 \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2
+\end{aligned}
+$$
+This gives the variance:
+
+$$
+\begin{aligned}
+Var[m_{h_\ell}] &= Var\left[\exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon) \right)\right] \\
+&= E\left[f(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}}) \right]^{H_{\ell-1}}
+- E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{2\cdot H_{\ell-1}} \\
+&\approx \left(1 + 2 \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}} \\
+&- \left(1 + \frac{1}{2} \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{2\cdot H_{\ell-1}}
+\end{aligned}
+$$
+
+```{r}
+m.variance.taylor = function (r.w, r.z) {
+  w.var = (1/3) * r.w^2;
+  z.e = (1/2) * r.z;
+  return((1 + 2*w.var*log(abs(z.e) + 10^-8)^2) - (1 + 0.5*w.var*log(abs(z.e) + 10^-8)^2)^2);
+}
+m.variance.simulation = function (r.w, r.z) {
+  w.samples = runif(100000, -r.w, r.w);
+  z.samples = runif(100000, 0, r.z);
+  f.samples = exp(w.samples * log(z.samples + 10^-8));
+  return(var(f.samples));
+}
+
+m.variance.input = expand.grid(r.w = seq(0.001, 0.5, 0.011), r.z = seq(1, 50, 1))
+m.variance.error = mapply(function(r.w,r.z) {
+  return(m.variance.taylor(r.w, r.z) - m.variance.simulation(r.w, r.z))
+}, m.variance.input$r.w, m.variance.input$r.z)
+```
+
+```{r}
+p = ggplot(cbind(m.variance.input, m.variance.error), aes(r.w, r.z)) +
+  geom_raster(aes(fill = m.variance.error)) +
+  geom_contour(aes(z = m.variance.error), colour='white')
+print(p)
+```
+
+## Total variance
+
+Combining these results we have:
+
+$$
+\begin{aligned}
+Var[z_{h_\ell}] &\approx E[g_{h_\ell}]^2 Var[a_{h_\ell}] + \left(1 - E[g_{h_\ell}]\right)^2 Var[m_{h_\ell}] \\
+&+ E[a_{h_\ell}]^2 Var[g_{h_\ell}] + E[m_{h_\ell}]^2 Var[g_{h_\ell}] \\
+&+ Var[g_{h_\ell}] Var[a_{h_\ell}] + Var[g_{h_\ell}] Var[m_{h_\ell}] \\
+&= \left(\frac{1}{2}\right)^2 Var[a_{h_\ell}] + \left(\frac{1}{2}\right)^2 Var[m_{h_\ell}] \\
+&+ 0 \cdot Var[g_{h_\ell}] + E[m_{h_\ell}]^2 Var[g_{h_\ell}] \\
+&+ Var[g_{h_\ell}] Var[a_{h_\ell}] + Var[g_{h_\ell}] Var[m_{h_\ell}] \\
+&= \frac{1}{4} \left(Var[a_{h_\ell}] + Var[m_{h_\ell}]\right) \\
+&+ Var[g_{h_\ell}] \left(Var[a_{h_\ell}] + E[m_{h_\ell}]^2 + Var[m_{h_\ell}]\right) \\
+&= \frac{1}{4} \left(Var[a_{h_\ell}] + Var[m_{h_\ell}]\right) \\
+&+ Var[g_{h_\ell}] \left(Var[a_{h_\ell}] + E[m_{h_\ell}^2]\right)
+\end{aligned}
+$$
+
+As the expressing for $Var[m_{h_\ell}]$ is rather larger and hard to intrepert, we can instead collect $Var[a_{h_\ell}]$, $E[m_{h_\ell}^2]$, and $E[m_{h_\ell}]^2$.
+
+$$
+\begin{aligned}
+Var[z_{h_\ell}] &\approx \frac{1}{4} \left(Var[a_{h_\ell}] + Var[m_{h_\ell}]\right) \\
+&+ Var[g_{h_\ell}] \left(Var[a_{h_\ell}] + E[m_{h_\ell}^2]\right) \\
+&= \frac{1}{4}Var[a_{h_\ell}] + \frac{1}{4}E[m_{h_\ell}^2] - \frac{1}{4} E[m_{h_\ell}]^2 \\
+&+ Var[g_{h_\ell}] Var[a_{h_\ell}] + Var[g_{h_\ell}]E[m_{h_\ell}^2] \\
+&= Var[a_{h_\ell}] \left(\frac{1}{4} + Var[g_{h_\ell}]\right) \\
+&+ E[m_{h_\ell}^2] \left(\frac{1}{4} +  Var[g_{h_\ell}]\right) - \frac{1}{4} E[m_{h_\ell}]^2 \\
+&= \left(Var[a_{h_\ell}] + E[m_{h_\ell}^2]\right) \left(\frac{1}{4} +  Var[g_{h_\ell}]\right) - \frac{1}{4} E[m_{h_\ell}]^2
+\end{aligned}
+$$
+
+Inserting $Var[g_{h_\ell}], Var[a_{h_\ell}], E[m_{h_\ell}^2]]$ this yeids:
+
+$$
+\begin{aligned}
+Var[z_{h_\ell}] &\approx \left(Var[a_{h_\ell}] + E[m_{h_\ell}^2]\right) \left(\frac{1}{4} +  Var[g_{h_\ell}]\right) - \frac{1}{4} E[m_{h_\ell}]^2 \\
+&= \left(H_{\ell-1} Var[W_{h_{\ell-1},h_\ell}] Var[z_{h_{\ell-1}}] + \left(1 + 2 \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}}\right)\left(\frac{1}{4} + \frac{1}{16} H_{\ell-1} Var[G_{h_{\ell-1}, h_\ell}] Var[z_{h_{\ell-1}}]\right) \\
+&- \frac{1}{4}\left(1 + \frac{1}{2} \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{2\cdot H_{\ell-1}}
+\end{aligned}
+$$
+
+Even for the best case, where $|E[z_{h_{\ell-1}}]| = 1$, this shows that it is not possible to maintain variance though the layers:
+
+$$
+\begin{aligned}
+Var[z_{h_\ell}] &= \left(H_{\ell-1} Var[W_{h_{\ell-1},h_\ell}] Var[z_{h_{\ell-1}}] + 1\right)\left(\frac{1}{4} + \frac{1}{16} H_{\ell-1} Var[G_{h_{\ell-1}, h_\ell}]Var[z_{h_{\ell-1}}]\right) - \frac{1}{4} \\
+&=\frac{1}{4} H_{\ell-1} Var[W_{h_{\ell-1},h_\ell}] Var[z_{h_{\ell-1}}] + H_{\ell-1}^2 Var[W_{h_{\ell-1},h_\ell}] Var[G_{h_{\ell-1}, h_\ell}] Var[z_{h_{\ell-1}}]^2 + \frac{1}{16} H_{\ell-1} Var[G_{h_{\ell-1}, h_\ell}]Var[z_{h_{\ell-1}}] \\
+&= H_{\ell-1} Var[z_{h_{\ell-1}}] \left( \frac{1}{4} Var[W_{h_{\ell-1},h_\ell}] + H_{\ell-1} Var[W_{h_{\ell-1},h_\ell}] Var[G_{h_{\ell-1}, h_\ell}] Var[z_{h_{\ell-1}}] + \frac{1}{16} Var[G_{h_{\ell-1}, h_\ell}]\right)
+\end{aligned}
+$$
+As it can be seen, maintaining variance though the layers ($Var[z_{h_\ell}] = Var[z_{h_{\ell-1}}]$) is not possible due to the $Var[z_{h_{\ell-1}}]^2$ term.
+
+In the very best case where $Var[z_{h_{\ell-1}}] = 1$, then:
+
+$$
+\begin{aligned}
+1 &= H_{\ell-1} \left( \frac{1}{4} Var[W_{h_{\ell-1},h_\ell}] + H_{\ell-1} Var[W_{h_{\ell-1},h_\ell}] Var[G_{h_{\ell-1}, h_\ell}] + \frac{1}{16} Var[G_{h_{\ell-1}, h_\ell}]\right)
+\end{aligned}
+$$
+
+Using the same variance for both $W_{h_{\ell-1},h_\ell}$ and $G_{h_{\ell-1}, h_\ell}$ we have:
+
+$$
+\begin{aligned}
+1 &= H_{\ell-1} \left( \frac{1}{4} Var[W_{h_{\ell-1},h_\ell}] + H_{\ell-1} Var[W_{h_{\ell-1},h_\ell}]^2 + \frac{1}{16} Var[W_{h_{\ell-1}, h_\ell}]\right)
+\end{aligned}
+$$
+
+Solving this yeilds:
+
+$$
+Var[W_{h_{\ell-1},h_\ell}] = Var[G_{h_{\ell-1}, h_\ell}] = \frac{-\frac{5}{32} + \sqrt{\frac{1049}{1024}}}{H_{\ell-1}} \approx \frac{0.8558834210}{H_{\ell-1}}
+$$
+
+Assuming from Glorot, that we would get a similar result for the backward pass. We have:
+
+$$
+Var[W_{h_{\ell-1},h_\ell}] = Var[G_{h_{\ell-1}, h_\ell}] \approx \frac{1.711766842}{H_{\ell-1} + H_{\ell}}
+$$

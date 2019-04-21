@@ -13,7 +13,7 @@ $$
 \begin{aligned}
 W_{h_\ell, h_{\ell-1}} &= \tanh(\hat{W}_{h_\ell, h_{\ell-1}}) \sigma(\hat{M}_{h_\ell, h_{\ell-1}}) \\
 a_{h_\ell} &= \sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}} \\
-m_{h_\ell} &= \exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|x_{h_{\ell-1}}| + \epsilon) \right) \\
+m_{h_\ell} &= \exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon) \right) \\
 g_{h_\ell} &= \sigma(\hat{g}_{h_\ell}),\ \hat{g}_{h_\ell} = \sum_{h_{\ell-1}=1}^{H_{\ell-1}} G_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}} \\
 z_{h_\ell} &= g_{h_\ell} a_{h_\ell} + (1 - g_{h_\ell}) m_{h_\ell} \\
 \mathcal{L} &= \sum_{h_{L}=1}^{H_L} (z_{h_L} - t_{h_L})^2
@@ -48,14 +48,14 @@ One important thing, to think about. Is that if gates at some point attain a bad
 $$
 \begin{aligned}
 \frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} &= x_{h_{\ell-1}} \\
-\frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} &= \exp\left(\sum_{h'_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h'_{\ell-1}} \log(|x_{h'_{\ell-1}}| + \epsilon) \right) \log(|x_{h_{\ell-1}}| + \epsilon)
+\frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} &= \exp\left(\sum_{h'_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h'_{\ell-1}} \log(|z_{h'_{\ell-1}}| + \epsilon) \right) \log(|z_{h_{\ell-1}}| + \epsilon)
 \end{aligned}
 $$
 
-Here one should wanter if such a large or small factor on $\log(|x_{h_{\ell-1}}| + \epsilon)$ is healfy for the gradient. An analog to $\frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} = x_{h_{\ell-1}$, would be:
+Here one should wanter if such a large or small factor on $\log(|x_{h_{\ell-1}}| + \epsilon)$ is healfy for the gradient. An analog to $\frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} = x_{h_{\ell-1}}$, would be:
 
 $$
-\frac{\partial b_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \propto \log(|x_{h_{\ell-1}}| + \epsilon)
+\frac{\partial b_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \propto \log(|z_{h_{\ell-1}}| + \epsilon)
 $$
 
 ## The NALU gate
