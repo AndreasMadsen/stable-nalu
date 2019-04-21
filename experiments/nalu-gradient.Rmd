@@ -82,8 +82,8 @@ If completly seperate weight matrices are used for the operations, one have:
 
 $$
 \begin{aligned}
-\frac{\partial \mathcal{L}}{\partial W^a_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W^a_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial a_{h_\ell}} \frac{\partial a_{h_\ell}}{\partial W^a_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} g_{h_\ell} \frac{\partial a_{h_\ell}}{\partial W^a_{h_\ell, h_{\ell-1}}} \\
-\frac{\partial \mathcal{L}}{\partial W^b_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W^b_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial b_{h_\ell}} \frac{\partial b_{h_\ell}}{\partial W^b_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (1 - g_{h_\ell}) \frac{\partial b_{h_\ell}}{\partial W^b_{h_\ell, h_{\ell-1}}}
+\frac{\partial \mathcal{L}}{\partial W^a_{h_\ell, h_{\ell-1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W^a_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial a_{h_\ell}} \frac{\partial a_{h_\ell}}{\partial W^a_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} g_{h_\ell} \frac{\partial a_{h_\ell}}{\partial W^a_{h_\ell, h_{\ell-1}}} \\
+\frac{\partial \mathcal{L}}{\partial W^b_{h_\ell, h_{\ell-1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W^b_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial b_{h_\ell}} \frac{\partial b_{h_\ell}}{\partial W^b_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (1 - g_{h_\ell}) \frac{\partial b_{h_\ell}}{\partial W^b_{h_\ell, h_{\ell-1}}}
 \end{aligned}
 $$
 
