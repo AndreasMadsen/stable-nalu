@@ -108,6 +108,7 @@ class SummaryWriter(SummaryWriterNamespace):
 
 class DummySummaryWriter():
     def __init__(self):
+        self._logging_enabled = False
         pass
 
     def add_scalar(self, name, value):
@@ -124,3 +125,6 @@ class DummySummaryWriter():
 
     def every(self, epoch_interval):
         return self
+
+    def no_logging(self):
+        return SummaryWriterNamespaceNoLoggingScope(self)
