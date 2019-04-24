@@ -47,7 +47,7 @@ One important thing, to think about. Is that if gates at some point attain a bad
 
 $$
 \begin{aligned}
-\frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} &= x_{h_{\ell-1}} \\
+\frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} &= z_{h_{\ell-1}} \\
 \frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} &= \exp\left(\sum_{h'_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h'_{\ell-1}} \log(|z_{h'_{\ell-1}}| + \epsilon) \right) \log(|z_{h_{\ell-1}}| + \epsilon)
 \end{aligned}
 $$
@@ -66,7 +66,7 @@ $$
 \end{aligned}
 $$
 
-This expression, I find very odd. As $\sigma(\hat{g}_{h_\ell}) (1 - \sigma(\hat{g}_{h_\ell}))$ is always positive, $\frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (a_{h_\ell} - b_{h_\ell})$ is the only part that controls the sign. The rest just becomes part of the learning rate. Thus we have:
+As $\sigma(\hat{g}_{h_\ell}) (1 - \sigma(\hat{g}_{h_\ell}))$ is always positive, $\frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (a_{h_\ell} - b_{h_\ell})$ is the only part that controls the sign. The rest just becomes part of the learning rate. Thus we have:
 
 $$
 \frac{\partial \mathcal{L}}{\partial G_{h_\ell, h_{\ell-1}}} \propto \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (a_{h_\ell} - m_{h_\ell})
@@ -87,7 +87,7 @@ $$
 \end{aligned}
 $$
 
-In this cause, one could improve exploration by using:
+Of course, one could improve exploration by using:
 
 $$
 \begin{aligned}

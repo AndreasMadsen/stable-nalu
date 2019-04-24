@@ -192,7 +192,7 @@ We thus have that the expectation of $E[y_{h_\ell}]$ is:
 
 $$
 \begin{aligned}
-E[y_{h_\ell}] &= E[g_{h_\ell}] E[a_{h_\ell}] + (1 - E[g_{h_\ell}]) E[m_{h_\ell}] \\
+E[z_{h_\ell}] &= E[g_{h_\ell}] E[a_{h_\ell}] + (1 - E[g_{h_\ell}]) E[m_{h_\ell}] \\
 &\approx \frac{1}{2} \cdot 0 + \frac{1}{2} \left(1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}}
 \end{aligned}
 $$
@@ -202,7 +202,7 @@ This is somewhat problematic, as even in the best case ($|E[z_{h_{\ell-1}}]| + \
 This problem could be solved, by using a bias parameter. Such that one have:
 
 $$
-y_{h_\ell} = g_{h_\ell} a_{h_\ell} + (1 - g_{h_\ell}) (m_{h_\ell} + b_{h_\ell}),\ E[b_{h_\ell}] = -1
+z_{h_\ell} = g_{h_\ell} a_{h_\ell} + (1 - g_{h_\ell}) (m_{h_\ell} + b_{h_\ell}),\ E[b_{h_\ell}] = -1
 $$
 
 However, it still seams problematic as $\frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon) \approx 0$ only holds for a very small variance of $W_{h_{\ell}}$ and a very limited range of $E[z_{h_{\ell-1}}]$.
