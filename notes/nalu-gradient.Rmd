@@ -22,7 +22,9 @@ $$
 
 # Deriving the gradients
 
-## The NAC
+## Weight gradient
+
+### The NAC
 
 $$
 \begin{aligned}
@@ -33,11 +35,15 @@ $$
 
 We see again, like with just the NAC, that how the "NAC" part is constructed doesn't matter for the overall NALU. A linear layer could also be used, and it would have no futher consequences for the NALU gradients.
 
-## The NALU operations
+### The NALU operations
 
 $$
 \begin{aligned}
-\frac{\partial \mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \left(\frac{\partial z_{h_\ell}}{\partial a_{h_\ell}} \frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} + \frac{\partial z_{h_\ell}}{\partial m_{h_\ell}} \frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \right) = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \left(g_{h_\ell} \frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} + (1 - g_{h_\ell}) \frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \right)
+\frac{\partial \mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}}
+&= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \\
+&= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \left(\frac{\partial z_{h_\ell}}{\partial a_{h_\ell}} \frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} + \frac{\partial z_{h_\ell}}{\partial m_{h_\ell}} \frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \right) \\
+&= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \left(g_{h_\ell} \frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} + (1 - g_{h_\ell}) \frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \right) \\
+&= \delta_{h\ell} \left(g_{h_\ell} \frac{\partial a_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} + (1 - g_{h_\ell}) \frac{\partial m_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \right)
 \end{aligned}
 $$
 
@@ -58,11 +64,16 @@ $$
 \frac{\partial b_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} \propto \log(|z_{h_{\ell-1}}| + \epsilon)
 $$
 
-## The NALU gate
+### The NALU gate
 
 $$
 \begin{aligned}
-\frac{\partial \mathcal{L}}{\partial G_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial G_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial g_{h_\ell}} \frac{\partial g_{h_\ell}}{\partial G_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (a_{h_\ell} - m_{h_\ell}) \frac{\partial g_{h_\ell}}{\partial G_{h_\ell, h_{\ell-1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (a_{h_\ell} - m_{h_\ell}) \sigma(\hat{g}_{h_\ell}) (1 - \sigma(\hat{g}_{h_\ell}))
+\frac{\partial \mathcal{L}}{\partial G_{h_\ell, h_{\ell-1}}}
+&= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial G_{h_\ell, h_{\ell-1}}} \\
+&= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial g_{h_\ell}} \frac{\partial g_{h_\ell}}{\partial G_{h_\ell, h_{\ell-1}}} \\
+&= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (a_{h_\ell} - m_{h_\ell}) \frac{\partial g_{h_\ell}}{\partial G_{h_\ell, h_{\ell-1}}} \\
+&= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} (a_{h_\ell} - m_{h_\ell}) \sigma(\hat{g}_{h_\ell}) (1 - \sigma(\hat{g}_{h_\ell})) \\
+&= \delta_{h_\ell} (a_{h_\ell} - m_{h_\ell}) \sigma(\hat{g}_{h_\ell}) (1 - \sigma(\hat{g}_{h_\ell}))
 \end{aligned}
 $$
 
@@ -74,9 +85,9 @@ $$
 
 The intrepeation of this, is that if one has an underestimate ($\frac{\partial \mathcal{L}}{\partial G_{h_\ell, h_{\ell-1}}} < 0$), then gate converges to side with the largest value. And alternative if one has an overestimate($\frac{\partial \mathcal{L}}{\partial G_{h_\ell, h_{\ell-1}}} > 0$), then the gate converges to the side with the smallest value.
 
-## Improvements to consider
+### Improvements to consider
 
-### The operation gradients
+#### The operation gradients
 
 If completly seperate weight matrices are used for the operations, one have:
 
@@ -96,11 +107,9 @@ $$
 \end{aligned}
 $$
 
-The consequence of this, is that $a_{h_\ell}$ and $b_{h_\ell}$ are going to look similar, which will affect the gradient of the gates to become closer to zero. Thus making it abitrary what gate is used. Hopefully, the operations for$a_{h_\ell}$ and $b_{h_\ell}$ will differ enogth to not make that the case.
+However, this does not work when considering a problem that requires an input-dependent gate.
 
-In theory, decopling the operation optimization from the gate optimization in this manner, could improve the convergence rate quite significantly.
-
-### Decoupled operations
+#### Decoupled operations
 
 An interresting effect in when decoupling the operations with different matrices, is that the operations could also be decouples to be different networks.
 
@@ -122,32 +131,47 @@ $$
 The disadvantage here, is that the gradient is now decoupled from the $h_{\ell-1}$ index, thus this will only work for a bias controled gate. And that is perhaps not as interresting.
 
 
-<!--
-The $\frac{\partial \mathcal{L}}{\partial z_{h_\ell}}$ is simply dependent on if the predictor is an overestimate or an underestimate. Let's consider that it is an overestimate for many iterations, because the learning rate is very small. In that case we have:
+## Backpropergation term 
 
+We now wish to derive the backpropergation term $\delta_{h_\ell} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}}$, because $z_{h_\ell}$ affects $\{z_{h_{\ell+1}}\}_{h_{\ell+1}=1}^{H_{\ell+1}}$ this becomes:
 $$
-\frac{\partial \mathcal{L}}{\partial G_{h_\ell, h_{\ell-1}}} \propto a_{h_\ell} - m_{h_\ell}
-$$
-
-I fell, this is somewhat unintuitive, without being counter intuitive. The difference between $a_{h_\ell} - m_{h_\ell}$ seams like a bad choice. The ideal would really be something like:
-
-$$
-\frac{\partial \mathcal{L}}{\partial G_{h_\ell, h_{\ell-1}}} \propto \mathcal{L}\Big\rvert_{z_{h_\ell} = m_{h_\ell}} - \mathcal{L}\Big\rvert_{z_{h_\ell} = a_{h_\ell}}
+\delta_{h_\ell} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} = \sum_{h_{\ell+1}=1}^{H_{\ell+1}} \frac{\partial \mathcal{L}}{\partial z_{h_{\ell+1}}} \frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}} = \sum_{h_{\ell+1}=1}^{H_{\ell+1}} \delta_{h_{\ell+1}} \frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}
 $$
 
-This seams similar to the approach of Inductive Programming, e.g. Gradient Bandits, so perhaps that should be tried for the gate. Although, it is not really clear how such an approach could work when the distribution parameters are a network. Perhaps, try and be inspired by the Gradient Bandit proof.
+To make it easier to derive $\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}$ we re-express the $z_{h_\ell}$ as  $z_{h_{\ell+1}}$.
 
--->
+$$
+\begin{aligned}
+a_{h_{\ell+1}} &= \sum_{h_{\ell}=1}^{H_\ell} W_{h_{\ell+1}, h_{\ell}} z_{h_{\ell}} \\
+m_{h_{\ell+1}} &= \exp\left(\sum_{h_{\ell}=1}^{H_{\ell}} W_{h_{\ell+1}, h_{\ell}} \log(|z_{h_{\ell}}| + \epsilon) \right) \\
+g_{h_{\ell+1}} &= \sigma(\hat{g}_{h_{\ell+1}}),\ \hat{g}_{h_{\ell+1}} = \sum_{h_{\ell}=1}^{H_{\ell}} G_{h_{\ell+1}, h_{\ell}} z_{h_{\ell}} \\
+z_{h_{\ell+1}} &= g_{h_{\ell+1}} a_{h_{\ell+1}} + (1 - g_{h_{\ell+1}}) m_{h_{\ell+1}} \\
+\end{aligned}
+$$
 
-<!--
-For the point proves that I have tried, this actually works. However, if we considered the addition NAC and the multiplication NAC to be seperate, this does not seam garantted to work. As one of the networks could be initialized to yield really small or really big values.
+### The NALU operation
 
-Let's say $G_{h_\ell, h_{\ell-1}}$ is initialized such that $\hat{g}_{h_\ell}$ yeilds really small values (multplication is active). And that $\hat{M}_{h_\ell, h_{\ell-1}}$ is initialized such that it yields small values, and that $\hat{W}_{h_\ell, h_{\ell-1}}$ is initialized such $a - m$ is positive.
+$$
+\begin{aligned}
+\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}} &= \frac{\partial z_{h_{\ell+1}}}{\partial a_{h_{\ell+1}}} \frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}} + \frac{\partial z_{h_{\ell+1}}}{\partial m_{h_{\ell+1}}} \frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} + \frac{\partial z_{h_{\ell+1}}}{\partial g_{h_{\ell+1}}} \frac{\partial g_{h_{\ell+1}}}{\partial z_{h_\ell}} \\
+&= g_{h_{\ell+1}} \frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}} + (1 - g_{h_{\ell+1}}) \frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} + (a_{h_{\ell+1}} - m_{h_{\ell+1}}) \frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}}
+\end{aligned}
+$$
 
-Then if the target is smaller than $m$, i.e. we are overestimating, then the gradient will be positive, and we will converge the gate in the wrong direction. Although, what will happen eventually is that the $m$ will stop overestimating and then the gate will converge correctly. But maybe this conflict explains why the $NALU_2(\cdot)$ has worse convergence.
--->
+### The addition operation
 
+$$
+\frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}} = W_{h_{\ell+1}, h_{\ell}}
+$$
 
+### The multiplication operation
 
+$$
+\frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} = \exp\left(\sum_{h_{\ell}=1}^{H_{\ell}} W_{h_{\ell+1}, h_{\ell}} \log(|z_{h_{\ell}}| + \epsilon) \right) W_{h_{\ell+1}, h_{\ell}} \frac{\mathrm{abs}'(z_{h_{\ell}})}{|z| + \epsilon}
+$$
 
+### The gate
 
+$$
+\frac{\partial g_{h_{\ell+1}}}{\partial z_{h_\ell}} = \frac{\partial g_{h_{\ell+1}}}{\partial \hat{g}_{h_{\ell+1}}} \frac{\partial \hat{g}_{h_{\ell+1}}}{\partial z_{h_\ell}} = \sigma(\hat{g}_{h_{\ell+1}}) (1 - \sigma(\hat{g}_{h_{\ell+1}})) G_{h_{\ell+1},h_{\ell}}
+$$
