@@ -31,12 +31,12 @@ class GradientBanditNACLayer(ExtendedTorchModule):
         self.register_buffer('target_weights', torch.tensor([1, -1, 0], dtype=torch.float32))
 
         # Initialize a tensor, that will be the placeholder for the hard sample
-        self.register_buffer('sample', torch.LongTensor(out_features, in_features))
+        self.sample = torch.LongTensor(out_features, in_features)
 
         # We will only two parameters per weight, this is to prevent the redundancy
         # there would otherwise exist. This also makes it much more comparable with
         # NAC.
-        self.W_hat = torch.nn.Parameter(torch.Tensor(out_features, in_features, 3), requires_grad=False)
+        self.register_buffer('W_hat', torch.Tensor(out_features, in_features, 3))
 
         self.register_parameter('bias', None)
 
@@ -65,9 +65,12 @@ class GradientBanditNACLayer(ExtendedTorchModule):
         pi = torch.nn.functional.softmax(self.W_hat, dim=-1)
 
         # Compute W
-        if not reuse:
-            torch.multinomial(pi.view(-1, 3), 1, True, out=self.sample.view(-1))
-        W = self.target_weights[self.sample]
+        if self.allow_random:
+            if not reuse:
+                torch.multinomial(pi.view(-1, 3), 1, True, out=self.sample.view(-1))
+            W = self.target_weights[self.sample]
+        else:
+            W = self.target_weights[torch.argmax(pi, dim=-1)]
 
         # Compute the linear multiplication as usual
         self.writer.add_histogram('W', W)

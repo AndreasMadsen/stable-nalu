@@ -2,6 +2,17 @@
 import torch
 from ..writer import DummySummaryWriter
 
+class NoRandomScope:
+    def __init__(self, module):
+        self._module = module
+
+    def __enter__(self):
+        self._module._disable_random()
+
+    def __exit__(self, type, value, traceback):
+        self._module._enable_random()
+        return False
+
 class ExtendedTorchModule(torch.nn.Module):
     def __init__(self, default_name, *args, writer=None, name=None, **kwargs):
         super().__init__()
@@ -9,6 +20,7 @@ class ExtendedTorchModule(torch.nn.Module):
             writer = DummySummaryWriter()
 
         self.writer = writer.namespace(default_name if name is None else name)
+        self.allow_random = True
 
     def set_parameter(self, name, value):
         parameter = getattr(self, name, None)
@@ -46,3 +58,18 @@ class ExtendedTorchModule(torch.nn.Module):
 
     def no_internal_logging(self):
         return self.writer.no_logging()
+
+    def _disable_random(self):
+        self.allow_random = False
+        for module in self.children():
+            if isinstance(module, ExtendedTorchModule):
+                module._disable_random()
+
+    def _enable_random(self):
+        self.allow_random = True
+        for module in self.children():
+            if isinstance(module, ExtendedTorchModule):
+                module._enable_random()
+
+    def no_random(self):
+        return NoRandomScope(self)

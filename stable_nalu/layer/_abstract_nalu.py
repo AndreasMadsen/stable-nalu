@@ -72,16 +72,14 @@ class AbstractNALULayer(ExtendedTorchModule):
 
     def forward(self, x):
         # g = sigmoid(G x)
-        if self.nalu_gate == 'gumbel':
-            g = torch.sigmoid(
-                torch.nn.functional.linear(x, self.G, self.bias) +
-                (-torch.log(1e-8 - torch.log(torch.rand(self.out_features) + 1e-8)))
-            )
-        elif self.nalu_gate == 'obs-gumbel':
-            g = torch.sigmoid(
-                torch.nn.functional.linear(x, self.G, self.bias) +
-                (-torch.log(1e-8 - torch.log(torch.rand(x.size(0), self.out_features) + 1e-8)))
-            )
+        if self.nalu_gate == 'gumbel' or self.nalu_gate == 'obs-gumbel':
+            gumbel = 0
+            if self.allow_random and self.nalu_gate == 'gumbel':
+                gumbel = (-torch.log(1e-8 - torch.log(torch.rand(self.out_features, device=x.device) + 1e-8)))
+            elif self.allow_random and self.nalu_gate == 'obs-gumbel':
+                gumbel = (-torch.log(1e-8 - torch.log(torch.rand(x.size(0), self.out_features, device=x.device) + 1e-8)))
+
+            g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias) + gumbel)
         else:
             g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias))
 

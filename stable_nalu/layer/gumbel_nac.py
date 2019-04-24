@@ -27,7 +27,7 @@ class GumbelNACLayer(ExtendedTorchModule):
         self.register_buffer('target_weights', torch.tensor([1, -1, 0], dtype=torch.float32))
 
         # Initialize a tensor, that will be the placeholder for the uniform samples
-        self.register_buffer('U', torch.Tensor(out_features, in_features, 3))
+        self.U = torch.Tensor(out_features, in_features, 3)
 
         # We will only two parameters per weight, this is to prevent the redundancy
         # there would otherwise exist. This also makes it much more comparable with
@@ -59,7 +59,10 @@ class GumbelNACLayer(ExtendedTorchModule):
             self.U.resize_(obs, self.out_features, self.in_features, 3)
 
             # Sample for each observation
-            y = sample_gumbel_softmax(self.U, log_pi.expand(obs, -1, -1, -1), tau=self.tau, reuse=reuse)
+            if self.allow_random:
+                y = sample_gumbel_softmax(self.U, log_pi.expand(obs, -1, -1, -1), tau=self.tau, reuse=reuse)
+            else:
+                y = torch.softmax(self.U, dim=-1)
             # select from target_weights
             W = y @ self.target_weights
 
@@ -67,7 +70,10 @@ class GumbelNACLayer(ExtendedTorchModule):
             return batch_linear(input, W, self.bias)
         else:
             # Sample a quazi-1-hot encoding
-            y = sample_gumbel_softmax(self.U, log_pi, tau=self.tau, reuse=reuse)
+            if self.allow_random:
+                y = sample_gumbel_softmax(self.U, log_pi, tau=self.tau, reuse=reuse)
+            else:
+                y = torch.exp(log_pi)
             # The final weight matrix (W), is computed by selecting from the target_weights
             W = y @ self.target_weights
 
