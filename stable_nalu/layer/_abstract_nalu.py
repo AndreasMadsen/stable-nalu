@@ -14,7 +14,7 @@ class AbstractNALULayer(ExtendedTorchModule):
     """
 
     def __init__(self, NACOp, in_features, out_features, eps=1e-7,
-                 nalu_two_nac=False, nalu_bias=False, nalu_gate='normal',
+                 nalu_two_nac=False, nalu_bias=False, nalu_safe=False, nalu_gate='normal',
                  writer=None, name=None, **kwargs):
         super().__init__('nalu', name=name, writer=writer, **kwargs)
         self.in_features = in_features
@@ -22,6 +22,7 @@ class AbstractNALULayer(ExtendedTorchModule):
         self.eps = eps
         self.nalu_two_nac = nalu_two_nac
         self.nalu_bias = nalu_bias
+        self.nalu_safe = nalu_safe
         self.nalu_gate = nalu_gate
 
         if nalu_two_nac:
@@ -76,6 +77,11 @@ class AbstractNALULayer(ExtendedTorchModule):
                 torch.nn.functional.linear(x, self.G, self.bias) +
                 (-torch.log(1e-8 - torch.log(torch.rand(self.out_features) + 1e-8)))
             )
+        elif self.nalu_gate == 'obs-gumbel':
+            g = torch.sigmoid(
+                torch.nn.functional.linear(x, self.G, self.bias) +
+                (-torch.log(1e-8 - torch.log(torch.rand(x.size(0), self.out_features) + 1e-8)))
+            )
         else:
             g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias))
 
@@ -84,9 +90,14 @@ class AbstractNALULayer(ExtendedTorchModule):
         # a = W x = nac(x)
         a = self.nac_add(x)
         # m = exp(W log(|x| + eps)) = exp(nac(log(|x| + eps)))
-        m = torch.exp(self.nac_mul(
-            torch.log(torch.abs(x) + self.eps)
-        ))
+        if self.nalu_safe:
+            m = torch.exp(self.nac_mul(
+                torch.log(torch.abs(x - 1) + 1)
+            ))
+        else:
+            m = torch.exp(self.nac_mul(
+                torch.log(torch.abs(x) + self.eps)
+            ))
 
         # y = g (*) a + (1 - g) (*) m
         y = g * a + (1 - g) * m

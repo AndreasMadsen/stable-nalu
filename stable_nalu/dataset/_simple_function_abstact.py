@@ -91,8 +91,8 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         batch_size = select.stop - select.start if isinstance(select, slice) else 1
 
         input_vector = self._rng.uniform(
-            low=0,
-            high=self._input_range,
+            low=1,
+            high=1 + self._input_range,
             size=(batch_size, ) + self._shape)
 
         # Compute a and b values
