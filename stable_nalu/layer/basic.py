@@ -59,7 +59,7 @@ class BasicLayer(ExtendedTorchModule):
         self.activation_fn = ACTIVATIONS[activation]
         self.initializer = INITIALIZATIONS[activation]
 
-        self.weight = torch.nn.Parameter(torch.Tensor(out_features, in_features))
+        self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         print(bias)
         if bias:
             self.bias = torch.nn.Parameter(torch.Tensor(out_features))
@@ -67,14 +67,15 @@ class BasicLayer(ExtendedTorchModule):
             self.register_parameter('bias', None)
 
     def reset_parameters(self):
-        self.initializer(self.weight)
+        self.initializer(self.W)
         if self.bias is not None:
             torch.nn.init.zeros_(self.bias)
 
     def forward(self, input, reuse=False):
-        self.writer.add_histogram('W', self.weight)
+        self.writer.add_histogram('W', self.W)
+        self.writer.add_tensor('W', self.W)
         return self.activation_fn(
-            torch.nn.functional.linear(input, self.weight, self.bias)
+            torch.nn.functional.linear(input, self.W, self.bias)
         )
 
     def extra_repr(self):
