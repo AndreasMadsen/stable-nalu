@@ -101,6 +101,7 @@ dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     use_cuda=args.cuda,
     seed=args.seed,
 )
+print(f'  - dataset: {dataset.print_operation()}')
 dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=128))
 dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
 dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))

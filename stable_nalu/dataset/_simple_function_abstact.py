@@ -6,6 +6,28 @@ import torch.utils.data
 
 from ._dataloader import FastDataLoader
 
+class ARITHMETIC_FUNCTIONS_STRINGIY:
+    @staticmethod
+    def add(a, b):
+        return f'{a} + {b}'
+
+    @staticmethod
+    def sub(a, b):
+        return f'{a} - {b}'
+
+    @staticmethod
+    def mul(a, b):
+        return f'{a} * {b}'
+
+    def div(a, b):
+        return f'{a} / {b}'
+
+    def squared(a, b):
+        return f'{a}**2'
+
+    def root(a, b):
+        return f'sqrt({a})'
+
 class ARITHMETIC_FUNCTIONS:
     @staticmethod
     def add(a, b):
@@ -30,12 +52,22 @@ class ARITHMETIC_FUNCTIONS:
 
 class SimpleFunctionDataset:
     def __init__(self, operation, vector_size,
+                 min_subset_length=0,
+                 max_subset_length=None,
+                 min_subset_overlap=0,
+                 max_subset_overlap=0,
                  simple=False,
                  seed=None,
                  use_cuda=False,
                  max_size=2**32-1):
         super().__init__()
+        if max_subset_length is None:
+            max_subset_length = vector_size
 
+        if min_subset_length < max_subset_overlap:
+            raise ValueError('min_subset_length must be at least the size of max_subset_overlap')
+
+        self._operation_name = operation
         self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
         self._max_size = max_size
         self._use_cuda = use_cuda
@@ -50,14 +82,20 @@ class SimpleFunctionDataset:
             self.b_end = 6
         else:
             self._vector_size = vector_size
+            subset_overlap = self._rng.randint(min_subset_overlap, max_subset_overlap + 1)
+            a_size = self._rng.randint(min_subset_length, max_subset_length + 1)
+            b_size = self._rng.randint(min_subset_length, max_subset_length + 1)
 
-            self.a_start = self._rng.randint(0, self._vector_size)
-            a_size = self._rng.randint(1, self._vector_size - self.a_start + 1)
+            self.a_start = self._rng.randint(0, vector_size - a_size - b_size + subset_overlap + 1)
             self.a_end = self.a_start + a_size
 
-            self.b_start = self._rng.randint(0, self._vector_size)
-            b_size = self._rng.randint(1, self._vector_size - self.b_start + 1)
+            self.b_start = self.a_end - subset_overlap
             self.b_end = self.b_start + b_size
+
+    def print_operation(self):
+        a_str = f'sum(v[{self.a_start}:{self.a_end}])'
+        b_str = f'sum(v[{self.b_start}:{self.b_end}])'
+        return getattr(ARITHMETIC_FUNCTIONS_STRINGIY, self._operation_name)(a_str, b_str)
 
     def get_input_size(self):
         return self._vector_size
