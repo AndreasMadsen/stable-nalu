@@ -25,6 +25,11 @@ parser.add_argument('--seed',
                     default=0,
                     type=int,
                     help='Specify the seed to use')
+parser.add_argument('--min-input',
+                    action='store',
+                    default=1,
+                    type=int,
+                    help='Specify the smallest possible input value')
 parser.add_argument('--max-iterations',
                     action='store',
                     default=100000,
@@ -66,6 +71,7 @@ args = parser.parse_args()
 # Print configuration
 print(f'running')
 print(f'  - seed: {args.seed}')
+print(f'  - min_input: {args.min_input}')
 print(f'  - operation: {args.operation}')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - nalu_bias: {args.nalu_bias}')
@@ -88,7 +94,9 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"g" if args.nalu_gate == "gumbel" else ""}'
     f'{"gg" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_{args.operation.lower()}_{args.seed}'
+    f'_{args.operation.lower()}'
+    f'{f"_i{args.min_input}" if args.min_input != 1 else ""}'
+    f'_{args.seed}'
 )
 
 # Set seed
@@ -97,6 +105,7 @@ torch.manual_seed(args.seed)
 # Setup datasets
 dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation=args.operation,
+    min_input=args.min_input,
     simple=args.simple,
     use_cuda=args.cuda,
     seed=args.seed,

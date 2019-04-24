@@ -56,6 +56,7 @@ class SimpleFunctionDataset:
                  max_subset_length=None,
                  min_subset_overlap=0,
                  max_subset_overlap=0,
+                 min_input=1,
                  simple=False,
                  seed=None,
                  use_cuda=False,
@@ -69,6 +70,7 @@ class SimpleFunctionDataset:
 
         self._operation_name = operation
         self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
+        self._min_input = min_input
         self._max_size = max_size
         self._use_cuda = use_cuda
         self._rng = np.random.RandomState(seed)
@@ -115,6 +117,7 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         self._rng = rng
 
         self._operation = parent._operation
+        self._min_input = parent._min_input
         self._vector_size = parent._vector_size
         self._max_size = parent._max_size
         self._use_cuda = parent._use_cuda
@@ -129,8 +132,8 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         batch_size = select.stop - select.start if isinstance(select, slice) else 1
 
         input_vector = self._rng.uniform(
-            low=1,
-            high=1 + self._input_range,
+            low=self._min_input,
+            high=self._min_input + self._input_range,
             size=(batch_size, ) + self._shape)
 
         # Compute a and b values
