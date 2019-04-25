@@ -154,7 +154,7 @@ $$
 $$
 \begin{aligned}
 \frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}} &= \frac{\partial z_{h_{\ell+1}}}{\partial a_{h_{\ell+1}}} \frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}} + \frac{\partial z_{h_{\ell+1}}}{\partial m_{h_{\ell+1}}} \frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} + \frac{\partial z_{h_{\ell+1}}}{\partial g_{h_{\ell+1}}} \frac{\partial g_{h_{\ell+1}}}{\partial z_{h_\ell}} \\
-&= g_{h_{\ell+1}} \frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}} + (1 - g_{h_{\ell+1}}) \frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} + (a_{h_{\ell+1}} - m_{h_{\ell+1}}) \frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}}
+&= g_{h_{\ell+1}} \frac{\partial a_{h_{\ell+1}}}{\partial z_{h_\ell}} + (1 - g_{h_{\ell+1}}) \frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} + (a_{h_{\ell+1}} - m_{h_{\ell+1}}) \frac{\partial g_{h_{\ell+1}}}{\partial z_{h_\ell}}
 \end{aligned}
 $$
 
@@ -167,11 +167,11 @@ $$
 ### The multiplication operation
 
 $$
-\frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} = \exp\left(\sum_{h_{\ell}=1}^{H_{\ell}} W_{h_{\ell+1}, h_{\ell}} \log(|z_{h_{\ell}}| + \epsilon) \right) W_{h_{\ell+1}, h_{\ell}} \frac{\mathrm{abs}'(z_{h_{\ell}})}{|z_{h_{\ell}}| + \epsilon}
+\frac{\partial m_{h_{\ell+1}}}{\partial z_{h_\ell}} = \exp\left(\sum_{h_{\ell}=1}^{H_{\ell}} W_{h_{\ell+1}, h_{\ell}} \log(|z_{h_{\ell}}| + \epsilon) \right) W_{h_{\ell+1}, h_{\ell}} \frac{\mathrm{abs}'(z_{h_{\ell}})}{|z_{h_{\ell}}| + \epsilon} = m_{h_\ell+1} W_{h_{\ell+1}, h_{\ell}} \frac{\mathrm{abs}'(z_{h_{\ell}})}{|z_{h_{\ell}}| + \epsilon} 
 $$
 
 ### The gate
 
 $$
-\frac{\partial g_{h_{\ell+1}}}{\partial z_{h_\ell}} = \frac{\partial g_{h_{\ell+1}}}{\partial \hat{g}_{h_{\ell+1}}} \frac{\partial \hat{g}_{h_{\ell+1}}}{\partial z_{h_\ell}} = \sigma(\hat{g}_{h_{\ell+1}}) (1 - \sigma(\hat{g}_{h_{\ell+1}})) G_{h_{\ell+1},h_{\ell}}
+\frac{\partial g_{h_{\ell+1}}}{\partial z_{h_\ell}} = \frac{\partial g_{h_{\ell+1}}}{\partial \hat{g}_{h_{\ell+1}}} \frac{\partial \hat{g}_{h_{\ell+1}}}{\partial z_{h_\ell}} = \sigma'(\hat{g}_{h_{\ell+1}}) G_{h_{\ell+1},h_{\ell}} = \sigma(\hat{g}_{h_{\ell+1}}) (1 - \sigma(\hat{g}_{h_{\ell+1}})) G_{h_{\ell+1},h_{\ell}}
 $$

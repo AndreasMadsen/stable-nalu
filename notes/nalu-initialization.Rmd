@@ -668,4 +668,24 @@ Var\left[\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}\right] &\approx \le
 \end{aligned}
 $$
 
+In the best case where the input variance is one:
+
+$$
+\begin{aligned}
+Var\left[\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}\right] &\approx \left(1 + H_{\ell} Var\left[W_{h_{\ell+1}, h_{\ell}}\right]\right) \left(\frac{1}{8} - \frac{1}{32} H_{\ell} Var\left[G_{h_{\ell+1}, h_{\ell}}\right]\right) Var[G_{h_{\ell+1},h_{\ell}}] \\
+&+ \left(\frac{1}{4} + \frac{1}{16} H_{\ell} Var\left[G_{h_{\ell+1}, h_{\ell}}\right]\right) Var[W_{h_{\ell+1}, h_{\ell}}] \\
+&+ \left(\frac{1}{4} + \frac{1}{16} H_{\ell} Var\left[G_{h_{\ell+1}, h_{\ell}}\right]\right) Var[W_{h_{\ell+1}, h_{\ell}}] \cdot 4 \\
+&= \left(1 + H_{\ell} Var\left[W_{h_{\ell+1}, h_{\ell}}\right]\right) \left(\frac{1}{8} - \frac{1}{32} H_{\ell} Var\left[G_{h_{\ell+1}, h_{\ell}}\right]\right) Var[G_{h_{\ell+1},h_{\ell}}] \\
+&+ \left(\frac{1}{4} + \frac{1}{16} H_{\ell} Var\left[G_{h_{\ell+1}, h_{\ell}}\right]\right) Var[W_{h_{\ell+1}, h_{\ell}}] \cdot 5
+\end{aligned}
+$$
+
+Setting $Var\left[G_{h_{\ell+1}, h_{\ell}}\right] = Var\left[W_{h_{\ell+1}, h_{\ell}}\right]$:
+
+$$
+\begin{aligned}
+Var\left[\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}\right] &\approx \left(1 + H_{\ell} Var\left[W_{h_{\ell+1}, h_{\ell}}\right]\right) \left(\frac{1}{8} - \frac{1}{32} H_{\ell} Var\left[W_{h_{\ell+1}, h_{\ell}}\right]\right) Var[W_{h_{\ell+1},h_{\ell}}] \\
+&+ \left(\frac{1}{4} + \frac{1}{16} H_{\ell} Var\left[W_{h_{\ell+1}, h_{\ell}}\right]\right) Var[W_{h_{\ell+1}, h_{\ell}}] \cdot 5
+\end{aligned}
+$$
 
