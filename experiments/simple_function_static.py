@@ -35,11 +35,10 @@ parser.add_argument('--max-iterations',
                     default=100000,
                     type=int,
                     help='Specify the max number of iterations to use')
-parser.add_argument('--cuda',
-                    action='store',
-                    default=torch.cuda.is_available(),
-                    type=bool,
-                    help=f'Should CUDA be used (detected automatically as {torch.cuda.is_available()})')
+parser.add_argument('--no-cuda',
+                    action='store_true',
+                    default=False,
+                    help=f'Force no CUDA (cuda usage is detected automatically as {torch.cuda.is_available()})')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -62,11 +61,18 @@ parser.add_argument('--simple',
                     action='store_true',
                     default=False,
                     help='Use a very simple dataset with t = sum(v[0:2]) + sum(v[4:6])')
+parser.add_argument('--name-prefix',
+                    action='store',
+                    default='simple_function_static',
+                    type=str,
+                    help='Where the data should be stored')
 parser.add_argument('--verbose',
                     action='store_true',
                     default=False,
                     help='Should network measures (e.g. gates) and gradients be shown')
 args = parser.parse_args()
+
+setattr(args, 'cuda', torch.cuda.is_available() and not args.no_cuda)
 
 # Print configuration
 print(f'running')
@@ -81,12 +87,13 @@ print(f'  - nalu_gate: {args.nalu_gate}')
 print(f'  - simple: {args.simple}')
 print(f'  - cuda: {args.cuda}')
 print(f'  - verbose: {args.verbose}')
+print(f'  - name_prefix: {args.name_prefix}')
 print(f'  - max_iterations: {args.max_iterations}')
 
 # Prepear logging
-results_writer = stable_nalu.writer.ResultsWriter('simple_function_static')
+results_writer = stable_nalu.writer.ResultsWriter(args.name_prefix)
 summary_writer = stable_nalu.writer.SummaryWriter(
-    f'simple_function_static/{args.layer_type.lower()}'
+    f'{args.name_prefix}/{args.layer_type.lower()}'
     f'{"-" if (args.nalu_bias or args.nalu_two_nac or args.nalu_safe or args.nalu_gate != "normal") else ""}'
     f'{"b" if args.nalu_bias else ""}'
     f'{"2" if args.nalu_two_nac else ""}'
@@ -101,6 +108,7 @@ summary_writer = stable_nalu.writer.SummaryWriter(
 
 # Set seed
 torch.manual_seed(args.seed)
+torch.backends.cudnn.deterministic = True
 
 # Setup datasets
 dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
@@ -185,13 +193,19 @@ print(f'  - loss_valid_extra: {loss_valid_extra}')
 # save results
 results_writer.add({
     'seed': args.seed,
+    'min_input': args.min_input,
     'operation': args.operation,
     'layer_type': args.layer_type,
+    'nalu_bias': args.nalu_bias,
+    'nalu_two_nac': args.nalu_two_nac,
+    'nalu_safe': args.nalu_safe,
+    'nalu_gate': args.nalu_gate,
     'simple': args.simple,
     'cuda': args.cuda,
     'verbose': args.verbose,
+    'name_prefix': args.name_prefix,
     'max_iterations': args.max_iterations,
     'loss_train': loss_train,
     'loss_valid_inter': loss_valid_inter,
-    'loss_valid_extra': loss_valid_extra
+    'loss_valid_extra': loss_valid_extra,
 })
