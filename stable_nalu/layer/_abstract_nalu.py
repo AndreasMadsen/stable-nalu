@@ -14,7 +14,7 @@ class AbstractNALULayer(ExtendedTorchModule):
     """
 
     def __init__(self, NACOp, in_features, out_features, eps=1e-7,
-                 nalu_two_nac=False, nalu_bias=False, nalu_safe=False, nalu_gate='normal',
+                 nalu_two_nac=False, nalu_bias=False, nalu_mul='normal', nalu_gate='normal',
                  writer=None, name=None, **kwargs):
         super().__init__('nalu', name=name, writer=writer, **kwargs)
         self.in_features = in_features
@@ -22,8 +22,11 @@ class AbstractNALULayer(ExtendedTorchModule):
         self.eps = eps
         self.nalu_two_nac = nalu_two_nac
         self.nalu_bias = nalu_bias
-        self.nalu_safe = nalu_safe
+        self.nalu_mul = nalu_mul
         self.nalu_gate = nalu_gate
+
+        if nalu_gate == 'gumbel' or nalu_gate == 'obs-gumbel':
+            self.tau = torch.tensor(1, dtype=torch.float32)
 
         if nalu_two_nac:
             self.nac_add = NACOp(in_features, out_features, writer=self.writer, name='nac_add', **kwargs)
@@ -79,7 +82,7 @@ class AbstractNALULayer(ExtendedTorchModule):
             elif self.allow_random and self.nalu_gate == 'obs-gumbel':
                 gumbel = (-torch.log(1e-8 - torch.log(torch.rand(x.size(0), self.out_features, device=x.device) + 1e-8)))
 
-            g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias) + gumbel)
+            g = torch.sigmoid((torch.nn.functional.linear(x, self.G, self.bias) + gumbel) / self.tau)
         else:
             g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias))
 
@@ -88,15 +91,21 @@ class AbstractNALULayer(ExtendedTorchModule):
         # a = W x = nac(x)
         a = self.nac_add(x)
         # m = exp(W log(|x| + eps)) = exp(nac(log(|x| + eps)))
-        if self.nalu_safe:
+        if self.nalu_mul == 'safe':
             m = torch.exp(self.nac_mul(
                 torch.log(torch.abs(x - 1) + 1)
+            ))
+        elif self.nalu_mul == 'trig':
+            m = torch.sinh(self.nac_mul(
+                torch.log(x+(x**2+1)**0.5 + self.eps)  # torch.asinh(x) does not exist
             ))
         else:
             m = torch.exp(self.nac_mul(
                 torch.log(torch.abs(x) + self.eps)
             ))
 
+        self.writer.add_histogram('add', a)
+        self.writer.add_histogram('mul', m)
         # y = g (*) a + (1 - g) (*) m
         y = g * a + (1 - g) * m
 

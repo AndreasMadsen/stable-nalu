@@ -47,10 +47,11 @@ parser.add_argument('--nalu-two-nac',
                     action='store_true',
                     default=False,
                     help='Uses two independent NACs in the NALU Layer')
-parser.add_argument('--nalu-safe',
-                    action='store_true',
-                    default=False,
-                    help='Safe NALU uses log(abs(x - 1) + 1) as the mul operator')
+parser.add_argument('--nalu-mul',
+                    action='store',
+                    default='normal',
+                    choices=['normal', 'safe', 'trig'],
+                    help='Multplication unit, can be normal, safe, trig')
 parser.add_argument('--nalu-gate',
                     action='store',
                     default='normal',
@@ -66,6 +67,10 @@ parser.add_argument('--name-prefix',
                     default='simple_function_static',
                     type=str,
                     help='Where the data should be stored')
+parser.add_argument('--remove-existing-data',
+                    action='store_true',
+                    default=False,
+                    help='Should old results be removed')
 parser.add_argument('--verbose',
                     action='store_true',
                     default=False,
@@ -82,7 +87,7 @@ print(f'  - operation: {args.operation}')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
-print(f'  - nalu_safe: {args.nalu_safe}')
+print(f'  - nalu_mul: {args.nalu_mul}')
 print(f'  - nalu_gate: {args.nalu_gate}')
 print(f'  - simple: {args.simple}')
 print(f'  - cuda: {args.cuda}')
@@ -94,16 +99,18 @@ print(f'  - max_iterations: {args.max_iterations}')
 results_writer = stable_nalu.writer.ResultsWriter(args.name_prefix)
 summary_writer = stable_nalu.writer.SummaryWriter(
     f'{args.name_prefix}/{args.layer_type.lower()}'
-    f'{"-" if (args.nalu_bias or args.nalu_two_nac or args.nalu_safe or args.nalu_gate != "normal") else ""}'
+    f'{"-" if (args.nalu_bias or args.nalu_two_nac or args.nalu_mul != "normal" or args.nalu_gate != "normal") else ""}'
     f'{"b" if args.nalu_bias else ""}'
     f'{"2" if args.nalu_two_nac else ""}'
-    f'{"s" if args.nalu_safe else ""}'
+    f'{"s" if args.nalu_mul == "safe" else ""}'
+    f'{"t" if args.nalu_mul == "trig" else ""}'
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"g" if args.nalu_gate == "gumbel" else ""}'
     f'{"gg" if args.nalu_gate == "obs-gumbel" else ""}'
     f'_{args.operation.lower()}'
     f'{f"_i{args.min_input}" if args.min_input != 1 else ""}'
-    f'_{args.seed}'
+    f'_{args.seed}',
+    remove_existing_data=args.remove_existing_data
 )
 
 # Set seed
@@ -130,12 +137,12 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     writer=summary_writer.every(1000) if args.verbose else None,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
-    nalu_safe=args.nalu_safe,
+    nalu_mul=args.nalu_mul,
     nalu_gate=args.nalu_gate,
 )
+model.reset_parameters()
 if args.cuda:
     model.cuda()
-model.reset_parameters()
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
@@ -149,13 +156,16 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     summary_writer.set_iteration(epoch_i)
 
     # Prepear model
-    model.set_parameter('tau', max(0.5, math.exp(-1e-5 * epoch_i)))
+    # model.set_parameter('tau', max(0.5, 20 * math.exp(-1e-4 * epoch_i)))
     optimizer.zero_grad()
 
     # Log validation
     if epoch_i % 1000 == 0:
-        summary_writer.add_scalar('loss/valid/interpolation', test_model(dataset_valid_interpolation))
-        summary_writer.add_scalar('loss/valid/extrapolation', test_model(dataset_valid_extrapolation))
+        interpolation_error = test_model(dataset_valid_interpolation)
+        extrapolation_error = test_model(dataset_valid_extrapolation)
+
+        summary_writer.add_scalar('loss/valid/interpolation', interpolation_error)
+        summary_writer.add_scalar('loss/valid/extrapolation', extrapolation_error)
 
     # forward
     y_train = model(x_train)
@@ -168,7 +178,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
     summary_writer.add_scalar('loss/train/total', loss_train)
     if epoch_i % 1000 == 0:
-        print(f'train {epoch_i}: {loss_train_criterion}')
+        print('train %d: %.5f, inter: %.5f, extra: %.5f' % (epoch_i, loss_train_criterion, interpolation_error, extrapolation_error))
 
     # Optimize model
     if loss_train.requires_grad:
@@ -198,7 +208,7 @@ results_writer.add({
     'layer_type': args.layer_type,
     'nalu_bias': args.nalu_bias,
     'nalu_two_nac': args.nalu_two_nac,
-    'nalu_safe': args.nalu_safe,
+    'nalu_mul': args.nalu_mul,
     'nalu_gate': args.nalu_gate,
     'simple': args.simple,
     'cuda': args.cuda,
