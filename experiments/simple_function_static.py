@@ -149,7 +149,7 @@ optimizer = torch.optim.Adam(model.parameters())
 def test_model(dataloader):
     with torch.no_grad(), model.no_internal_logging(), model.no_random():
         x, t = next(dataloader)
-        return criterion(model(x), t)
+        return torch.sqrt(criterion(model(x), t))
 
 # Train model
 for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_train):
@@ -169,7 +169,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
 
     # forward
     y_train = model(x_train)
-    loss_train_criterion = criterion(y_train, t_train)
+    loss_train_criterion = torch.sqrt(criterion(y_train, t_train))
     loss_train_regualizer = 0.1 * (1 - math.exp(-1e-5 * epoch_i)) * model.regualizer()
     loss_train = loss_train_criterion + loss_train_regualizer
 

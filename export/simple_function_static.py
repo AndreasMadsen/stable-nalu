@@ -4,6 +4,7 @@ import torch
 import pandas as pd
 import stable_nalu
 import argparse
+import numpy as np
 
 pd.options.display.max_rows = 1000
 
@@ -38,7 +39,7 @@ data_df = pd.DataFrame.from_records(
 )
 data_df.to_pickle('debug_simple_function_static.pkl')
 """
-data_df = pd.read_pickle('debug_simple_function_static.pkl')
+#data_df = pd.read_pickle('debug_simple_function_static.pkl')
 
 # Compute baselines
 baselines = []
@@ -52,12 +53,15 @@ for operation in tqdm(['add', 'sub', 'mul', 'div', 'squared', 'root']):
         baselines.append({
             'operation': operation,
             'seed': str(seed),
-            'baseline/interpolation': dataset.fork(input_range=1).baseline_error(batch_size=2048),
-            'baseline/extrapolation': dataset.fork(input_range=5).baseline_error(batch_size=2048)
+            'problem': dataset.print_operation(),
+            'baseline/interpolation': np.sqrt(dataset.fork(input_range=1).baseline_error(batch_size=2048)),
+            'baseline/extrapolation': np.sqrt(dataset.fork(input_range=5).baseline_error(batch_size=2048))
         })
 
 baselines_df = pd.DataFrame.from_records(baselines)
+print(baselines_df)
 
+"""
 df = pd.merge(data_df, baselines_df, how='left', on=['operation', 'seed'])
 df['loss/norm/train'] = df['loss/train'] / df['baseline/interpolation']
 df['loss/norm/valid/interpolation'] = df['loss/valid/interpolation'] / df['baseline/interpolation']
@@ -83,3 +87,4 @@ latex_df = latex_df.reset_index()
 latex_df = pd.melt(latex_df, id_vars=['model', 'operation'], var_name="dataset", value_name="value")
 latex_df = latex_df.pivot_table('value', ['dataset', 'operation'], 'model')
 print(latex_df)
+"""
