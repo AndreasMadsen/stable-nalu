@@ -27,6 +27,9 @@ from .gradient_bandit_nalu import GradientBanditNALULayer, GradientBanditNALUCel
 from .regualized_linear_nac import RegualizedLinearNACLayer, RegualizedLinearNACCell
 from .regualized_linear_nalu import RegualizedLinearNALULayer, RegualizedLinearNALUCell
 
+from .re_regualized_linear_nac import ReRegualizedLinearNACLayer, ReRegualizedLinearNACCell
+from .re_regualized_linear_nalu import ReRegualizedLinearNALULayer, ReRegualizedLinearNALUCell
+
 from ..abstract import ExtendedTorchModule
 
 unit_name_to_layer_class = {
@@ -52,6 +55,9 @@ unit_name_to_layer_class = {
 
     'RegualizedLinearNAC': RegualizedLinearNACLayer,
     'RegualizedLinearNALU': RegualizedLinearNALULayer,
+
+    'ReRegualizedLinearNAC': ReRegualizedLinearNACLayer,
+    'ReRegualizedLinearNALU': ReRegualizedLinearNALULayer,
 }
 
 unit_name_to_cell_class = {
@@ -75,6 +81,9 @@ unit_name_to_cell_class = {
 
     'RegualizedLinearNAC': RegualizedLinearNACCell,
     'RegualizedLinearNALU': RegualizedLinearNALUCell,
+
+    'ReRegualizedLinearNAC': ReRegualizedLinearNACCell,
+    'ReRegualizedLinearNALU': ReRegualizedLinearNALUCell,
 }
 
 class GeneralizedLayer(ExtendedTorchModule):

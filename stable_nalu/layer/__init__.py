@@ -25,4 +25,7 @@ from .gradient_bandit_nalu import GradientBanditNALULayer, GradientBanditNALUCel
 from .regualized_linear_nac import RegualizedLinearNACLayer, RegualizedLinearNACCell
 from .regualized_linear_nalu import RegualizedLinearNALULayer, RegualizedLinearNALUCell
 
+from .re_regualized_linear_nac import ReRegualizedLinearNACLayer, ReRegualizedLinearNACCell
+from .re_regualized_linear_nalu import ReRegualizedLinearNALULayer, ReRegualizedLinearNALUCell
+
 from .generalized import GeneralizedLayer, GeneralizedCell
