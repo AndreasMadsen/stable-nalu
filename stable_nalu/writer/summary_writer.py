@@ -1,4 +1,5 @@
 
+import shutil
 import os.path as path
 import torch
 from tensorboardX import SummaryWriter as SummaryWriterRaw
@@ -87,12 +88,15 @@ class SummaryWriterNamespace:
         return SummaryWriterNamespaceNoLoggingScope(self)
 
 class SummaryWriter(SummaryWriterNamespace):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, remove_existing_data=False, **kwargs):
         super().__init__()
         self._iteration = 0
-        self.writer = SummaryWriterRaw(
-            log_dir=path.join(TENSORBOARD_DIR, name),
-            **kwargs)
+
+        log_dir = path.join(TENSORBOARD_DIR, name)
+        if path.exists(log_dir):
+            shutil.rmtree(log_dir)
+
+        self.writer = SummaryWriterRaw(log_dir=log_dir, **kwargs)
 
     def set_iteration(self, iteration):
         self._iteration = iteration
