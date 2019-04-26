@@ -68,6 +68,11 @@ class SummaryWriterNamespace:
         if self.is_log_iteration() and self.is_logging_enabled():
             self._root.writer.add_histogram(f'{self._namespace}/{name}', tensor, self.get_iteration())
 
+    def print(self, name, tensor):
+        if self.is_log_iteration() and self.is_logging_enabled():
+            print(f'{self._namespace}/{name}:')
+            print(tensor)
+
     def namespace(self, name):
         return SummaryWriterNamespace(
             namespace=f'{self._namespace}/{name}',
@@ -111,7 +116,7 @@ class SummaryWriter(SummaryWriterNamespace):
         self.close()
 
 class DummySummaryWriter():
-    def __init__(self):
+    def __init__(self, **kwargs):
         self._logging_enabled = False
         pass
 
@@ -122,6 +127,12 @@ class DummySummaryWriter():
         pass
 
     def add_histogram(self, name, tensor):
+        pass
+
+    def add_tensor(self, name, tensor):
+        pass
+
+    def print(self, name, tensor):
         pass
 
     def namespace(self, name):
