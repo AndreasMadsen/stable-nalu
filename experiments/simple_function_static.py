@@ -156,7 +156,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     summary_writer.set_iteration(epoch_i)
 
     # Prepear model
-    # model.set_parameter('tau', max(0.5, 20 * math.exp(-1e-4 * epoch_i)))
+    model.set_parameter('tau', max(0.5, math.exp(-1e-5 * epoch_i)))
     optimizer.zero_grad()
 
     # Log validation
