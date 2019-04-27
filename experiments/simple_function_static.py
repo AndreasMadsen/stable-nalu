@@ -39,6 +39,12 @@ parser.add_argument('--no-cuda',
                     action='store_true',
                     default=False,
                     help=f'Force no CUDA (cuda usage is detected automatically as {torch.cuda.is_available()})')
+parser.add_argument('--nac-mul',
+                    action='store',
+                    default='none',
+                    choices=['none', 'normal', 'safe'],
+                    type=str,
+                    help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -85,6 +91,7 @@ print(f'  - seed: {args.seed}')
 print(f'  - min_input: {args.min_input}')
 print(f'  - operation: {args.operation}')
 print(f'  - layer_type: {args.layer_type}')
+print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_mul: {args.nalu_mul}')
@@ -99,6 +106,7 @@ print(f'  - max_iterations: {args.max_iterations}')
 results_writer = stable_nalu.writer.ResultsWriter(args.name_prefix)
 summary_writer = stable_nalu.writer.SummaryWriter(
     f'{args.name_prefix}/{args.layer_type.lower()}'
+    f'{f"-mul-{args.nac_mul}" if args.nac_mul != "none" else ""}'
     f'{"-" if (args.nalu_bias or args.nalu_two_nac or args.nalu_mul != "normal" or args.nalu_gate != "normal") else ""}'
     f'{"b" if args.nalu_bias else ""}'
     f'{"2" if args.nalu_two_nac else ""}'
@@ -135,6 +143,7 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     args.layer_type,
     input_size=dataset.get_input_size(),
     writer=summary_writer.every(1000) if args.verbose else None,
+    nac_mul=args.nac_mul,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
     nalu_mul=args.nalu_mul,
