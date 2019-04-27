@@ -1,0 +1,52 @@
+---
+title: "Multiplicative NAC"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Network definition
+
+$$
+\begin{aligned}
+z_{h_1} &= \sum_{h_0=1}^{H_0} W_{h_1, h_0} z_{h_0} \\
+z_{h_2} &= \exp\left(\sum_{h_1=1}^{H_1} W_{h_2, h_1} \log(|z_{h_1}| + \epsilon) \right) \\
+\mathcal{L} &= \sum_{h_2=1}^{H_2} (z_{h_2} - t_{h_2})^2
+\end{aligned}
+$$
+
+## Weight gradients
+
+$$
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial W_{h_1, h_0}} &= \frac{\partial \mathcal{L}}{\partial z_{h_1}} \frac{\partial z_{h_1}}{\partial W_{h_1, h_0}} = \frac{\partial \mathcal{L}}{\partial z_{h_1}} z_{h_0} \\
+\frac{\partial \mathcal{L}}{\partial W_{h_2, h_1}} &= \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial W_{h_2, h_1}} = \frac{\partial \mathcal{L}}{\partial z_{h_2}} \exp\left(\sum_{h'_1=1}^{H_1} W_{h_2, h'_1} \log(|z_{h'_1}| + \epsilon) \right) \log(|z_{h_1}| + \epsilon) = \frac{\partial \mathcal{L}}{\partial z_{h_2}} z_{h_2} \log(|z_{h_1}| + \epsilon)
+\end{aligned}
+$$
+
+## Backpropergation
+
+$$
+\frac{\partial \mathcal{L}}{\partial z_{h_2}} = 2 \cdot (z_{h_2} - t_{h_2}) \\
+\frac{\partial \mathcal{L}}{\partial z_{h_1}} = \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial z_{h_1}}
+$$
+
+$$
+\frac{\partial z_{h_2}}{\partial z_{h_1}} =  \exp\left(\sum_{h_1=1}^{H_1} W_{h_2, h_1} \log(|z_{h_1}| + \epsilon) \right) W_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon} = z_{h_2} W_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon}
+$$
+
+$$
+\frac{\partial \mathcal{L}}{\partial z_{h_1}} = 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} W_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon}
+$$
+
+## All together
+
+$$
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial W_{h_1, h_0}} &= \frac{\partial \mathcal{L}}{\partial z_{h_1}} z_{h_0} &&= 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} W_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon} z_{h_0} \\
+\frac{\partial \mathcal{L}}{\partial W_{h_2, h_1}} &= \frac{\partial \mathcal{L}}{\partial z_{h_2}} z_{h_2} \log(|z_{h_1}| + \epsilon) &&= 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} \log(|z_{h_1}| + \epsilon)
+\end{aligned}
+$$
+
