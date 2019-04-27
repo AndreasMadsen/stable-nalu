@@ -39,6 +39,7 @@ unit_name_to_layer_class = {
     'GumbelNAC': NACLayer,
     'GumbelNALU': GumbelNALULayer,
 
+    'LinearNAC': LinearNACLayer,
     'LinearNALU': LinearNALULayer,
 
     'SoftmaxNAC': SoftmaxNACLayer,
