@@ -212,23 +212,23 @@ Experiments with using $\log(\max(0, \mathbf{z_1} - 1) + 1)$ have also been perf
 
 \subsection{Gradient of Multiplicative NAC}
 
-The internal weight gradient for the multiplicative NAC is:
+The weight gradient for the multiplicative NAC is:
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial w_{h_2, h_1}} = \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial w_{h_2, h_1}} = \frac{\partial \mathcal{L}}{\partial z_{h_2}} z_{h_2} \log(|z_{h_1}| + \epsilon)
 \end{equation}
 
 The backpropagation value is:
 \begin{equation}
-\frac{\partial \mathcal{L}}{\partial z_{h_1}} = \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial z_{h_1}} = \frac{\partial \mathcal{L}}{\partial z_{h_2}} z_{h_2} w_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon}
+\frac{\partial \mathcal{L}}{\partial z_{h_1}} = \sum_{h_2 = 1}^{H_2} \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial z_{h_1}} = \sum_{h_2 = 1}^{H_2} \frac{\partial \mathcal{L}}{\partial z_{h_2}} z_{h_2} w_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon}
 \end{equation}
 
 Thus the full gradients for the entire network are:
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
-\frac{\partial \mathcal{L}}{\partial w_{h_1, h_0}} &= \frac{\partial \mathcal{L}}{\partial z_{h_1}} z_{h_0} &&= 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} w_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon} z_{h_0} \\
+\frac{\partial \mathcal{L}}{\partial w_{h_1, h_0}} &= \frac{\partial \mathcal{L}}{\partial z_{h_1}} z_{h_0} &&= 2 \cdot \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon} z_{h_0} \sum_{h_2 = 1}^{H_2} (z_{h_2} - t_{h_2}) z_{h_2} w_{h_2, h_1} \\
 \frac{\partial \mathcal{L}}{\partial w_{h_2, h_1}} &= \frac{\partial \mathcal{L}}{\partial z_{h_2}} z_{h_2} \log(|z_{h_1}| + \epsilon) &&= 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} \log(|z_{h_1}| + \epsilon)
 \end{aligned}
-\end{equation}
+\end{equation*}
 
 This reveals some issues. Given that a desired initialization property typically is $E[z_{h_1}] = 0, E[z_{h_2}] = 0$, the gradients should explode for a typical initialization.
 
@@ -253,11 +253,11 @@ Var[z_{h_2}] &\approx \left(1 + 2 \cdot Var[W_{h_2, h_1}] \log(|E[z_{h_1}]| + \e
 \begin{equation}
 \begin{aligned}
 E\left[\frac{\partial \mathcal{L}}{\partial z_{h_1}}\right] &= 0 \\
-Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_1}}\right] &= Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_2}}\right] H_2 \left(1 + 2 \cdot Var[W_{h_2, h_1}] \log(|E[z_{h_1}]| + \epsilon)^2\right)^{H_1} \\
+Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_1}}\right] &\approx Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_2}}\right] H_2 \left(1 + 2 \cdot Var[W_{h_2, h_1}] \log(|E[z_{h_1}]| + \epsilon)^2\right)^{H_1} \\
 &\cdot Var[W_{h_2, h_1}] \left(\frac{1}{\left(|E[z_{h_1}]| + \epsilon\right)^2} + \frac{3}{\left(|E[z_{h_1}]| + \epsilon\right)^4} Var[z_{h_1}]\right)
 \end{aligned}
 \end{equation}
-
+s
 As seen from these approximations, $E[z_{h_2}] = 0$ is not possible. Likewise maintaining constant variance is also not possible. This might not be a problem when considering only two layers, but for more complex networks this will likely create an exploding gradient issue.
 
 \section{Next step}

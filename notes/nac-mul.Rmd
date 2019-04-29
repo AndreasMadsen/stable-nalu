@@ -30,7 +30,7 @@ $$
 
 $$
 \frac{\partial \mathcal{L}}{\partial z_{h_2}} = 2 \cdot (z_{h_2} - t_{h_2}) \\
-\frac{\partial \mathcal{L}}{\partial z_{h_1}} = \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial z_{h_1}}
+\frac{\partial \mathcal{L}}{\partial z_{h_1}} = \sum_{h_2=1}^{H_2} \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial z_{h_1}}
 $$
 
 $$
@@ -38,15 +38,32 @@ $$
 $$
 
 $$
-\frac{\partial \mathcal{L}}{\partial z_{h_1}} = 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} W_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon}
+\frac{\partial \mathcal{L}}{\partial z_{h_1}} = \sum_{h_2=1}^{H_2} 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} W_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon}
 $$
 
 ## All together
 
 $$
 \begin{aligned}
-\frac{\partial \mathcal{L}}{\partial W_{h_1, h_0}} &= \frac{\partial \mathcal{L}}{\partial z_{h_1}} z_{h_0} &&= 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} W_{h_2, h_1} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon} z_{h_0} \\
+\frac{\partial \mathcal{L}}{\partial W_{h_1, h_0}} &= \frac{\partial \mathcal{L}}{\partial z_{h_1}} z_{h_0} &&= 2 \cdot z_{h_0} \frac{\mathrm{abs}'(z_{h_1})}{|z_{h_1}| + \epsilon} \sum_{h_2=1}^{H_2} (z_{h_2} - t_{h_2}) z_{h_2} W_{h_2, h_1}  \\
 \frac{\partial \mathcal{L}}{\partial W_{h_2, h_1}} &= \frac{\partial \mathcal{L}}{\partial z_{h_2}} z_{h_2} \log(|z_{h_1}| + \epsilon) &&= 2 \cdot (z_{h_2} - t_{h_2}) z_{h_2} \log(|z_{h_1}| + \epsilon)
+\end{aligned}
+$$
+
+# Second order
+
+$$
+\begin{aligned}
+\frac{\partial^2 \mathcal{L}}{\partial w_{h_1, h_0} \partial w_{h'_1, h'_0}} &= \frac{\partial }{\partial w_{h'_1, h'_0}} \frac{\partial \mathcal{L}}{\partial z_{h_1}} z_{h_0} \\
+&= z_{h_0} \frac{\partial}{\partial w_{h'_1, h'_0}} \frac{\partial \mathcal{L}}{\partial z_{h_1}} \\
+&= z_{h_0} \frac{\partial}{\partial w_{h'_1, h'_0}} \sum_{h_2=1}^{H_2} \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial z_{h_2}}{\partial z_{h_1}} \\
+&= z_{h_0} \sum_{h_2=1}^{H_2} \left( \frac{\partial z_{h_2}}{\partial z_{h_1}} \frac{\partial}{\partial w_{h'_1, h'_0}} \frac{\partial \mathcal{L}}{\partial z_{h_2}} + \frac{\partial \mathcal{L}}{\partial z_{h_2}} \frac{\partial}{\partial w_{h'_1, h'_0}}  \frac{\partial z_{h_2}}{\partial z_{h_1}} \right) \\
+&= z_{h_0} \sum_{h_2=1}^{H_2} \left( z_{h_2} w_{h_2, h_1} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \frac{\partial}{\partial w_{h'_1, h'_0}} 2 \cdot (z_{h_2} - t_{h_2}) + 2 \cdot (z_{h_2} - t_{h_2})  \frac{\partial}{\partial w_{h'_1, h'_0}} z_{h_2} w_{h_2, h_1} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \right) \\
+&= 2 \cdot z_{h_0} \sum_{h_2=1}^{H_2} w_{h_2, h_1} \left( z_{h_2} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \frac{\partial z_{h_2}}{\partial w_{h'_1, h'_0}} + (z_{h_2} - t_{h_2})  \frac{\partial}{\partial w_{h'_1, h'_0}} z_{h_2} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \right) \\
+&= 2 \cdot z_{h_0} \sum_{h_2=1}^{H_2} w_{h_2, h_1} \left( z_{h_2} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \frac{\partial z_{h_2}}{\partial w_{h'_1, h'_0}} + (z_{h_2} - t_{h_2}) \left(\frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \frac{\partial z_{h_2}}{\partial w_{h'_1, h'_0}} + z_{h_2} \frac{\partial}{\partial w_{h'_1, h'_0}} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \right) \right) \\
+&= 2 \cdot z_{h_0} \sum_{h_2=1}^{H_2} w_{h_2, h_1} \left( z_{h_2} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} z_{h_2} w_{h_2, h'_1} z_{h'_0} \frac{abs'(z_{h'_1})}{|z_{h'_1}| + \epsilon} + (z_{h_2} - t_{h_2}) \left(\frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} z_{h_2} w_{h_2, h'_1} z_{h'_0} \frac{abs'(z_{h'_1})}{|z_{h'_1}| + \epsilon} - z_{h_2} 1_{h'_1 = h_1} z_{h'_1}\frac{1}{(|z_{h'_1}| + \epsilon)^2} \right) \right) \\
+&= 2 \cdot z_{h_0} \sum_{h_2=1}^{H_2} w_{h_2, h_1} z_{h_2} \left(\frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} z_{h_2} w_{h_2, h'_1} z_{h'_0} \frac{abs'(z_{h'_1})}{|z_{h'_1}| + \epsilon} + (z_{h_2} - t_{h_2}) \left(\frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} w_{h_2, h'_1} z_{h'_0} \frac{abs'(z_{h'_1})}{|z_{h'_1}| + \epsilon} - 1_{h'_1 = h_1} z_{h'_1}\frac{1}{(|z_{h'_1}| + \epsilon)^2} \right) \right) \\
+&= 2 \cdot z_{h_0} \sum_{h_2=1}^{H_2} w_{h_2, h_1} z_{h_2} \frac{abs'(z_{h_1})}{|z_{h_1}| + \epsilon} \frac{abs'(z_{h'_1})}{|z_{h'_1}| + \epsilon} \left(z_{h_2} w_{h_2, h'_1} z_{h'_0} + (z_{h_2} - t_{h_2}) \left(w_{h_2, h'_1} z_{h'_0} - 1_{h'_1 = h_1} z_{h'_1} \right) \right)
 \end{aligned}
 $$
 
