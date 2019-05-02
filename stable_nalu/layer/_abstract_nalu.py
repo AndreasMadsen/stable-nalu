@@ -13,7 +13,7 @@ class AbstractNALULayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, NACOp, in_features, out_features, eps=1e-7,
+    def __init__(self, NACOp, MNACOp, in_features, out_features, eps=1e-7,
                  nalu_two_nac=False, nalu_bias=False, nalu_mul='normal', nalu_gate='normal',
                  writer=None, name=None, **kwargs):
         super().__init__('nalu', name=name, writer=writer, **kwargs)
@@ -25,10 +25,16 @@ class AbstractNALULayer(ExtendedTorchModule):
         self.nalu_mul = nalu_mul
         self.nalu_gate = nalu_gate
 
+        if nalu_mul == 'mnac' and not nalu_two_nac:
+            raise ValueError('nalu_two_nac must be true when mnac is used')
+
         if nalu_gate == 'gumbel' or nalu_gate == 'obs-gumbel':
             self.tau = torch.tensor(1, dtype=torch.float32)
 
-        if nalu_two_nac:
+        if nalu_two_nac and nalu_mul == 'mnac':
+            self.nac_add = NACOp(in_features, out_features, writer=self.writer, name='nac_add', **kwargs)
+            self.nac_mul = MNACOp(in_features, out_features, writer=self.writer, name='nac_mul', **kwargs)
+        elif nalu_two_nac:
             self.nac_add = NACOp(in_features, out_features, writer=self.writer, name='nac_add', **kwargs)
             self.nac_mul = NACOp(in_features, out_features, writer=self.writer, name='nac_mul', **kwargs)
         else:
@@ -44,19 +50,22 @@ class AbstractNALULayer(ExtendedTorchModule):
 
         # Don't make this a buffer, as it is not a state that we want to permanently save
         self.stored_gate = torch.tensor([0], dtype=torch.float32)
+        self.stored_input = torch.tensor([0], dtype=torch.float32)
 
     def regualizer(self):
+        regualizers = {}
+
         if self.nalu_gate == 'regualized':
             # NOTE: This is almost identical to sum(g * (1 - g)). Primarily
             # sum(g * (1 - g)) is 4 times larger than sum(g^2 * (1 - g)^2), the curve
             # is also a bit wider. Besides this there is only a very small error.
-            regualizer = torch.sum(self.stored_gate**2 * (1 - self.stored_gate)**2)
-            self.writer.add_scalar('regualizer', regualizer)
-        else:
-            regualizer = 0
+            regualizers['g'] = torch.sum(self.stored_gate**2 * (1 - self.stored_gate)**2)
+
+        if self.nalu_gate == 'max-safe':
+            regualizers['z'] = torch.mean((1 - self.stored_gate) * torch.relu(1 - self.stored_input))
 
         # Continue recursion on the regualizer, such that if the NACOp has a regualizer, this is included too.
-        return regualizer + super().regualizer()
+        return super().regualizer(regualizers)
 
     def reset_parameters(self):
         if self.nalu_two_nac:
@@ -87,22 +96,33 @@ class AbstractNALULayer(ExtendedTorchModule):
             g = torch.sigmoid(torch.nn.functional.linear(x, self.G, self.bias))
 
         self.stored_gate = g
+        self.stored_input = x
         self.writer.add_histogram('gate', g)
+
         # a = W x = nac(x)
         a = self.nac_add(x)
+
         # m = exp(W log(|x| + eps)) = exp(nac(log(|x| + eps)))
-        if self.nalu_mul == 'safe':
+        if self.nalu_mul == 'normal':
+            m = torch.exp(self.nac_mul(
+                torch.log(torch.abs(x) + self.eps)
+            ))
+        elif self.nalu_mul == 'safe':
             m = torch.exp(self.nac_mul(
                 torch.log(torch.abs(x - 1) + 1)
+            ))
+        elif self.nac_mul == 'max-safe':
+            m = torch.exp(self.nac_mul(
+                torch.log(torch.relu(x - 1) + 1)
             ))
         elif self.nalu_mul == 'trig':
             m = torch.sinh(self.nac_mul(
                 torch.log(x+(x**2+1)**0.5 + self.eps)  # torch.asinh(x) does not exist
             ))
+        elif self.nalu_mul == 'mnac':
+            m = self.nac_mul(x)
         else:
-            m = torch.exp(self.nac_mul(
-                torch.log(torch.abs(x) + self.eps)
-            ))
+            raise ValueError(f'Unsupported nalu_mul option ({self.nalu_mul})')
 
         self.writer.add_histogram('add', a)
         self.writer.add_histogram('mul', m)

@@ -1,5 +1,6 @@
 
 import torch
+import collections
 from ..writer import DummySummaryWriter
 
 class NoRandomScope:
@@ -31,14 +32,20 @@ class ExtendedTorchModule(torch.nn.Module):
             if isinstance(module, ExtendedTorchModule):
                 module.set_parameter(name, value)
 
-    def regualizer(self):
-        regualizer_sum = 0
+    def regualizer(self, merge_in=None):
+        regualizers = collections.defaultdict(int)
+
+        if merge_in is not None:
+            for key, value in merge_in.items():
+                self.writer.add_scalar(f'regualizer/{key}', value)
+                regualizers[key] += value
 
         for module in self.children():
             if isinstance(module, ExtendedTorchModule):
-                regualizer_sum += module.regualizer()
+                for key, value in module.regualizer().items():
+                    regualizers[key] += value
 
-        return regualizer_sum
+        return regualizers
 
     def optimize(self, loss):
         for module in self.children():

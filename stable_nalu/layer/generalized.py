@@ -4,9 +4,11 @@ import torch
 from .basic import BasicLayer, BasicCell
 
 from .nac import NACLayer, NACCell
+from .mnac import MNACLayer, MNACCell
 from .nalu import NALULayer, NALUCell
 
 from .gumbel_nac import GumbelNACLayer, GumbelNACCell
+from .gumbel_mnac import GumbelMNACLayer, GumbelMNACCell
 from .gumbel_nalu import GumbelNALULayer, GumbelNALUCell
 
 from .linear_nac import LinearNACLayer, LinearNACCell
@@ -28,15 +30,18 @@ from .regualized_linear_nac import RegualizedLinearNACLayer, RegualizedLinearNAC
 from .regualized_linear_nalu import RegualizedLinearNALULayer, RegualizedLinearNALUCell
 
 from .re_regualized_linear_nac import ReRegualizedLinearNACLayer, ReRegualizedLinearNACCell
+from .re_regualized_linear_mnac import ReRegualizedLinearMNACLayer, ReRegualizedLinearMNACCell
 from .re_regualized_linear_nalu import ReRegualizedLinearNALULayer, ReRegualizedLinearNALUCell
 
 from ..abstract import ExtendedTorchModule
 
 unit_name_to_layer_class = {
     'NAC': NACLayer,
+    'MNAC': MNACLayer,
     'NALU': NALULayer,
 
-    'GumbelNAC': NACLayer,
+    'GumbelNAC': GumbelNACLayer,
+    'GumbelMNAC': GumbelMNACLayer,
     'GumbelNALU': GumbelNALULayer,
 
     'LinearNAC': LinearNACLayer,
@@ -58,14 +63,17 @@ unit_name_to_layer_class = {
     'RegualizedLinearNALU': RegualizedLinearNALULayer,
 
     'ReRegualizedLinearNAC': ReRegualizedLinearNACLayer,
+    'ReRegualizedLinearMNAC': ReRegualizedLinearMNACLayer,
     'ReRegualizedLinearNALU': ReRegualizedLinearNALULayer,
 }
 
 unit_name_to_cell_class = {
     'NAC': NACCell,
+    'MNAC': MNACCell,
     'NALU': NALUCell,
 
     'GumbelNAC': GumbelNACCell,
+    'GumbelMNAC': GumbelMNACCell,
     'GumbelNALU': GumbelNALUCell,
 
     'SoftmaxNAC': SoftmaxNACCell,
@@ -84,6 +92,7 @@ unit_name_to_cell_class = {
     'RegualizedLinearNALU': RegualizedLinearNALUCell,
 
     'ReRegualizedLinearNAC': ReRegualizedLinearNACCell,
+    'ReRegualizedLinearMNAC': ReRegualizedLinearMNACCell,
     'ReRegualizedLinearNALU': ReRegualizedLinearNALUCell,
 }
 

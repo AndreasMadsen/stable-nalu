@@ -76,12 +76,12 @@ class SimpleFunctionDataset:
         self._rng = np.random.RandomState(seed)
 
         if simple:
-            self._vector_size = 6
+            self._vector_size = 4
 
             self.a_start = 0
-            self.a_end = 2
-            self.b_start = 4
-            self.b_end = 6
+            self.a_end = 4
+            self.b_start = 0
+            self.b_end = 2
         else:
             self._vector_size = vector_size
             subset_overlap = self._rng.randint(min_subset_overlap, max_subset_overlap + 1)

@@ -1,5 +1,6 @@
 
 from .nac import NACLayer
+from .mnac import MNACLayer
 from ._abstract_nalu import AbstractNALULayer
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
@@ -11,7 +12,7 @@ class NALULayer(AbstractNALULayer):
         out_features: number of outgoing features
     """
     def __init__(self, in_features, out_features, **kwargs):
-        super().__init__(NACLayer, in_features, out_features, **kwargs)
+        super().__init__(NACLayer, MNACLayer, in_features, out_features, **kwargs)
 
 class NALUCell(AbstractRecurrentCell):
     """Implements the NALU (Neural Arithmetic Logic Unit) as a recurrent cell

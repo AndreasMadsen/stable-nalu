@@ -54,8 +54,8 @@ for operation in tqdm(['add', 'sub', 'mul', 'div', 'squared', 'root']):
             'operation': operation,
             'seed': str(seed),
             'problem': dataset.print_operation(),
-            'baseline/interpolation': np.sqrt(dataset.fork(input_range=1).baseline_error(batch_size=2048)),
-            'baseline/extrapolation': np.sqrt(dataset.fork(input_range=5).baseline_error(batch_size=2048))
+            'baseline/interpolation': dataset.fork(input_range=1).baseline_error(batch_size=2048),
+            'baseline/extrapolation': dataset.fork(input_range=5).baseline_error(batch_size=2048)
         })
 
 baselines_df = pd.DataFrame.from_records(baselines)

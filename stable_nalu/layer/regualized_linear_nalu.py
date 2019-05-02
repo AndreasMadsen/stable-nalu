@@ -11,7 +11,7 @@ class RegualizedLinearNALULayer(AbstractNALULayer):
         out_features: number of outgoing features
     """
     def __init__(self, in_features, out_features, **kwargs):
-        super().__init__(RegualizedLinearNACLayer, in_features, out_features, **kwargs)
+        super().__init__(RegualizedLinearNACLayer, None, in_features, out_features, **kwargs)
 
 class RegualizedLinearNALUCell(AbstractRecurrentCell):
     """Implements the NALU (Neural Arithmetic Logic Unit) as a recurrent cell

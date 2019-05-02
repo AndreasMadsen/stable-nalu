@@ -11,7 +11,7 @@ class SoftmaxNALULayer(AbstractNALULayer):
         out_features: number of outgoing features
     """
     def __init__(self, in_features, out_features, **kwargs):
-        super().__init__(SoftmaxNACLayer, in_features, out_features, **kwargs)
+        super().__init__(SoftmaxNACLayer, None, in_features, out_features, **kwargs)
 
 class SoftmaxNALUCell(AbstractRecurrentCell):
     """Implements the NALU (Neural Arithmetic Logic Unit) as a recurrent cell

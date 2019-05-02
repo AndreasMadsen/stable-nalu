@@ -11,7 +11,7 @@ class LinearNALULayer(AbstractNALULayer):
         out_features: number of outgoing features
     """
     def __init__(self, in_features, out_features, **kwargs):
-        super().__init__(LinearNACLayer, in_features, out_features, **kwargs)
+        super().__init__(LinearNACLayer, None, in_features, out_features, **kwargs)
 
 class LinearNALUCell(AbstractRecurrentCell):
     """Implements the NALU (Neural Arithmetic Logic Unit) as a recurrent cell
@@ -21,5 +21,5 @@ class LinearNALUCell(AbstractRecurrentCell):
         hidden_size: number of outgoing features
     """
     def __init__(self, input_size, hidden_size, **kwargs):
-        super().__init__(LinearNALULayer, input_size, hidden_size, **kwargs)
+        super().__init__(LinearNALULayer, None, input_size, hidden_size, **kwargs)
 
