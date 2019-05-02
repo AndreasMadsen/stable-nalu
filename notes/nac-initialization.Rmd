@@ -78,7 +78,7 @@ $$
 
 The variance is more complicated, however as $\hat{W}$ and $\hat{M}$ are independent, it can be simplified to:
 $$
-\mathrm{Var}[W] = \mathrm{E}[\tanh(\hat{W})^2] \mathrm{E}[\tanh(\hat{M})^2] - \mathrm{E}[\tanh(\hat{W})]^2 \mathrm{E}[\tanh(\hat{M})]^2 = \mathrm{E}[\tanh(\hat{W})^2] \mathrm{E}[\tanh(\hat{M})^2]
+\mathrm{Var}[W] = \mathrm{E}[\tanh(\hat{W})^2] \mathrm{E}[\sigma(\hat{M})^2] - \mathrm{E}[\tanh(\hat{W})]^2 \mathrm{E}[\sigma(\hat{M})]^2 = \mathrm{E}[\tanh(\hat{W})^2] \mathrm{E}[\sigma(\hat{M})^2]
 $$
 
 Thus the second moments can be analyzed independently. First for $\mathrm{E}[\tanh(\hat{W})^2]$:
