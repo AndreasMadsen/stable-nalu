@@ -1,0 +1,13 @@
+\section{Introduction}
+
+The ability for neurons to hold numbers and do arithmetic operations have been documented in both humans, non-human primates \cite{nieder-neuronal-number}, as well as newborn chicks \cite{rugani-arithmetic-chicks}, and even bees \cite{gallistel-numbers-in-brain}. These neurons are thus considered to be a vital
+component of intelligence. Beyond the biological motitvation, many physical models are also exact multiplication or additions of input values.
+
+In the context of neural networks, it have been repeatedly shown that neural networks are extremely capable of approximating complex unknown functions from a dataset. However, their ability to predict actually is often limited to interpolation within the data that the network have been trained with. Just slight variations outside of this training dataset domain \cite{missing-cite:image-with-modification}, can cause critical failures that may be dangerous in some applications. The task of extrapolating accurately, is thus a critical and important problem.
+
+So far, there have not been much research in training exact arithmetic operations for extrapolation. The most important research, is by far, the recently proposed NAC and NALU \cite{trask-nalu}. However, as we will show both analytically and empirically, their results are highly exaggerated, as the proposed arithmetic units are extremely difficult to make convergence consistently. In fact, even without gating mechanism their multiplication operator can't converge on extremely simple problems. For the cases of addition there do converge, a nearly sparse weight matrix of values close to ${-1, 0, 1}$ is rarely found, which also contradicts one of their core claims.
+
+Motivated by these convergence and sparsity issue, we focus on improving the arithmetic units themself, without considering the gating mechanism in NALU. That is, we will assume that the appropriate operation is already known, or can empirically be found by varying the network architecture which is very common when developing neural networks.
+
+In the interrest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}. 
+

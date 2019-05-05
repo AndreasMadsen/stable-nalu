@@ -1,0 +1,84 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2019
+
+% ready for submission
+% \usepackage{neurips_2019}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+     \usepackage[preprint]{neurips_2019}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2019}
+
+% to avoid loading the natbib package, add option nonatbib:
+%     \usepackage[nonatbib]{neurips_2019}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+% Not part of the offical NeurIPS template
+\usepackage{censor}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{xfrac}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{caption}
+
+\title{Neural Arithmetic Units}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  Andreas Madsen$^{\dag\ddag}$ \\
+  \texttt{amwebdk@gmail.com}
+  \AND
+  Alexander Rosenberg Johansen$^{\dag}$ \\
+  \texttt{alexander@herhjemme.dk} \\
+  \AND
+  Who else? \\
+  \\
+$^\dag$Technical University of Denmark \quad
+$^\ddag$Computationally Demanding
+}
+
+\begin{document}
+\StopCensoring % NOTE, remove for peer-review to ensure anonymity.
+
+\maketitle
+
+\begin{abstract}
+Neural networks often perform extremely when interpolating within the numerical range of the training dataset. However, when extrapolating outside this range they often fail, because the neural network have learned an approximation and not the exact rule. Previous work on neural arithmetic logic unit (NALU), attempts to solve this issue by learning exact arithmetic operations. Those results are unfortunately extremely difficult to reproduce consistently. In this paper we propose two alternative arithmetic units, one for addition and one for multiplication. We show that these units have fewer parameters, converges much more consistently, learns faster that previous arithmetic units, and the weight have meaningful discrete values.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/nalu}
+
+
+\subsubsection*{Acknowledgments}
+
+\blackout{Use unnumbered third level headings for the acknowledgments. All acknowledgments go at the end of the paper. Do not include acknowledgments in the anonymized submission, only in the final paper.}
+
+\section*{References}
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+
+\end{document}
