@@ -25,8 +25,8 @@ class ReRegualizedLinearNACLayer(ExtendedTorchModule):
 
     def reset_parameters(self):
         std = math.sqrt(2.0 / (self.in_features + self.out_features))
-        r = min(0.25, math.sqrt(3.0) * std)
-        torch.nn.init.uniform_(self.W, 0.5 - r, 0.5 + r)
+        r = min(0.5, math.sqrt(3.0) * std)
+        torch.nn.init.uniform_(self.W, -r, r)
 
     def regualizer(self):
          return super().regualizer({

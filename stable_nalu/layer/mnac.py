@@ -24,7 +24,9 @@ class MNACLayer(ExtendedTorchModule):
         self.register_parameter('bias', None)
 
     def reset_parameters(self):
-        torch.nn.init.uniform_(self.W_hat, a=-0.5, b=0.5)
+        std = math.sqrt(0.25)
+        r = math.sqrt(3.0) * std
+        torch.nn.init.uniform_(self.W, - r, r)
 
     def forward(self, x, reuse=False):
         W = torch.sigmoid(self.W_hat)

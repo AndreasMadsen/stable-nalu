@@ -16,16 +16,17 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, **kwargs):
+    def __init__(self, in_features, out_features, mnac_normalized=False, **kwargs):
         super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
+        self.mnac_normalized = mnac_normalized
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.register_parameter('bias', None)
 
     def reset_parameters(self):
-        std = math.sqrt(2.0 / (self.in_features + self.out_features))
+        std = math.sqrt(0.25)
         r = min(0.25, math.sqrt(3.0) * std)
         torch.nn.init.uniform_(self.W, 0.5 - r, 0.5 + r)
 
@@ -40,7 +41,13 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
         self.writer.add_histogram('W', W)
         self.writer.add_tensor('W', W)
 
-        return mnac(x, W, mode='prod')
+        if self.mnac_normalized:
+            c = torch.stddev(normalize)
+            x_normalized = x / c
+            z_normalized = mnac(x_normalized, W, mode='prod')
+            z = z_normalized * (c ** torch.sum(W, 0))
+        else:
+            return mnac(x, W, mode='prod')
 
     def extra_repr(self):
         return 'in_features={}, out_features={}'.format(
