@@ -35,7 +35,6 @@ P := plot3d(
 	view = [-1.5..1.5, -3..3, 0..300],
 	axes=boxed):
 P;
-exportplot("paper/graphics/nalu-add-3d.eps", P, "eps");
 
 P := plot3d(
 	NALU(<<w | w>, <w | w>>, <<w | w>>, <g, g>, <g>, <2, 2>, 16, 10^(-8)),
@@ -43,7 +42,6 @@ P := plot3d(
 	view = [-1.5..1.5, -3..3, 0..300],
 	axes=boxed):
 P;
-exportplot("paper/graphics/nalu-mul-3d.eps", P, "eps");
 
 NALUsafe(<<w | w>, <w | w>>, <<w | w>>, <g, g>, <g>, <x[1], x[2]>, t, epsilon);
 
@@ -53,7 +51,6 @@ P := plot3d(
 	view = [-1.5..1.5, -3..3, 0..300],
 	axes=boxed):
 P;
-exportplot("paper/graphics/nalu-safe-add-3d.eps", P, "eps");
 
 P := plot3d(
 	NALUsafe(<<w | w>, <w | w>>, <<w | w>>, <g, g>, <g>, <2, 2>, 16),
@@ -61,7 +58,6 @@ P := plot3d(
 	view = [-1.5..1.5, -3..3, 0..300],
 	axes=boxed):
 P;
-exportplot("paper/graphics/nalu-safe-mul-3d.eps", P, "eps");
 
 solveNALUsafe := proc(x, t)
 	local i, v, w, g, eq, sol1, sol2, sols;
@@ -103,9 +99,7 @@ end proc:
 NALUsols := solveNALU(<2, 2>, 8, 10^(-8));
 P := plot(NALUsols, style = 'point', view = [-1.5..1.5, -3..3]):
 P;
-exportplot("paper/graphics/nalu-add-solutions.eps", P, "eps");
 
 NALUsafesols := solveNALUsafe(<2, 2>, 8);
 P := plot(NALUsafesols, style = 'point', view = [-1.5..1.5, -3..3]):
 P;
-exportplot("paper/graphics/nalu-safe-add-solutions.eps", P, "eps");
