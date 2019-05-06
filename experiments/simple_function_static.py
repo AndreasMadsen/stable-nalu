@@ -125,6 +125,7 @@ results_writer = stable_nalu.writer.ResultsWriter(args.name_prefix)
 summary_writer = stable_nalu.writer.SummaryWriter(
     f'{args.name_prefix}/{args.layer_type.lower()}'
     f'{"-nac-" if args.nac_mul != "none" else ""}'
+    f'{"n" if args.nac_mul == "normal" else ""}'
     f'{"s" if args.nac_mul == "safe" else ""}'
     f'{"s" if args.nac_mul == "max-safe" else ""}'
     f'{"t" if args.nac_mul == "trig" else ""}'
