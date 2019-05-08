@@ -1,5 +1,6 @@
 
 import itertools
+import math
 import numpy as np
 import torch
 import torch.utils.data
@@ -51,48 +52,38 @@ class ARITHMETIC_FUNCTIONS:
         return np.sqrt(a)
 
 class SimpleFunctionDataset:
-    def __init__(self, operation, vector_size,
-                 min_subset_length=0,
-                 max_subset_length=None,
-                 min_subset_overlap=0,
-                 max_subset_overlap=0,
-                 min_input=1,
+    def __init__(self, operation, input_size,
+                 subset_ratio=0.25,
+                 overlap_ratio=0.5,
                  simple=False,
                  seed=None,
                  use_cuda=False,
                  max_size=2**32-1):
         super().__init__()
-        if max_subset_length is None:
-            max_subset_length = vector_size
-
-        if min_subset_length < max_subset_overlap:
-            raise ValueError('min_subset_length must be at least the size of max_subset_overlap')
-
         self._operation_name = operation
         self._operation = getattr(ARITHMETIC_FUNCTIONS, operation)
-        self._min_input = min_input
         self._max_size = max_size
         self._use_cuda = use_cuda
         self._rng = np.random.RandomState(seed)
 
         if simple:
-            self._vector_size = 4
+            self._input_size = 4
 
             self.a_start = 0
             self.a_end = 4
             self.b_start = 0
             self.b_end = 2
         else:
-            self._vector_size = vector_size
-            subset_overlap = self._rng.randint(min_subset_overlap, max_subset_overlap + 1)
-            a_size = self._rng.randint(min_subset_length, max_subset_length + 1)
-            b_size = self._rng.randint(min_subset_length, max_subset_length + 1)
+            self._input_size = input_size
+            subset_size = math.floor(subset_ratio * input_size)
+            overlap_size = math.floor(overlap_ratio * subset_size)
+            both_subset_total_size = 2 * subset_size - overlap_size
 
-            self.a_start = self._rng.randint(0, vector_size - a_size - b_size + subset_overlap + 1)
-            self.a_end = self.a_start + a_size
+            self.a_start = self._rng.randint(0, input_size - both_subset_total_size + 1)
+            self.a_end = self.a_start + subset_size
 
-            self.b_start = self.a_end - subset_overlap
-            self.b_end = self.b_start + b_size
+            self.b_start = self.a_end - overlap_size
+            self.b_end = self.b_start + subset_size
 
     def print_operation(self):
         a_str = f'sum(v[{self.a_start}:{self.a_end}])'
@@ -100,25 +91,24 @@ class SimpleFunctionDataset:
         return getattr(ARITHMETIC_FUNCTIONS_STRINGIY, self._operation_name)(a_str, b_str)
 
     def get_input_size(self):
-        return self._vector_size
+        return self._input_size
 
-    def fork(self, shape, input_range):
-        assert shape[-1] == self._vector_size
+    def fork(self, shape, sample_range):
+        assert shape[-1] == self._input_size
 
         rng = np.random.RandomState(self._rng.randint(0, 2**32 - 1))
-        return SimpleFunctionDatasetFork(self, shape, input_range, rng)
+        return SimpleFunctionDatasetFork(self, shape, sample_range, rng)
 
 class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
-    def __init__(self, parent, shape, input_range, rng):
+    def __init__(self, parent, shape, sample_range, rng):
         super().__init__()
 
         self._shape = shape
-        self._input_range = input_range
+        self._sample_range = sample_range
         self._rng = rng
 
         self._operation = parent._operation
-        self._min_input = parent._min_input
-        self._vector_size = parent._vector_size
+        self._input_size = parent._input_size
         self._max_size = parent._max_size
         self._use_cuda = parent._use_cuda
 
@@ -132,8 +122,8 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         batch_size = select.stop - select.start if isinstance(select, slice) else 1
 
         input_vector = self._rng.uniform(
-            low=self._min_input,
-            high=self._min_input + self._input_range,
+            low=self._sample_range[0],
+            high=self._sample_range[1],
             size=(batch_size, ) + self._shape)
 
         # Compute a and b values
@@ -159,12 +149,12 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
 
     def baseline_guess(self, input_vector):
         # Guess and a and b range
-        a_start = self._rng.randint(0, self._vector_size)
-        a_size = self._rng.randint(1, self._vector_size - a_start + 1)
+        a_start = self._rng.randint(0, self._input_size)
+        a_size = self._rng.randint(1, self._input_size - a_start + 1)
         a_end = a_start + a_size
 
-        b_start = self._rng.randint(0, self._vector_size)
-        b_size = self._rng.randint(1, self._vector_size - b_start + 1)
+        b_start = self._rng.randint(0, self._input_size)
+        b_size = self._rng.randint(1, self._input_size - b_start + 1)
         b_end = b_start + b_size
 
         # Compute a and b values

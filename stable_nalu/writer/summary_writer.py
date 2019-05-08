@@ -1,11 +1,16 @@
 
+import os
 import shutil
 import os.path as path
 import torch
 from tensorboardX import SummaryWriter as SummaryWriterRaw
 
 THIS_DIR = path.dirname(path.realpath(__file__))
-TENSORBOARD_DIR = path.join(THIS_DIR, '../../tensorboard')
+
+if 'TENSORBOARD_DIR' in os.environ:
+    TENSORBOARD_DIR = os.environ['TENSORBOARD_DIR']
+else:
+    TENSORBOARD_DIR = path.join(THIS_DIR, '../../tensorboard')
 
 class SummaryWriterNamespaceNoLoggingScope:
     def __init__(self, writer):

@@ -1,8 +1,13 @@
 
 sync:
 	rsync --info=progress2 -urltv --delete \
-		--exclude 'tensorboard' --exclude 'results' --exclude 'logs' \
+		--exclude 'tensorboard' --exclude 'tensorboard-backup' --exclude 'results' --exclude 'logs' \
 		-e ssh ./ computationally:~/workspace/stable-nalu
+
+sync-dtu:
+	rsync --info=progress2 -urltv --delete \
+		--exclude 'tensorboard' --exclude 'tensorboard-backup' --exclude 'results' --exclude 'logs' \
+		-e ssh ./ dtu-data:~/workspace/stable-nalu
 
 fetch:
 	rsync --info=progress2 -urltv --delete \

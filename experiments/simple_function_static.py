@@ -1,4 +1,6 @@
 
+import os
+import ast
 import math
 import torch
 import stable_nalu
@@ -20,36 +22,58 @@ parser.add_argument('--operation',
                     ],
                     type=str,
                     help='Specify the operation to use, e.g. add, mul, squared')
-parser.add_argument('--seed',
-                    action='store',
-                    default=0,
-                    type=int,
-                    help='Specify the seed to use')
-parser.add_argument('--min-input',
-                    action='store',
-                    default=1,
-                    type=int,
-                    help='Specify the smallest possible input value')
-parser.add_argument('--input-size',
-                    action='store',
-                    default=100,
-                    type=int,
-                    help='Specify the input size')
-parser.add_argument('--max-iterations',
-                    action='store',
-                    default=100000,
-                    type=int,
-                    help='Specify the max number of iterations to use')
 parser.add_argument('--regualizer',
                     action='store',
                     default=0.1,
                     type=float,
                     help='Specify the regualization lambda to be used')
+
+parser.add_argument('--max-iterations',
+                    action='store',
+                    default=100000,
+                    type=int,
+                    help='Specify the max number of iterations to use')
 parser.add_argument('--batch-size',
                     action='store',
                     default=128,
                     type=int,
                     help='Specify the batch-size to be used for training')
+parser.add_argument('--seed',
+                    action='store',
+                    default=0,
+                    type=int,
+                    help='Specify the seed to use')
+
+parser.add_argument('--interpolation-range',
+                    action='store',
+                    default=[1,2],
+                    type=ast.literal_eval,
+                    help='Specify the interpolation range that is sampled uniformly from')
+parser.add_argument('--extrapolation-range',
+                    action='store',
+                    default=[1,6],
+                    type=ast.literal_eval,
+                    help='Specify the extrapolation range that is sampled uniformly from')
+parser.add_argument('--input-size',
+                    action='store',
+                    default=100,
+                    type=int,
+                    help='Specify the input size')
+parser.add_argument('--subset-ratio',
+                    action='store',
+                    default=0.25,
+                    type=float,
+                    help='Specify the subset-size as a fraction of the input-size')
+parser.add_argument('--overlap-ratio',
+                    action='store',
+                    default=0.5,
+                    type=float,
+                    help='Specify the overlap-size as a fraction of the input-size')
+parser.add_argument('--simple',
+                    action='store_true',
+                    default=False,
+                    help='Use a very simple dataset with t = sum(v[0:2]) + sum(v[4:6])')
+
 parser.add_argument('--nac-mul',
                     action='store',
                     default='none',
@@ -75,10 +99,7 @@ parser.add_argument('--nalu-gate',
                     choices=['normal', 'regualized', 'obs-gumbel', 'gumbel'],
                     type=str,
                     help='Can be normal, regualized, obs-gumbel, or gumbel')
-parser.add_argument('--simple',
-                    action='store_true',
-                    default=False,
-                    help='Use a very simple dataset with t = sum(v[0:2]) + sum(v[4:6])')
+
 parser.add_argument('--no-cuda',
                     action='store_true',
                     default=False,
@@ -102,26 +123,33 @@ setattr(args, 'cuda', torch.cuda.is_available() and not args.no_cuda)
 
 # Print configuration
 print(f'running')
-print(f'  - seed: {args.seed}')
-print(f'  - min_input: {args.min_input}')
-print(f'  - input_size: {args.input_size}')
-print(f'  - batch_size: {args.batch_size}')
-print(f'  - regualizer: {args.regualizer}')
-print(f'  - operation: {args.operation}')
 print(f'  - layer_type: {args.layer_type}')
+print(f'  - operation: {args.operation}')
+print(f'  - regualizer: {args.regualizer}')
+print(f'  -')
+print(f'  - max_iterations: {args.max_iterations}')
+print(f'  - batch_size: {args.batch_size}')
+print(f'  - seed: {args.seed}')
+print(f'  -')
+print(f'  - interpolation_range: {args.interpolation_range}')
+print(f'  - extrapolation_range: {args.extrapolation_range}')
+print(f'  - input_size: {args.input_size}')
+print(f'  - subset_ratio: {args.subset_ratio}')
+print(f'  - overlap_ratio: {args.overlap_ratio}')
+print(f'  - simple: {args.simple}')
+print(f'  -')
 print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_mul: {args.nalu_mul}')
 print(f'  - nalu_gate: {args.nalu_gate}')
-print(f'  - simple: {args.simple}')
+print(f'  -')
 print(f'  - cuda: {args.cuda}')
-print(f'  - verbose: {args.verbose}')
 print(f'  - name_prefix: {args.name_prefix}')
-print(f'  - max_iterations: {args.max_iterations}')
+print(f'  - remove_existing_data: {args.remove_existing_data}')
+print(f'  - verbose: {args.verbose}')
 
 # Prepear logging
-results_writer = stable_nalu.writer.ResultsWriter(args.name_prefix)
 summary_writer = stable_nalu.writer.SummaryWriter(
     f'{args.name_prefix}/{args.layer_type.lower()}'
     f'{"-nac-" if args.nac_mul != "none" else ""}'
@@ -140,14 +168,19 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"g" if args.nalu_gate == "gumbel" else ""}'
     f'{"gg" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_{args.operation.lower()}'
-    f'{f"_m{args.min_input}" if args.min_input != 1 else ""}'
-    f'_i{"-simple" if args.simple else str(args.input_size)}'
+    f'_o-{args.operation.lower()}'
+    f'_r-{args.regualizer}'
+    f'_i-{args.interpolation_range[0]}-{args.interpolation_range[1]}'
+    f'_e-{args.extrapolation_range[0]}-{args.extrapolation_range[1]}'
+    f'_z-{"simple" if args.simple else f"{args.input_size}-{args.subset_ratio}-{args.overlap_ratio}"}'
     f'_b{args.batch_size}'
-    f'_r{args.regualizer}'
     f'_s{args.seed}',
     remove_existing_data=args.remove_existing_data
 )
+
+# Set threads
+if 'LSB_DJOB_NUMPROC' in os.environ:
+    torch.set_num_threads(int(os.environ['LSB_DJOB_NUMPROC']))
 
 # Set seed
 torch.manual_seed(args.seed)
@@ -156,16 +189,18 @@ torch.backends.cudnn.deterministic = True
 # Setup datasets
 dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     operation=args.operation,
-    min_input=args.min_input,
-    vector_size=args.input_size,
+    input_size=args.input_size,
+    subset_ratio=args.subset_ratio,
+    overlap_ratio=args.overlap_ratio,
     simple=args.simple,
     use_cuda=args.cuda,
     seed=args.seed,
 )
+print(f'  -')
 print(f'  - dataset: {dataset.print_operation()}')
-dataset_train = iter(dataset.fork(input_range=1).dataloader(batch_size=args.batch_size))
-dataset_valid_interpolation = iter(dataset.fork(input_range=1).dataloader(batch_size=2048))
-dataset_valid_extrapolation = iter(dataset.fork(input_range=5).dataloader(batch_size=2048))
+dataset_train = iter(dataset.fork(sample_range=args.interpolation_range).dataloader(batch_size=args.batch_size))
+dataset_valid_interpolation = iter(dataset.fork(sample_range=args.interpolation_range).dataloader(batch_size=2048))
+dataset_valid_extrapolation = iter(dataset.fork(sample_range=args.extrapolation_range).dataloader(batch_size=2048))
 
 # setup model
 model = stable_nalu.network.SimpleFunctionStaticNetwork(
@@ -190,6 +225,7 @@ def test_model(dataloader):
         return criterion(model(x), t)
 
 # Train model
+print('')
 for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_train):
     summary_writer.set_iteration(epoch_i)
 
@@ -239,23 +275,3 @@ print(f'finished:')
 print(f'  - loss_train: {loss_train}')
 print(f'  - loss_valid_inter: {loss_valid_inter}')
 print(f'  - loss_valid_extra: {loss_valid_extra}')
-
-# save results
-results_writer.add({
-    'seed': args.seed,
-    'min_input': args.min_input,
-    'operation': args.operation,
-    'layer_type': args.layer_type,
-    'nalu_bias': args.nalu_bias,
-    'nalu_two_nac': args.nalu_two_nac,
-    'nalu_mul': args.nalu_mul,
-    'nalu_gate': args.nalu_gate,
-    'simple': args.simple,
-    'cuda': args.cuda,
-    'verbose': args.verbose,
-    'name_prefix': args.name_prefix,
-    'max_iterations': args.max_iterations,
-    'loss_train': loss_train,
-    'loss_valid_inter': loss_valid_inter,
-    'loss_valid_extra': loss_valid_extra,
-})

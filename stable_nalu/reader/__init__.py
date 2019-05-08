@@ -1,2 +1,3 @@
 
 from .tensorboard_final_reader import TensorboardFinalReader
+from .tensorboard_reader import TensorboardReader

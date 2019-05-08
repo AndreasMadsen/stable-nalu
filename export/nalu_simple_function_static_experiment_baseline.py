@@ -15,14 +15,11 @@ pd.options.display.max_rows = 1000
 
 # Parse arguments
 parser = argparse.ArgumentParser(description='Export results from simple function task')
-parser.add_argument('--tensorboard-dir',
+parser.add_argument('--dir',
                     action='store',
+                    default='tensorboard/nalu_simple_function_static_experiment_baseline',
                     type=str,
                     help='Specify the directory for which the data is stored')
-parser.add_argument('--csv-out',
-                    action='store',
-                    type=str,
-                    help='Specify output file for which the CSV will be dumbed to')
 args = parser.parse_args()
 
 def parse_numpy_str(array_string):
@@ -42,7 +39,7 @@ def parse_numpy_str(array_string):
 
 data = []
 
-for dirname, reader in tqdm(stable_nalu.reader.TensorboardReader(args.tensorboard_dir)):
+for dirname, reader in tqdm(stable_nalu.reader.TensorboardReader(args.dir)):
     is_nalu = False
     interpolation_value = None
     extrapolation_value = None
@@ -89,4 +86,4 @@ for dirname, reader in tqdm(stable_nalu.reader.TensorboardReader(args.tensorboar
 
 
 df = pd.DataFrame.from_records(data, columns=('step', 'name', 'interpolation', 'extrapolation', 'sparse.error.mean', 'sparse.error.max'))
-df.to_csv(args.csv_out, index=False)
+df.to_csv('./data/nalu_simple_function_static_experiment_baseline.csv', index=False)
