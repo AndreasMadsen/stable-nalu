@@ -13,9 +13,10 @@ class TensorboardReader:
     of results
     """
 
-    def __init__(self, dirpath):
+    def __init__(self, dirpath, auto_open=True):
         self._sourcedir = dirpath
         self._directories = _listdir_filter_hidden_files(dirpath)
+        self._auto_open = auto_open
 
     def __iter__(self):
         """Return the last non-nan result from each directory.
@@ -27,8 +28,13 @@ class TensorboardReader:
             if len(logfiles) > 1:
                 raise Exception(f'more than one logfile was found in {subdir}')
 
-            reader = tf.train.summary_iterator(path.join(self._sourcedir, subdir, logfiles[0]))
-            yield (subdir, reader)
+            filename = path.join(self._sourcedir, subdir, logfiles[0])
+
+            if self._auto_open:
+                reader = tf.train.summary_iterator(filename)
+                yield (subdir, filename, reader)
+            else:
+                yield (subdir, filename, None)
 
     def __len__(self):
         return len(self._directories)
