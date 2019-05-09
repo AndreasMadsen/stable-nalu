@@ -1,6 +1,7 @@
 #!/bin/bash
-experiment_name = 'function_task_static'
-operations=( add sub mul div squared root )
+experiment_name='function_task_static'
+operations=( add sub mul )
+#operations=( add sub mul div squared root )
 
 for seed in {0..9}
 do
