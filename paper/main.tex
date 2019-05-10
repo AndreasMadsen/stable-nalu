@@ -53,7 +53,7 @@
   \texttt{amwebdk@gmail.com}
   \AND
   Alexander Rosenberg Johansen$^{\dag}$ \\
-  \texttt{alexander@herhjemme.dk} \\
+  \texttt{aler@dtu.dk} \\
   \AND
   Who else? \\
   \\
@@ -67,7 +67,21 @@ $^\ddag$Computationally Demanding
 \maketitle
 
 \begin{abstract}
-Neural networks often perform extremely when interpolating within the numerical range of the training dataset. However, when extrapolating outside this range they often fail, because the neural network have learned an approximation and not the exact rule. Previous work on neural arithmetic logic unit (NALU), attempts to solve this issue by learning exact arithmetic operations. Those results are unfortunately extremely difficult to reproduce consistently. In this paper we propose two alternative arithmetic units, one for addition and one for multiplication. We show that these units have fewer parameters, converges much more consistently, learns faster that previous arithmetic units, and the weight have meaningful discrete values.
+%What’s the domain?
+Arithmetic presents unique challenges to machine learning models as they are solved by inferring rules and axioms as opposed to interpolation of data.
+%What’s the issue?
+Neural networks has, with millions and sometimes billions of parameters, an ability to internalize incredible complex functions.
+However, when extrapolating to out-of-distribution examples they often fail as the neural network learns an approximation and not the underlying logic.
+%What’s your contribution?
+We propose a plug-and-play module for neural networks that trains with stochastic gradient descent and can learn the of addition, subtraction and multiplication.
+Our proposed Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU) rely on weight constraints to learn rules and extrapolate well beyond current solutions.
+%Why is it novel?
+%What’s interesting about it?
+The proposed NAU and NMU are inspired by the Neural Arithmetic Logic Unit (NALU).
+We find that replacing the nonlinearities in the weight matrix with a clipped linear function and adding an identity function to the log-exp multiplication unit is crucial for converging consistently.
+%How does it perform?
+Through analytic and empirical analysis we justify how the NAU and NMU improve the Neural Arithmetic Logic Unit (NALU) and standard multi-layer perceptron (MLP) models.
+Our empirical results are fewer parameters, more consistent convergence, faster learning and more meaningful discrete values than the NALU.\footnote{In the interrest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}. }
 \end{abstract}
 
 \input{sections/introduction}
