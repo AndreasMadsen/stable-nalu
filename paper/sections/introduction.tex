@@ -1,13 +1,42 @@
 \section{Introduction}
 
-The ability for neurons to hold numbers and do arithmetic operations have been documented in both humans, non-human primates \cite{nieder-neuronal-number}, as well as newborn chicks \cite{rugani-arithmetic-chicks}, and even bees \cite{gallistel-numbers-in-brain}. These neurons are thus considered to be a vital
-component of intelligence. Beyond the biological motitvation, many physical models are also exact multiplication or additions of input values.
+The ability for neurons to hold numbers and do arithmetic operations have been documented in both humans, non-human primates \cite{nieder-neuronal-number}, as well as newborn chicks \cite{rugani-arithmetic-chicks}, and even bees \cite{gallistel-numbers-in-brain}.
+In our race to solve intelligence we have put much faith in neural networks, which in turn has provided unparalleled and often superhuman performance in many tasks requiring high cognitive ability\cite{natureGo,googleNMT,resnet}.
+However, when using neural networks to solve simple arithmetic problems, such as counting, they systematically fail to extrapolate\cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}.
 
-In the context of neural networks, it have been repeatedly shown that neural networks are extremely capable of approximating complex unknown functions from a dataset. However, their ability to predict actually is often limited to interpolation within the data that the network have been trained with. Just slight variations outside of this training dataset domain \cite{missing-cite:image-with-modification}, can cause critical failures that may be dangerous in some applications. The task of extrapolating accurately, is thus a critical and important problem.
+In this paper, we analyze and extend the recently proposed Neural Arithmetic Logic Unit (NALU)\cite{trask-nalu}.
+The NALU is a neural network layer with two modules.
+The two modules, $\text{NAC}_{\text{+}}$ for addition/subtraction and $\text{NAC}_{\text{*}}$ for multiplication/division, are selected softly between using a using a sigmoid gating mechanism.
+By using trainable weights, and restricting the weights towards ${-1,0,1}$ the $\text{NAC}_{\text{+}}$ is able to approximate addition and subtraction between hidden units in the previous layer.
+The $\text{NAC}_{\text{*}}$ extends this capability with the log-sum-exp trick to achieve multiplication and division.
+These rules should be learned only by observing arithmetic input-output pairs and using backpropagation\cite{rumelhart1986learning}.
 
-So far, there have not been much research in training exact arithmetic operations for extrapolation. The most important research, is by far, the recently proposed NAC and NALU \cite{trask-nalu}. However, as we will show both analytically and empirically, their results are highly exaggerated, as the proposed arithmetic units are extremely difficult to make convergence consistently. In fact, even without gating mechanism their multiplication operator can't converge on extremely simple problems. For the cases of addition there do converge, a nearly sparse weight matrix of values close to ${-1, 0, 1}$ is rarely found, which also contradicts one of their core claims.
+In practice, training the NALU can be cumbersome.
+Through an gradient analysis of main components in the NALU; the weight matrix constraint, the log-sum-exp trick and the gating we present the following findings:
+The weight matrix constraint in the NALU, under zero expectation of the mean layer value\cite{glorot-initialization}, has a gradient of zero.
+The log-sum-exp trick has a treacherous optimization space with unwanted global minimas(as shown in figure...), exploding/vanishing gradients and variable co-dependencies.
+In particularly, when performing using the multiplication module, with the gate set to always choose multiplication, we observe that the wanted weight matrix values of ${-1, 0, 1}$ are rarely found.
+Furthermore, the gating between the addition/subtraction component and the multiplication/division component has a gradient that, in expectation, bias' towards the $\text{NAC}_{\text{+}}$.
 
-Motivated by these convergence and sparsity issue, we focus on improving the arithmetic units themself, without considering the gating mechanism in NALU. That is, we will assume that the appropriate operation is already known, or can empirically be found by varying the network architecture which is very common when developing neural networks.
+Motivated by these convergence and sparsity issue, we propose alternative formulations of the $\text{NAC}_{\text{+}}$ and $\text{NAC}_{\text{*}}$, which we call the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU).
+That is, we will assume that the appropriate operation is already known, or can empirically be found by varying the network architecture (oracle gating).
+We propose an alternative formulation of the matrix constraint, using a clipped linear activation, and the log-sum-exp, using identity mappings, both which significantly improves upon the $\text{NAC}_{\text{+}}$ and $\text{NAC}_{\text{*}}$ through extensive testing on synthetic tasks and images.
 
-In the interrest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}. 
+%It is fair to assume that the ability to perform arithmetic operations is crucial modern intelligence.
+%However, Neural networks(nature, yann lecun), even though it has great expressiveness, has shown an inability to count severe lacks the ability to explicitly only has the ability to has an extreme capacity to interpolate complex functions from simply observing data (ICLR best paper 2017).
+%However, even when extrapolating to unseen data we often find a sharp in performance.\cite{missing-cite:image-with-modification}(systematic, nalu, Anders paper).
+%Such inability to extrapolate either requires the training distribution to cover the entire distribution (DAGGER) or simply restrics certain systems to be built all together.
 
+%Our solution
+
+%Experiments
+
+%Results
+
+
+
+
+
+%Remove
+%So far, there have not been much research in training exact arithmetic operations for extrapolation. The most important research, is by far, the recently proposed NAC and NALU \cite{trask-nalu}. However, as we will show both analytically and empirically, their results are highly exaggerated, as the proposed arithmetic units are extremely difficult to make convergence consistently. In fact, even without gating mechanism their multiplication operator can't converge on extremely simple problems. For the cases of addition there do converge, a nearly sparse weight matrix of values close to ${-1, 0, 1}$ is rarely found, which also contradicts one of their core claims.
+%Motivated by these convergence and sparsity issue, we focus on improving the arithmetic units themself, without considering the gating mechanism in NALU. That is, we will assume that the appropriate operation is already known, or can empirically be found by varying the network architecture which is very common when developing neural networks.
