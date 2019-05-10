@@ -42,10 +42,10 @@ class SequentialMnistNetwork(ExtendedTorchModule):
 
         # TODO: maybe don't make them learnable, properly zero will surfise here
         if unit_name == 'LSTM':
-            self.register_buffer('zero_state_h', torch.Tensor(self.output_size))
-            self.register_buffer('zero_state_c', torch.Tensor(self.output_size))
+            self.zero_state_h = torch.nn.Parameter(torch.Tensor(self.output_size))
+            self.zero_state_c = torch.nn.Parameter(torch.Tensor(self.output_size))
         else:
-            self.register_buffer('zero_state', torch.Tensor(self.output_size))
+            self.zero_state = torch.nn.Parameter(torch.Tensor(self.output_size))
 
         self.image2label = _Image2LabelCNN()
 
