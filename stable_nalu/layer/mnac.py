@@ -1,7 +1,8 @@
 
-import scipy.optimize
-import numpy as np
+import math
 import torch
+import numpy as np
+import scipy.optimize
 
 from ..functional import mnac
 from ..abstract import ExtendedTorchModule
@@ -26,7 +27,7 @@ class MNACLayer(ExtendedTorchModule):
     def reset_parameters(self):
         std = math.sqrt(0.25)
         r = math.sqrt(3.0) * std
-        torch.nn.init.uniform_(self.W, - r, r)
+        torch.nn.init.uniform_(self.W_hat, - r, r)
 
     def forward(self, x, reuse=False):
         W = torch.sigmoid(self.W_hat)
@@ -48,4 +49,4 @@ class MNACCell(AbstractRecurrentCell):
         hidden_size: number of outgoing features
     """
     def __init__(self, input_size, hidden_size, **kwargs):
-        super().__init__(NACLayer, input_size, hidden_size, **kwargs)
+        super().__init__(MNACLayer, input_size, hidden_size, **kwargs)

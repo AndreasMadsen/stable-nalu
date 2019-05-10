@@ -62,4 +62,4 @@ class ReRegualizedLinearMNACCell(AbstractRecurrentCell):
         hidden_size: number of outgoing features
     """
     def __init__(self, input_size, hidden_size, **kwargs):
-        super().__init__(NACLayer, input_size, hidden_size, **kwargs)
+        super().__init__(ReRegualizedLinearMNACLayer, input_size, hidden_size, **kwargs)

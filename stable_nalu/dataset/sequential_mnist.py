@@ -18,6 +18,10 @@ class OPERATIONS:
         return np.sum(seq).reshape(1)
 
     @staticmethod
+    def prod(seq):
+        return np.prod(seq).reshape(1)
+
+    @staticmethod
     def count(seq):
         unique, counts = np.unique(seq, return_counts=True)
         counts_all = np.zeros(10)
@@ -41,6 +45,8 @@ class SequentialMnistDataset:
 
     def get_item_shape(self):
         if self._operation == OPERATIONS.sum:
+            return ItemShape((None, 28, 28), (1, ))
+        elif self._operation == OPERATIONS.prod:
             return ItemShape((None, 28, 28), (1, ))
         else:
             return ItemShape((None, 28, 28), (10, ))
