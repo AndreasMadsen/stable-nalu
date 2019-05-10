@@ -6,15 +6,20 @@ from ..layer import GeneralizedLayer, BasicLayer
 class SimpleFunctionStaticNetwork(ExtendedTorchModule):
     UNIT_NAMES = GeneralizedLayer.UNIT_NAMES
 
-    def __init__(self, unit_name, input_size=100, writer=None, nac_mul='none', eps=1e-7, **kwags):
+    def __init__(self, unit_name, input_size=100, writer=None, nac_first=False, nac_mul='none', eps=1e-7, **kwags):
         super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
         self.input_size = input_size
         self.nac_mul = nac_mul
         self.eps = eps
 
+        if nac_first and unit_name[-4:] == 'NALU':
+            unit_name_1 = unit_name[0:-4] + 'NAC'
+        else:
+            unit_name_1 = unit_name
+
         self.layer_1 = GeneralizedLayer(input_size, 2,
-                                        unit_name,
+                                        unit_name_1,
                                         writer=self.writer,
                                         name='layer_1',
                                         eps=eps, **kwags)

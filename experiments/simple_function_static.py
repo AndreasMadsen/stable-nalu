@@ -80,6 +80,10 @@ parser.add_argument('--nac-mul',
                     choices=['none', 'normal', 'safe', 'max-safe', 'mnac'],
                     type=str,
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
+parser.add_argument('--nac-first',
+                    action='store_true',
+                    default=False,
+                    help='Force the first layer to be a NAC')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -88,6 +92,10 @@ parser.add_argument('--nalu-two-nac',
                     action='store_true',
                     default=False,
                     help='Uses two independent NACs in the NALU Layer')
+parser.add_argument('--nalu-two-gate',
+                    action='store_true',
+                    default=False,
+                    help='Uses two independent gates in the NALU Layer')
 parser.add_argument('--nalu-mul',
                     action='store',
                     default='normal',
@@ -139,8 +147,10 @@ print(f'  - overlap_ratio: {args.overlap_ratio}')
 print(f'  - simple: {args.simple}')
 print(f'  -')
 print(f'  - nac_mul: {args.nac_mul}')
+print(f'  - nac_first: {args.nac_first}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
+print(f'  - nalu_two_gate: {args.nalu_two_gate}')
 print(f'  - nalu_mul: {args.nalu_mul}')
 print(f'  - nalu_gate: {args.nalu_gate}')
 print(f'  -')
@@ -158,16 +168,17 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"s" if args.nac_mul == "max-safe" else ""}'
     f'{"t" if args.nac_mul == "trig" else ""}'
     f'{"m" if args.nac_mul == "mnac" else ""}'
-    f'{"-nalu-" if (args.nalu_bias or args.nalu_two_nac or args.nalu_mul != "normal" or args.nalu_gate != "normal") else ""}'
+    f'{"-nalu-" if (args.nalu_bias or args.nalu_two_nac or args.nalu_two_gate or args.nalu_mul != "normal" or args.nalu_gate != "normal") else ""}'
     f'{"b" if args.nalu_bias else ""}'
-    f'{"2" if args.nalu_two_nac else ""}'
+    f'{"2n" if args.nalu_two_nac else ""}'
+    f'{"2g" if args.nalu_two_gate else ""}'
     f'{"s" if args.nalu_mul == "safe" else ""}'
     f'{"s" if args.nalu_mul == "max-safe" else ""}'
     f'{"t" if args.nalu_mul == "trig" else ""}'
     f'{"m" if args.nalu_mul == "mnac" else ""}'
     f'{"r" if args.nalu_gate == "regualized" else ""}'
-    f'{"g" if args.nalu_gate == "gumbel" else ""}'
-    f'{"gg" if args.nalu_gate == "obs-gumbel" else ""}'
+    f'{"u" if args.nalu_gate == "gumbel" else ""}'
+    f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
     f'_o-{args.operation.lower()}'
     f'_r-{args.regualizer}'
     f'_i-{args.interpolation_range[0]}-{args.interpolation_range[1]}'
@@ -208,8 +219,10 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     input_size=dataset.get_input_size(),
     writer=summary_writer.every(1000) if args.verbose else None,
     nac_mul=args.nac_mul,
+    nac_first=args.nac_first,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
+    nalu_two_gate=args.nalu_two_gate,
     nalu_mul=args.nalu_mul,
     nalu_gate=args.nalu_gate,
 )

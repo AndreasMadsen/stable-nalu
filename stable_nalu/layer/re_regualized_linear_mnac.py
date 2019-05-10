@@ -42,10 +42,10 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
         self.writer.add_tensor('W', W)
 
         if self.mnac_normalized:
-            c = torch.stddev(normalize)
+            c = torch.std(x)
             x_normalized = x / c
             z_normalized = mnac(x_normalized, W, mode='prod')
-            z = z_normalized * (c ** torch.sum(W, 0))
+            return z_normalized * (c ** torch.sum(W, 1))
         else:
             return mnac(x, W, mode='prod')
 

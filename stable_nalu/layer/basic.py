@@ -60,7 +60,6 @@ class BasicLayer(ExtendedTorchModule):
         self.initializer = INITIALIZATIONS[activation]
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
-        print(bias)
         if bias:
             self.bias = torch.nn.Parameter(torch.Tensor(out_features))
         else:
