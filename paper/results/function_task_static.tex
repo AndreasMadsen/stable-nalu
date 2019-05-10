@@ -1,0 +1,61 @@
+% latex table generated in R 3.4.3 by xtable 1.8-3 package
+% Fri May 10 17:19:56 2019
+\begin{table}[H]
+\centering
+\caption{Shows the sucess-rate for extrapolation < \epsilon, at what global step the model converged at, and the sparse error for all weight matrices.} 
+\begin{tabular}{lll |rrr}
+  \hline
+                      &                            & key & \multicolumn{1}{l}{          converged.at} & \multicolumn{1}{l}{          sparse.error} & \multicolumn{1}{l}{          success.rate} \\ 
+  operation            & model                      &     & \multicolumn{1}{l}{                      } & \multicolumn{1}{l}{                      } & \multicolumn{1}{l}{                      } \\ 
+   \hline
+${\sqrt{a}}$        & ${\mathrm{NAC}_{+}}$      &     & ---                   &     ---               & $0\%$                \\ 
+                       & ${\mathrm{NAC}_\bullet}$ &     & $8000$                & $1.5 \times 10^{-1}$ & $33\%$               \\ 
+                       & linear                     &     & ---                   &     ---               & $0\%$                \\ 
+                       & NALU                       &     & ---                   &     ---               & $0\%$                \\ 
+                       & NAU                        &     & ---                   &     ---               & $0\%$                \\ 
+                       & NMU                        &     & ---                   &     ---               & $0\%$                \\ 
+                       & relu                       &     & ---                   &     ---               & $0\%$                \\ 
+                       & ReLU6                      &     & ---                   &     ---               & $0\%$                \\ 
+  ${a \cdot b}$       & ${\mathrm{NAC}_{+}}$      &     & ---                   &     ---               & $0\%$                \\ 
+                       & ${\mathrm{NAC}_\bullet}$ &     & $3371250$             & $8.0 \times 10^{-5}$ & $40\%$               \\ 
+                       & linear                     &     & ---                   &     ---               & $0\%$                \\ 
+                       & NALU                       &     & ---                   &      ---              & ---                   \\ 
+                       & NAU                        &     & ---                   &     ---               & $0\%$                \\ 
+                       & NMU                        &     & $1571900$             & $1.6 \times 10^{-4}$ & $100\%$              \\ 
+                       & relu                       &     & ---                   &     ---               & $0\%$                \\ 
+                       & ReLU6                      &     & ---                   &     ---               & $0\%$                \\ 
+  ${a \mathbin{/} b}$ & ${\mathrm{NAC}_{+}}$      &     & ---                   &     ---               & $0\%$                \\ 
+                       & ${\mathrm{NAC}_\bullet}$ &     & $1000$                & $1.3 \times 10^{-1}$ & $50\%$               \\ 
+                       & linear                     &     & $16500$               & $1.0 \times 10^{-1}$ & $100\%$              \\ 
+                       & NALU                       &     & $1500$                & $1.4 \times 10^{-1}$ & $100\%$              \\ 
+                       & NAU                        &     & ---                   &     ---               & $0\%$                \\ 
+                       & NMU                        &     & $2500$                & $4.1 \times 10^{-2}$ & $100\%$              \\ 
+                       & relu                       &     & $16500$               & $8.4 \times 10^{-2}$ & $100\%$              \\ 
+                       & ReLU6                      &     & $10000$               & $9.7 \times 10^{-2}$ & $100\%$              \\ 
+  ${a^2}$              & ${\mathrm{NAC}_{+}}$      &     & ---                   &     ---               & $0\%$                \\ 
+                       & ${\mathrm{NAC}_\bullet}$ &     & ---                   &     ---               & $0\%$                \\ 
+                       & linear                     &     & ---                   &     ---               & $0\%$                \\ 
+                       & NALU                       &     & ---                   &      ---              & ---                   \\ 
+                       & NAU                        &     & ---                   &     ---               & $0\%$                \\ 
+                       & NMU                        &     & ---                   &     ---               & $0\%$                \\ 
+                       & relu                       &     & ---                   &     ---               & $0\%$                \\ 
+                       & ReLU6                      &     & ---                   &     ---               & $0\%$                \\ 
+  $a - b$              & ${\mathrm{NAC}_{+}}$      &     & $6300$                & $1.1 \times 10^{-1}$ & $100\%$              \\ 
+                       & ${\mathrm{NAC}_\bullet}$ &     & ---                   &     ---               & $0\%$                \\ 
+                       & linear                     &     & $3300$                & $7.6 \times 10^{-2}$ & $100\%$              \\ 
+                       & NALU                       &     & $1963250$             & $9.1 \times 10^{-2}$ & $40\%$               \\ 
+                       & NAU                        &     & $3700$                & $4.3 \times 10^{-4}$ & $100\%$              \\ 
+                       & NMU                        &     & $297333$              & $7.3 \times 10^{-6}$ & $60\%$               \\ 
+                       & relu                       &     & ---                   &     ---               & $0\%$                \\ 
+                       & ReLU6                      &     & ---                   &     ---               & $0\%$                \\ 
+  $a + b$              & ${\mathrm{NAC}_{+}}$      &     & $42900$               & $1.4 \times 10^{-1}$ & $100\%$              \\ 
+                       & ${\mathrm{NAC}_\bullet}$ &     & ---                   &     ---               & $0\%$                \\ 
+                       & linear                     &     & $21300$               & $1.9 \times 10^{-1}$ & $100\%$              \\ 
+                       & NALU                       &     & $81000$               & $1.9 \times 10^{-1}$ & $10\%$               \\ 
+                       & NAU                        &     & $15500$               & $1.1 \times 10^{-4}$ & $100\%$              \\ 
+                       & NMU                        &     & ---                   &     ---               & $0\%$                \\ 
+                       & relu                       &     & $24375$               & $1.4 \times 10^{-1}$ & $80\%$               \\ 
+                       & ReLU6                      &     & ---                   &     ---               & $0\%$                \\ 
+   \hline
+\end{tabular}
+\end{table}

@@ -18,8 +18,8 @@ xtabs.data.first = function (data, formular, ...) {
 model.full.to.short = c(
   'linear'='linear',
   'relu6'='ReLU6',
-  'nac'='${\mathrm{NAC}_{+}}$',
-  'nac-nac-n'='${\mathrm{NAC}_\\bullet}$',
+  'nac'='${\\mathrm{NAC}_{+}}$',
+  'nac-nac-n'='${\\mathrm{NAC}_\\bullet}$',
   'nalu'='NALU',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU'
@@ -128,4 +128,5 @@ result[,,'sparse.error'] = latex.scientific(result[,,'sparse.error'])
 print(xtableFtable(ftable(result),
       caption="Shows the sucess-rate for extrapolation < \\epsilon, at what global step the model converged at, and the sparse error for all weight matrices."),
       type='latex', NA.string='---',
-      table.placement='H', caption.placement='top', math.style.exponents=T)
+      table.placement='H', caption.placement='top', math.style.exponents=T,
+      file="../paper/results/function_task_static.tex")
