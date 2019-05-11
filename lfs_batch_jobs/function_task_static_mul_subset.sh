@@ -23,5 +23,5 @@ do
             --operation ${operation} --layer-type ReRegualizedLinearNAC --nac-mul mnac \
             --seed ${seed} --max-iterations 5000000 --verbose \
             --name-prefix ${experiment_name} --remove-existing-data
-        done
+    done
 done
