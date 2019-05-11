@@ -11,8 +11,8 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="113.95053mm"
-   height="39.326847mm"
-   viewBox="0 0 113.95053 39.326847"
+   height="42.602043mm"
+   viewBox="0 0 113.95053 42.602043"
    version="1.1"
    id="svg8"
    sodipodi:docname="function_task_static_problem.svg"
@@ -4539,8 +4539,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.8384776"
-     inkscape:cx="-19.314383"
-     inkscape:cy="66.120186"
+     inkscape:cx="198.25694"
+     inkscape:cy="56.741759"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -5312,6 +5312,39 @@
            x="41.844494"
            id="tspan14871"
            sodipodi:role="line">subset</tspan></text>
+    </g>
+    <g
+       transform="translate(23.144205,19.225767)"
+       id="g7773">
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path7763"
+         d="m 70.628165,46.791086 v 1.946305"
+         style="fill:none;stroke:#666666;stroke-width:0.36500001;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         style="fill:none;stroke:#666666;stroke-width:0.36500001;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 24.879004,46.791087 v 1.946304"
+         id="path7765"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cc" />
+      <path
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0"
+         id="path7767"
+         d="M 24.956182,47.764239 H 41.21049 m 12.629687,0 H 70.62365"
+         style="fill:none;stroke:#666666;stroke-width:0.36500001;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:4.23333311px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#666666;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="41.844494"
+         y="48.822571"
+         id="text7771"><tspan
+           sodipodi:role="line"
+           id="tspan7769"
+           x="41.844494"
+           y="48.822571"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Latin Modern Roman Slanted';-inkscape-font-specification:'Latin Modern Roman Slanted';fill:#666666;fill-opacity:1;stroke-width:0.26458332px">subset</tspan></text>
     </g>
   </g>
 </svg>

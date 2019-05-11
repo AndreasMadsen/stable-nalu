@@ -1,24 +1,32 @@
-% latex table generated in R 3.4.3 by xtable 1.8-3 package
-% Fri May 10 17:19:56 2019
 \begin{table}[H]
+
+\caption{\label{tab:}Shows the sucess-rate for extrapolation < $\epsilon$, at what global step the model converged at, and the sparse error for all weight matrices.}
 \centering
-\caption{Shows the sucess-rate for extrapolation < $\epsilon$, at what global step the model converged at, and the sparse error for all weight matrices.} 
-\begin{tabular}{lll |rrr}
-  \hline
-                      &                            & & \multicolumn{1}{l}{          converged.at} & \multicolumn{1}{l}{          sparse.error} & \multicolumn{1}{l}{          success.rate} \\ 
-  operation            & model                      &     & \multicolumn{1}{l}{                      } & \multicolumn{1}{l}{                      } & \multicolumn{1}{l}{                      } \\ 
-   \hline
-  ${a \cdot b}$        & ${\mathrm{NAC}_\bullet}$ &     & $3371250$             & $8.0 \times 10^{-5}$ & $40\%$               \\ 
-                       & NALU                       &     & ---                   &      ---              & $0\%$                   \\ 
-                       & NMU                        &     & $1571900$             & $1.6 \times 10^{-4}$ & $100\%$              \\ \hline
-  $a - b$              & ${\mathrm{NAC}_{+}}$      &     & $6300$                & $1.1 \times 10^{-1}$ & $100\%$              \\ 
-                       & linear                     &     & $3300$                & $7.6 \times 10^{-2}$ & $100\%$              \\ 
-                       & NALU                       &     & $1963250$             & $9.1 \times 10^{-2}$ & $40\%$               \\ 
-                       & NAU                        &     & $3700$                & $4.3 \times 10^{-4}$ & $100\%$              \\ \hline 
-  $a + b$              & ${\mathrm{NAC}_{+}}$      &     & $42900$               & $1.4 \times 10^{-1}$ & $100\%$              \\ 
-                       & linear                     &     & $21300$               & $1.9 \times 10^{-1}$ & $100\%$              \\ 
-                       & NALU                       &     & $81000$               & $1.9 \times 10^{-1}$ & $10\%$               \\ 
-                       & NAU                        &     & $15500$               & $1.1 \times 10^{-4}$ & $100\%$              \\ 
-   \hline
+\begin{tabular}{rrlll}
+\toprule
+operation & model & success.rate & converged.at & sparse.error\\
+\midrule
+ & $\mathrm{NAC}_{\bullet}$ & $40\%$ & $3371250$ & $4.7 \times 10^{-4}$\\
+
+ & NALU & $0\%$ & --- & ---\\
+
+\multirow{-3}{*}{\raggedleft\arraybackslash ${a \cdot b}$} & NMU & $100\%$ & $1571900$ & $2.5 \times 10^{-3}$\\
+\cmidrule{1-5}
+ & $\mathrm{NAC}_{+}$ & $100\%$ & $6300$ & $4.7 \times 10^{-1}$\\
+
+ & Linear & $100\%$ & $3300$ & $3.7 \times 10^{-1}$\\
+
+ & NALU & $40\%$ & $1963250$ & $4.3 \times 10^{-1}$\\
+
+\multirow{-4}{*}{\raggedleft\arraybackslash $a - b$} & NAU & $100\%$ & $3700$ & $1.7 \times 10^{-3}$\\
+\cmidrule{1-5}
+ & $\mathrm{NAC}_{+}$ & $100\%$ & $42900$ & $4.8 \times 10^{-1}$\\
+
+ & Linear & $100\%$ & $21300$ & $6.1 \times 10^{-1}$\\
+
+ & NALU & $10\%$ & $81000$ & $4.5 \times 10^{-1}$\\
+
+\multirow{-4}{*}{\raggedleft\arraybackslash $a + b$} & NAU & $100\%$ & $15500$ & $2.1 \times 10^{-3}$\\
+\bottomrule
 \end{tabular}
 \end{table}

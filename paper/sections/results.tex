@@ -1,9 +1,43 @@
 \section{Results}
 
-Line width: \printinunitsof{cm}\prntlen{\linewidth}
+\subsection{Simple function}
 
-\subsection{Simple multiplication task}
+\begin{figure}[H]
+\centering
+\includegraphics[scale=1]{graphics/function_task_static_problem.pdf}
+\caption{Lorem Ipsum.}
+\end{figure}
+
+\subsubsection{Simple multiplication task}
 \input{results/simple_mul.tex}
 
-\subsection{Static function task}
+\subsubsection{Static function task - defaults}
 \input{results/function_task_static.tex}
+
+\subsubsection{Static function task - boundary}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{results/simple_function_static_input_size.pdf}
+\caption{Lorem Ipsum.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{results/simple_function_static_overlap.pdf}
+\caption{Lorem Ipsum.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{results/simple_function_static_subset.pdf}
+\caption{Lorem Ipsum.}
+\end{figure}
+
+\subsection{sequential MNIST}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=1]{graphics/mnist_sequence_problem.pdf}
+\caption{Lorem Ipsum.}
+\end{figure}
+

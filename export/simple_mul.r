@@ -4,6 +4,7 @@ setwd(dirname(parent.frame(2)$ofile))
 library(ggplot2)
 library(dplyr)
 library(readr)
+library(kableExtra)
 
 xtabs.data.first = function (data, formular, ...) {
   return(xtabs(formular, data, ...))
@@ -27,10 +28,14 @@ model.full.to.short = c(
   'reregualizedlinearnac-nac-m'='NMU'
 )
 
+operation.full.to.short = c(
+  'mul'='$a \\cdot b$'
+)
+
 dat = read_csv('../results/simple_mul.csv') %>%
   mutate(
     model = revalue(extract.part.from.name(name, 1), model.full.to.short),
-    operation = extract.part.from.name(name, 2),
+    operation = revalue(extract.part.from.name(name, 2), operation.full.to.short),
     seed = extract.part.from.name(name, 6)
   )
 
@@ -65,15 +70,6 @@ dat.last.rate = dat.last %>%
 
 print(dat.last.rate)
 
-result = dat.last.rate %>%
-  mutate(
-    success.rate = rate.extrapolation,
-    converged.at = extrapolation.solved,
-    sparse.error = mean.sparse.error.mean
-  ) %>%
-  select(model, operation, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'value', success.rate, converged.at, sparse.error) %>%
-  xtabs.data.first(value ~ model + key, exclude = NULL, na.action = na.pass)
 
 latex.scientific = function (d) {
   return(sub("NaN|NA", "---",
@@ -89,12 +85,24 @@ latex.rate = function (d) {
   return(sub("\\$(NaN|NA)\\\\%\\$", "---", sprintf("$%.0f\\%%$", as.numeric(d) * 100)))
 }
 
-result[,'success.rate'] = latex.rate(result[,'success.rate'])
-result[,'converged.at'] = latex.digit(result[,'converged.at'])
-result[,'sparse.error'] = latex.scientific(result[,'sparse.error'])
+dat.last.rate %>%
+  mutate(
+    success.rate = latex.rate(rate.extrapolation),
+    converged.at = latex.digit(extrapolation.solved),
+    sparse.error = latex.scientific(mean.sparse.error.max)
+  ) %>%
+  select(operation, model, success.rate, converged.at, sparse.error) %>%
+  arrange(operation, model) %>%
+  kable(
+    "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label=NULL,
+    caption="Shows the sucess-rate for extrapolation < $\\epsilon$, at what global step the model converged at, and the sparse error for all weight matrices.",
+    col.names = c("Operation",
+                  "Model",
+                  "Success Rate",
+                  "Converged at",
+                  "Sparse error")
+  ) %>%
+  kable_styling(latex_options=c('HOLD_position')) %>%
+  collapse_rows(columns = c(1,2), latex_hline = "major") %>%
+  write("../paper/results/simple_mul.tex")
 
-print(xtableFtable(ftable(result),
-                   caption="Shows the sucess-rate for extrapolation < \\epsilon, at what global step the model converged at, and the sparse error for all weight matrices."),
-      type='latex', NA.string='---',
-      table.placement='H', caption.placement='top', math.style.exponents=T,
-      file="../paper/results/simple_mul.tex")
