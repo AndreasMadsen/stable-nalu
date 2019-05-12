@@ -111,4 +111,4 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parame
   theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 print(p)
-ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
+ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
