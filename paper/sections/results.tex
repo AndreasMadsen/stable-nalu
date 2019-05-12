@@ -28,9 +28,25 @@ Our simple function task samples an input vector $\mathbf{x}$ from a uniform dis
 \end{tabular}
 \end{table}
 
-Normally one would report the interpolation and extrapolation loss. However, complex approximations that one would typically see in neural networks are not considered good enough. The goal is to achieve a solution that is sufficiently close to a perfect solution. Because there can be many valid permutations of a perfect solution, especially for addition, a solution is judged firsts on the final extrapolation error, and then on a sparsity error.
+Normally one would report the interpolation and extrapolation loss. However, the complex approximations that one would typically see in neural networks are not considered good enough. The goal is to achieve a solution that is sufficiently close to a perfect solution. Because there can be many valid permutations of a perfect solution, especially for addition, a solution is judged firsts on the final extrapolation error, and then on a sparsity error.
 
+All errors; extrapolation, interpolation, and sparsity are computed every 1000 iterations for 2048 new observations. Because the interpolation and extrapolation errors are quite noisy, even for a near perfect solution. The median over the last 100 measurements is reported.
 
+A model is considered a success if the extrapolation median is less than $\epsilon = 0.2$. This value was acquired by inspecting the error of a near perfect solution. \todo{Do better.}
+
+The sparsity error is computed as in equation \ref{eq:sparsity-error}, and is only considered for the models that did solve the last.
+\begin{equation}
+E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, |1 - |W_{h_{\ell-1},h_\ell}||)
+\label{eq:sparsity-error}
+\end{equation}
+
+The first iteration for which $\mathrm{extrapolation} < \epsilon$, is also reported. Again, only models that did solve the task are considered.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{paper/results/function-task-static-example.pdf}
+\caption{Example of exploration error, interpolation error, and sparsity error, for the task $a \cdot b$ with the default dataset parameters.}
+\end{figure}
 
 \subsubsection{Very simple function}
 
@@ -45,36 +61,48 @@ To empirically validate the theoretical problems with $\mathrm{NAC}_{\bullet}$, 
     \label{eq:very-simple-function-ideal-solution}
 \end{equation}
 
-Each model is trained 100 times with different seeds, and stopped after 200000 iterations. The results (table \ref{tab:very-simple-function-results}), shows that NMU have a much higher success rate and converges much faster. The few cases that did not converge successfully are because of underflow when exactly 0 is multiplied.
-
-
-In this case the model is considered 
+Each model is trained 100 times with different seeds, and stopped after 200000 iterations. Default Adam optimization is used, with a mini-batch size of 128 observations. The results (as seen in table \ref{tab:very-simple-function-results}), shows that NMU have a much higher success rate and converges much faster. The few cases that did not converge successfully are because of underflow when $w = 0$ in the NMU layer.
 
 \input{results/simple_mul.tex}
 
-\subsubsection{Static function task - defaults}
+\subsubsection{Defaults}
+
+To compare on the exact same task as used in the Original NALU paper \cite{trask-nalu}. We report the success rate, the iteration which the model converged, and the sparsity error in table \ref{tab:function-task-static-defaults}. The models are trainined for 5000000 iterations. Default Adam optimization is used, with a mini-batch size of 128 observations.
+
+As seen the NMU model, unlike $\mathrm{NAC}_{\bullet}$ always converges, and even when $\mathrm{NAC}_{\bullet}$ converges the NMU models converges about twice as fast.
+
+The NAU model, like the $\mathrm{NAC}_{+}$ model, always converges. However, NAU model converges more than twice as fast. It even converges faster than a Linear model. Also notice that the $\mathrm{NAC}_{+}$ model have a poor sparsity error. This is because it doesn't bias to $\{-1, 0, -1\}$.
+
 \input{results/function_task_static.tex}
 
-\subsubsection{Static function task - boundary}
+\subsubsection{Exploration of dataset parameters}
+
+Finally, the parameters from which the dataset is constructed are considered for just the multiplication problem ($a \cdot b$). The setup is the same the results from table \ref{tab:function-task-static-defaults}. The results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, and \ref{fig:simple-fnction-static-subset}.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_input_size.pdf}
-\caption{Lorem Ipsum.}
+\caption{Shows the effect of the input size. Errors bars shows the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.}
+\label{fig:simple-fnction-static-input-size}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_overlap.pdf}
-\caption{Lorem Ipsum.}
+\caption{Shows the effect of the overlap ratio. Errors bars shows the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.}
+\label{fig:simple-fnction-static-overlap}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_subset.pdf}
-\caption{Lorem Ipsum.}
+\caption{Shows the effect of the subset ratio. Errors bars shows the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.}
+\label{fig:simple-fnction-static-subset}
 \end{figure}
 
 \subsection{sequential MNIST}
+
+\todo[inline]{Still waiting for results}
 
 \begin{figure}[H]
 \centering
