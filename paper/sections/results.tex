@@ -32,7 +32,7 @@ Normally one would report the interpolation and extrapolation loss. However, the
 
 All errors; extrapolation, interpolation, and sparsity are computed every 1000 iterations for 2048 new observations. Because the interpolation and extrapolation errors are quite noisy, even for a near perfect solution. The median over the last 100 measurements is reported.
 
-A model is considered a success if the extrapolation median is less than $\epsilon = 0.2$. This value was acquired by inspecting the error of a near perfect solution. \todo{Do better.}
+A model is considered a success if the extrapolation median is less than $\epsilon = 0.2$. This value was acquired by inspecting the error of a near perfect solution. \todo{Get a better critation.}
 
 The sparsity error is computed as in equation \ref{eq:sparsity-error}, and is only considered for the models that did solve the last.
 \begin{equation}
@@ -67,9 +67,9 @@ Each model is trained 100 times with different seeds, and stopped after 200000 i
 
 \subsubsection{Defaults}
 
-To compare on the exact same task as used in the Original NALU paper \cite{trask-nalu}. We report the success rate, the iteration which the model converged, and the sparsity error in table \ref{tab:function-task-static-defaults}. The models are trainined for 5000000 iterations. Default Adam optimization is used, with a mini-batch size of 128 observations.
+To compare on the exact same task as used in the Original NALU paper \cite{trask-nalu}. We report the success rate, the iteration which the model converged, and the sparsity error in table \ref{tab:function-task-static-defaults}. The models are trainined for 5000000 iterations. Default Adam optimization is used, with a mini-batch size of 128 observations. The NMU model is an NAU layer followed by an NMU layer. Likewise the  $\mathrm{NAC}_{\bullet}$ model, is a $\mathrm{NAC}_{+}$ layer followed by a $\mathrm{NAC}_{\bullet}$ layer.
 
-As seen the NMU model, unlike $\mathrm{NAC}_{\bullet}$ always converges, and even when $\mathrm{NAC}_{\bullet}$ converges the NMU models converges about twice as fast.
+As seen the NMU model, unlike the $\mathrm{NAC}_{\bullet}$ model always converges, and even when $\mathrm{NAC}_{\bullet}$ model converges the NMU models converges about twice as fast.
 
 The NAU model, like the $\mathrm{NAC}_{+}$ model, always converges. However, NAU model converges more than twice as fast. It even converges faster than a Linear model. Also notice that the $\mathrm{NAC}_{+}$ model have a poor sparsity error. This is because it doesn't bias to $\{-1, 0, -1\}$.
 
@@ -77,30 +77,44 @@ The NAU model, like the $\mathrm{NAC}_{+}$ model, always converges. However, NAU
 
 \subsubsection{Exploration of dataset parameters}
 
-Finally, the parameters from which the dataset is constructed are considered for just the multiplication problem ($a \cdot b$). The setup is the same the results from table \ref{tab:function-task-static-defaults}. The results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, and \ref{fig:simple-fnction-static-subset}.
+Finally, the parameters from which the dataset is constructed are considered for just the multiplication problem ($a \cdot b$). The setup is the same the results from table \ref{tab:function-task-static-defaults}. The results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, \ref{fig:simple-fnction-static-range}, and \ref{fig:simple-fnction-static-subset}. Errors bars show the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.
+
+Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NALU. Some important observations to make:
+
+\begin{itemize}
+\item Input size $> 100$. The NMU model's success-rate very suddenly decreases when the input size is greater than 100. We have been unable to explain why this happens. We suspect it is a problem with the signal-to-noie ratio of the problem. However the result is also seen if the mini-batch size is dramatically increased.
+\item Overlap ratio $= 0$: Both the NMU and also the $\mathrm{NAC}_{\bullet}$ when it does converge, finds a suboptimal solution where in the addition layer $w=1$ for the overlapping input between $a$ and $b$, and $w = 0$ for where the input isn't used. However when an input-scalar is only used in either $a$ or $b$, convergence the corresponding weights is difficult and slow. Thus the lower the overlap ratio is, the harder the problem is.
+\end{itemize}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_input_size.pdf}
-\caption{Shows the effect of the input size. Errors bars shows the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.}
+\caption{Shows the effect of the input size.}
 \label{fig:simple-fnction-static-input-size}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_overlap.pdf}
-\caption{Shows the effect of the overlap ratio. Errors bars shows the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.}
+\caption{Shows the effect of the overlap ratio.}
 \label{fig:simple-fnction-static-overlap}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_subset.pdf}
-\caption{Shows the effect of the subset ratio. Errors bars shows the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.}
+\caption{Shows the effect of the subset ratio.}
 \label{fig:simple-fnction-static-subset}
 \end{figure}
 
-\subsection{sequential MNIST}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{results/simple_function_static_range.pdf}
+\caption{Shows the effect of the interpolation range. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[0,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[1,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[1, 40]}$.}
+\label{fig:simple-fnction-static-range}
+\end{figure}
+
+\subsection{Sequential MNIST}
 
 \todo[inline]{Still waiting for results}
 
