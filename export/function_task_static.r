@@ -1,6 +1,7 @@
 rm(list = ls())
 setwd(dirname(parent.frame(2)$ofile))
 
+library(xtable)
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -73,7 +74,7 @@ dat.last.rate %>%
   ) %>%
   arrange(operation, model) %>%
   kable(
-    "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label=NULL,
+    "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label="function-task-static-defaults",
     caption="Shows the sucess-rate for extrapolation < $\\epsilon$, at what global step the model converged at, and the sparse error for all weight matrices."
   ) %>%
   kable_styling(latex_options=c('HOLD_position')) %>%

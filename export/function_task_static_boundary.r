@@ -86,6 +86,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
   
   dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
     mutate(
+      model=droplevels(model),
       key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
     )
   
@@ -103,7 +104,8 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
         sparse.error = "Sparse error [difference]"
       )
     )) +
-    theme(legend.position="bottom")
+    theme(legend.position="bottom") +
+    theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
   print(p)
   ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
 }

@@ -1,8 +1,10 @@
 rm(list = ls())
 setwd(dirname(parent.frame(2)$ofile))
 
-library(ggplot2)
+library(xtable)
+library(plyr)
 library(dplyr)
+library(tidyr)
 library(readr)
 library(kableExtra)
 
@@ -59,13 +61,13 @@ dat.last = dat %>%
 dat.last.rate = dat.last %>%
   group_by(model, operation) %>%
   summarise(
-    size=n(),
     rate.interpolation = mean(interpolation.last < eps),
     rate.extrapolation = mean(extrapolation.last < eps),
     interpolation.solved = mean(interpolation.index.solved[solved]),
     extrapolation.solved = mean(extrapolation.index.solved[solved]),
     mean.sparse.error.max = mean(sparse.error.max[solved]),
-    mean.sparse.error.mean = mean(sparse.error.mean[solved])
+    mean.sparse.error.mean = mean(sparse.error.mean[solved]),
+    size = n()
   )
 
 print(dat.last.rate)
@@ -94,7 +96,7 @@ dat.last.rate %>%
   select(operation, model, success.rate, converged.at, sparse.error) %>%
   arrange(operation, model) %>%
   kable(
-    "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label=NULL,
+    "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label="very-simple-function-results",
     caption="Shows the sucess-rate for extrapolation < $\\epsilon$, at what global step the model converged at, and the sparse error for all weight matrices.",
     col.names = c("Operation",
                   "Model",

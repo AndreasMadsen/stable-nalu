@@ -89,6 +89,7 @@ dat.gather.lower = dat.last.rate %>%
 
 dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
   mutate(
+    model=droplevels(model),
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
