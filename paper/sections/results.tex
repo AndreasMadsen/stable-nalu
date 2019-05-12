@@ -1,14 +1,55 @@
-\section{Results}
+\section{Experimental results}
 
-\subsection{Simple function}
+\subsection{Simple function task}
+
+Our simple function task samples an input vector $\mathbf{x}$ from a uniform distribution. From this input vector, the sum of two subsets $a$ and $b$ are then computed. Finally the target $t$ is then an operation performed on $a$ and $b$ (e.g. $a \cdot b$). This is identical to the task by the same name in the Original NALU paper \cite{trask-nalu}. Except that we parameterize it in order to compare the models for different configurations, see figure \ref{fig:simple-function-task-problem}. To make comparison simple, we define a set of default parameters (table \ref{tab:simple-function-task-defaults}) and only vary one of them at the time.
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=1]{graphics/function_task_static_problem.pdf}
-\caption{Lorem Ipsum.}
+\includegraphics[scale=0.8]{graphics/function_task_static_problem.pdf}
+\caption{Dataset is parameterized into ``Input Size'', ``Subset Ratio'', ``Overlap Ratio'', an Operation (here showing multiplication), ``Interpolation Range'' and ``Extrapolation Range'' from which the data set sampled.}
+\label{fig:simple-function-task-problem}
 \end{figure}
 
-\subsubsection{Simple multiplication task}
+\begin{table}[H]
+\caption{Default dataset parameters}
+\label{tab:simple-function-task-defaults}
+\centering
+\begin{tabular}{r l}
+\toprule
+ Parameter Name & Default Value \\
+ \midrule
+ Input Size & 100 \\
+ Subset Ratio & 0.25 \\
+ Overlap Ratio & 0.5 \\
+ Interpolation Range & $U[1,2]$ \\
+ Extrapolation Range & $U[1,6]$ \\
+ \bottomrule
+\end{tabular}
+\end{table}
+
+Normally one would report the interpolation and extrapolation loss. However, complex approximations that one would typically see in neural networks are not considered good enough. The goal is to achieve a solution that is sufficiently close to a perfect solution. Because there can be many valid permutations of a perfect solution, especially for addition, a solution is judged firsts on the final extrapolation error, and then on a sparsity error.
+
+
+
+\subsubsection{Very simple function}
+
+To empirically validate the theoretical problems with $\mathrm{NAC}_{\bullet}$, let's consider the very simple problem shown earlier in figure \ref{fig:nac-mul-eps-issue}. That is $x \in \mathbb{R}^4$, $a = x_1 + x_2$ and $b = x_1 + x_2 + x_3 + x_4$. The solution to this problem is that seen in equation \ref{eq:very-simple-function-ideal-solution}.
+\begin{equation}
+    \mathbf{W}_1 = \begin{bmatrix}
+    1 & 1 & 0 & 0 \\
+    1 & 1 & 1 & 1
+    \end{bmatrix}, \mathbf{W}_2 = \begin{bmatrix}
+    1 & 1
+    \end{bmatrix}
+    \label{eq:very-simple-function-ideal-solution}
+\end{equation}
+
+Each model is trained 100 times with different seeds, and stopped after 200000 iterations. The results (table \ref{tab:very-simple-function-results}), shows that NMU have a much higher success rate and converges much faster. The few cases that did not converge successfully are because of underflow when exactly 0 is multiplied.
+
+
+In this case the model is considered 
+
 \input{results/simple_mul.tex}
 
 \subsubsection{Static function task - defaults}
