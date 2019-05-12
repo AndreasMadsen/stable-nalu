@@ -99,9 +99,9 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     scale_y_continuous(name = element_blank()) +
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
-        success.rate = "Success rate [ratio]",
-        converged.at = "Converged at [interation]",
-        sparse.error = "Sparsity error [difference]"
+        success.rate = "Success rate",
+        converged.at = "Converged at",
+        sparse.error = "Sparsity error"
       )
     )) +
     theme(legend.position="bottom") +

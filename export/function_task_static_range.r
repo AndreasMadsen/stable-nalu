@@ -94,17 +94,17 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
-p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
-  geom_point(aes(y = mean.value, position="dodge")) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
+p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parameter, model))) +
+  geom_point(aes(y = mean.value), position=position_dodge(width=0.3)) +
+  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3)) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  xlab(name.label) +
+  scale_x_discrete(name = name.label) +
   scale_y_continuous(name = element_blank()) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
-      success.rate = "Success rate [ratio]",
-      converged.at = "Converged at [interation]",
-      sparse.error = "Sparsity error [difference]"
+      success.rate = "Success rate",
+      converged.at = "Converged at",
+      sparse.error = "Sparsity error"
     )
   )) +
   theme(legend.position="bottom") +

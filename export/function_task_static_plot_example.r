@@ -42,8 +42,8 @@ p = ggplot(dat.ggplot, aes(x=iteration, y=error, colour=model)) +
   xlab('Iteration') +
   facet_wrap(~ measurement, scale='free_y', labeller = labeller(
     measurement = c(
-      extrapolation.error = "Extrapolation error",
-      interpolation.error = "Interpolation error",
+      extrapolation.error = "Extrapolation error [MSE]",
+      interpolation.error = "Interpolation error [MSE]",
       sparse.error = "Sparsity error"
     )
   )) +
