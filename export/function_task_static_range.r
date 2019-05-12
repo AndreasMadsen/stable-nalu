@@ -19,7 +19,8 @@ xtabs.data.first = function (data, formular, ...) {
 name.parameter = 'interpolation.range'
 name.label = 'Interpolation range'
 name.file = '../results/function_task_static_mul_range.csv'
-
+name.output = '../paper/results/simple_function_static_range.pdf'
+  
 dat = expand.name(read_csv(name.file)) %>%
   mutate(
     parameter = !!as.name(name.parameter)
@@ -94,8 +95,7 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
   )
 
 p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
-  geom_point(aes(y = mean.value)) +
-  geom_line(aes(y = mean.value)) +
+  geom_point(aes(y = mean.value, position="dodge")) +
   geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
   xlab(name.label) +
@@ -104,9 +104,11 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
     key = c(
       success.rate = "Success rate [ratio]",
       converged.at = "Converged at [interation]",
-      sparse.error = "Sparse error [difference]"
+      sparse.error = "Sparsity error [difference]"
     )
   )) +
-  theme(legend.position="bottom")
+  theme(legend.position="bottom") +
+  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 print(p)
-#ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
+ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")

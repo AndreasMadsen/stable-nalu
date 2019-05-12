@@ -75,7 +75,12 @@ dat.last.rate %>%
   arrange(operation, model) %>%
   kable(
     "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label="function-task-static-defaults",
-    caption="Shows the sucess-rate for extrapolation < $\\epsilon$, at what global step the model converged at, and the sparse error for all weight matrices."
+    caption="Shows the success-rate for extrapolation < $\\epsilon$, at what global step the model converged at, and the sparsity error for all weight matrices.",
+    col.names = c("Operation",
+                  "Model",
+                  "Success rate",
+                  "Converged at",
+                  "Sparsity error")
   ) %>%
   kable_styling(latex_options=c('HOLD_position')) %>%
   collapse_rows(columns = c(1,2), latex_hline = "major") %>%

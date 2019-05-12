@@ -44,7 +44,7 @@ p = ggplot(dat.ggplot, aes(x=iteration, y=error, colour=model)) +
     measurement = c(
       extrapolation.error = "Extrapolation error",
       interpolation.error = "Interpolation error",
-      sparse.error = "Sparse error"
+      sparse.error = "Sparsity error"
     )
   )) +
   theme(legend.position="bottom") + 

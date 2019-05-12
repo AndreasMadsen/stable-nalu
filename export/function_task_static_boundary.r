@@ -101,7 +101,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
       key = c(
         success.rate = "Success rate [ratio]",
         converged.at = "Converged at [interation]",
-        sparse.error = "Sparse error [difference]"
+        sparse.error = "Sparsity error [difference]"
       )
     )) +
     theme(legend.position="bottom") +
