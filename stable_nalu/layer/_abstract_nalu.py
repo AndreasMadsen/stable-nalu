@@ -157,10 +157,6 @@ class AbstractNALULayer(ExtendedTorchModule):
         self.writer.add_histogram('mul', m)
         # y = g (*) a + (1 - g) (*) m
         y = g_add * a + g_mul * m
-        self.writer.print('g_add', torch.mean(g_add, 0))
-        self.writer.print('g_mul', torch.mean(g_mul, 0))
-        self.writer.print('m', torch.mean(m, 0))
-        self.writer.print('y', torch.mean(y, 0))
 
         return y
 
