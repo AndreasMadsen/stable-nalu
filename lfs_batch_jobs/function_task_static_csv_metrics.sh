@@ -1,6 +1,6 @@
 
 job_name='function_task_static_csv_metrics'
-experiment_names=( 'function_task_static_mul_input_size' 'function_task_static_mul_overlap' 'function_task_static_mul_range' 'function_task_static_mul_subset' 'function_task_static' 'sequential_mnist_prod' 'sequential_mnist_sum' )
+experiment_names=( 'function_task_static_mul_input_size' 'function_task_static_mul_overlap' 'function_task_static_mul_range' 'function_task_static_mul_subset' 'function_task_static' )
 
 for experiment_name in "${experiment_names[@]}"
 do

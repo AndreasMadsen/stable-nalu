@@ -1,8 +1,8 @@
 #!/bin/bash
 experiment_name='function_task_static_mul_range'
 operation=mul
-interpolation_ranges=( '[0,1]' '[1,2]' '[0.1,0.2]' '[10,20]' '[-2,2]' )
-extrapolation_ranges=( '[0,10]' '[0,20]' '[0,2]' '[0,200]' '[-20,20]' )
+interpolation_ranges=( '[-2,2]' '[0,1]' '[0.1,0.2]' '[1,2]' '[10,20]' )
+extrapolation_ranges=( '[-6,6]' '[0,5]' '[0,2]' '[1,6]' '[1,40]' )
 for seed in {0..9}
 do
     for i in ${!interpolation_ranges[@]}
