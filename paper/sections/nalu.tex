@@ -1,12 +1,12 @@
 \section{Improving NAC and NALU}
 
-The NALU \cite{trask-nalu} is a neural unit capable of doing exact addition or multiplication, controlled by a sigmoid-gating-mechanism. The addition part is trivial, as this is just a matrix multiplication $\mathbf{a} = \mathbf{W}\mathbf{x}$. The only special part is that the weight matrix $\mathbf{W}$ is constrained to be between $-1$ and $1$. This this done using a $\mathbf{W} = \mathrm{tahn}({\hat{\mathbf{W}}}) \sigma({\hat{\mathbf{M}}})$ construction. Meaning that the weight matrix $\mathbf{W}$ is not trained directly, but computed from two auxiliary weight matrices. The core idea is that $\hat{\mathbf{W}}$ controls the sign and $\hat{\mathbf{M}}$ controls if the weight is zero. One of their core claims, is that this weight matrix construction have a sparse bias, which improves extrapolation for cases where a sparse weight is part of the underlying model.
+The NALU from \cite{trask-nalu} is a neural unit capable of doing either exact addition or multiplication, controlled by a sigmoid-gating-mechanism. The addition part is trivial, as this is just a matrix multiplication $\mathbf{a} = \mathbf{W}\mathbf{x}$. The only special part is that the weight matrix $\mathbf{W}$ is constrained to be between $-1$ and $1$. This this done using a $\mathbf{W} = \mathrm{tahn}({\hat{\mathbf{W}}}) \sigma({\hat{\mathbf{M}}})$ construction. Meaning that the weight matrix $\mathbf{W}$ is not trained directly, but computed from two auxiliary weight matrices. The core idea is that $\hat{\mathbf{W}}$ controls the sign and $\hat{\mathbf{M}}$ controls if the weight is zero. One of their core claims, is that this weight matrix construction have a sparse bias, which improves extrapolation for cases where a sparse weight is part of the underlying model.
 
-For the multiplication, an exponential-log transformation is used in order to do exact multiplication using a matrix multiplication, $\mathbf{m} = \exp(\mathbf{W} \log(|\mathbf{x}| + \epsilon))$.
+For the multiplication, an exponential-log transformation is used in order to do exact multiplication (within $\epsilon$ precision) using a matrix multiplication, $\mathbf{m} = \exp(\mathbf{W} \log(|\mathbf{x}| + \epsilon))$.
 
-The addition unit (originally NAC), and the multiplication unit are in themself theoretically applicable in any neural network as well as being differentiable. The NALU, then combines them using a sigmoid-gating-mechanism $\mathbf{g} = \sigma(\mathbf{G} \mathbf{x})$\footnote{The lack of bias term here is not a typo. Our preliminary investigations suggests that this is a hack to increase extrapolation of the gate. However in this paper the focus is only arithmetic operators themself.} that choses by interpolation between addition and multiplication $\mathbf{z} = \mathbf{g} \odot \mathbf{a} + (1 - \mathbf{g}) \odot \mathbf{m}$.
+The addition unit (originally named NAC), and the multiplication unit are in themselves theoretically applicable in any neural network as well as being differentiable. The NALU, then combines them using a sigmoid-gating-mechanism\footnote{The lack of bias term is not a typo. Our preliminary investigations suggests that this is a hack to increase extrapolation of the gate. However in this paper the focus is only arithmetic operators themself.} $\mathbf{g} = \sigma(\mathbf{G} \mathbf{x})$ that chooses softly between addition and multiplication $\mathbf{z} = \mathbf{g} \odot \mathbf{a} + (1 - \mathbf{g}) \odot \mathbf{m}$.
 
-In terms of the theory, the Original NALU paper \cite{trask-nalu} does not discuss anything more than mentioned so-far in this paper. To discuss why particular construction is a bad idea, and also suggests improvements which will be empirically validated later, the NAC and its multiplication variant is first re-formulated using scalar notation.
+In terms of the theory, the Original NALU paper \cite{trask-nalu} does not discuss anything more than mentioned so-far in this paper. To aid discussion of why this particular construction problematic, and also suggests improvements which will be empirically validated later, the NAC and its multiplication variant is re-formulated using scalar notation.
 
 \begin{equation}
 \begin{aligned}
@@ -27,7 +27,7 @@ The weight matrix constructions $\mathrm{tahn}({\hat{\mathbf{W}}}) \sigma({\hat{
 \end{aligned}
 \end{equation}
 
-This reveals that this construction is particularly problematic, as the $E[\mathrm{tahn}(\hat{W}_{h_{\ell-1},h_\ell})] = 0$ when $E[\hat{W}_{h_{\ell-1},h_\ell}] = 0$. Initializing $\hat{W}_{h_{\ell-1},h_\ell}$ to have zero expectation, is not just common choice but necessary in order to achieve $E[W_{h_{\ell-1},h_\ell}] = 0$, which is always a desired property in linear units such as as the NAC \cite{glorot-initialization}.
+This reveals that this construction is particularly problematic, as $E[\mathrm{tahn}(\hat{W}_{h_{\ell-1},h_\ell})] = 0$ when $E[\hat{W}_{h_{\ell-1},h_\ell}] = 0$. Initializing $\hat{W}_{h_{\ell-1},h_\ell}$ to have zero expectation, is not just common choice but necessary in order to achieve $E[W_{h_{\ell-1},h_\ell}] = 0$, which is necessary to get desired property $E[z_{h_\ell}] = 0$ in linear units such as as the NAC \cite{glorot-initialization}.
 
 The NALU \cite{trask-nalu} paper also claims that this weight matrix construction, creates a bias for ${-1, 0, 1}$. However, they provide no empirically or theoretical evidence to support that. In our own empirical investigation as seen in the experiments section, we also find no support for that claim.
 
@@ -45,16 +45,16 @@ Note that while the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ also reg
 
 \subsection{Multiplication unit}
 
-The multiplication unit has its own issues. It should be easy to see that when $|z_{h_{\ell-1}}|$ is near zero and when $\hat{W}_{h_{\ell-1},h_\ell}$ is near $-1$ the $z_{h_\ell}$ value explodes. However, the issue extends beyond a weight near $-1$ as is revealed in the gradients, especially the backpropergation term ($\sfrac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}}$):
+The multiplication unit has its own issues. It should be easy to see that when $|z_{h_{\ell-1}}|$ is near zero and when $\hat{W}_{h_{\ell-1},h_\ell}$ is near $-1$ the $z_{h_\ell}$ value explodes. However, the issue extends beyond a weight near $-1$ as is revealed in the gradients, especially the backpropergation term $\frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}}$:
 
 \begin{equation}
 \begin{aligned}
-\frac{\partial \mathcal{L}}{\partial w_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} \log(|z_{h_{\ell-1}}| + \epsilon) \\
+\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} \log(|z_{h_{\ell-1}}| + \epsilon) \\
 \frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} W_{h_\ell, h_{\ell-1}} \frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}
 \end{aligned}
 \end{equation}
 
-In should be clear from $\sfrac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}$ for $z_{h_{\ell-1}}$ near zero, the backpropagation term will not only explode, but can oscillate between a large postive value and large negative value, which is very problematic in optimization \cite{adam-optimization}. This issue does not only exists for $|z_{h_{\ell-1}}| < \epsilon$, which may have a small probability if $z_{h_{\ell-1}}$ has a wide distribution. But is can also be an issue for values outside of this interval.
+In should be clear from $\frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}$ that for $z_{h_{\ell-1}}$ near zero, the backpropagation term will not only explode, but can oscillate between a large postive value and large negative value, which is very problematic in optimization \cite{adam-optimization}. This issue does not only exists for $|z_{h_{\ell-1}}| < \epsilon$, which may have a small probability if $z_{h_{\ell-1}}$ has a wide distribution. But is can also be an issue for values outside of this interval as seen in figure \ref{fig:nac-mul-eps-issue}.
 
 \begin{figure}[H]
 \centering
@@ -93,12 +93,12 @@ These observations are particular problematic when considering that $E[z_{h_{\el
 \end{aligned}
 \end{equation}
 
-This units does not support division. But supporting division is likely infeasible if $z_{h_{\ell-1}}$ near zero should not cause explosions. The NALU paper also shows that division doesn't work well for their unit, hence very little is lost here. On the other hand, this unit construction differentiates between negative and positive $z_{h_{\ell-1}}$ values, which should be considered an added bonus.
+This units does not support division. But supporting division is likely infeasible if $z_{h_{\ell-1}}$ near zero should not cause explosions. The NALU paper also shows that division doesn't work well for their unit, hence very little is lost here \cite{trask-nalu}. On the other hand, this unit construction understand the difference between a negative and a positive $z_{h_{\ell-1}}$ values, which should be considered an added bonus,as this allows extrapolations into the negative input range.
 
 The gradients weight gradient and backpropagation term of the NMU are:
 \begin{equation}
 \begin{aligned}
-\frac{\partial \mathcal{L}}{\partial w_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right) \\
+\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right) \\
 \frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} W_{h_{\ell-1},h_\ell}
 \end{aligned}
 \end{equation}
@@ -107,11 +107,11 @@ These is much more well-behaved. Note also that the fraction does not explode fo
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.4\linewidth]{graphics/nac-mul-nmu.png}
+\includegraphics[width=0.33\linewidth]{graphics/nac-mul-nmu.png}
 \caption{RMS loss curvature (without regularization) for a $\mathrm{NAC}_{+}$ layer followed by an $\mathrm{NMU}$ layer. Otherwise, the setup is identical to that in Figure \ref{fig:nac-mul-eps-issue}.}
 \end{figure}
 
-\subsection{Moments and initialization}
+\subsection{Moments and initialization for addition}
 
 Initialization is important for fast and consistent convergence. The desired properties are according to Glorot et al. \cite{glorot-initialization}:
 \begin{equation}
@@ -124,11 +124,13 @@ Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= Var\left
 
 The $\mathrm{NAC}_{+}$ layer is trivial, as this is just a linear layer. Thus the result from Glorot et al. ($Var[W_{h_{\ell-1},h_{\ell}}] = \frac{2}{H_{\ell-1} + H_{\ell}}$) can be used \cite{glorot-initialization}.
 
-In the case the modified $\mathrm{NAC}_{+}$, this condition is easy to satisfy. The original $\mathrm{NAC}_{+}$ is less trivial as $W_{h_{\ell-1},h_{\ell}}$ is not sampled directly. But assuming that $\hat{W}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ and $\hat{M}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ then the variance can be derived to be:
+In the case of the $\mathrm{NAU}$, this condition is easy to satisfy. However, the original $\mathrm{NAC}_{+}$ unit is less trivial as $W_{h_{\ell-1},h_{\ell}}$ is not sampled directly. But assuming that $\hat{W}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ and $\hat{M}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ then the variance can be derived to be:
 \begin{equation}
 Var[W_{h_{\ell-1},h_{\ell}}] = \frac{1}{2r} \left(1 - \frac{\tanh(r)}{r}\right) \left(r - \tanh\left(\frac{r}{2}\right)\right)
 \end{equation}
 One can the solve for $r$, given the desired variance. 
+
+\subsection{Moments and initialization for multiplication}
 
 Using second order multivariate Taylor approximation and some assumptions of uncorrelated stochastic variables, the expectation and variance of the $\mathrm{NAC}_{\bullet}$ layer can be estimated to:
 \begin{equation}
@@ -142,9 +144,9 @@ Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Va
 \end{aligned}
 \end{equation}
 
-This is problematic because $E[z_{h_\ell}] \ge 1$, and the variance explodes for $E[z_{h_{\ell-1}}] = 0$ which is a desired property.
+This is problematic because $E[z_{h_\ell}] \ge 1$, and the variance explodes for $E[z_{h_{\ell-1}}] = 0$ which is normally a desired property.
 
-For our proposed NMU layer expectation and variance can be derived using the same assumptions as before, but no Taylor approximation is required:
+For our proposed NMU, the expectation and variance can be derived using the same assumptions as before, although no Taylor approximation is required:
 \begin{equation}
 \begin{aligned}
 E[z_{h_\ell}] &\approx \left(\frac{1}{2}\right)^{H_{\ell-1}} \\
@@ -157,6 +159,6 @@ Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Va
 
 These expectations are much more well behaved. It is properly unlikely to expect that the expectation can become zero, since the identity for multiplication is 1. However, for a large $H_{\ell-1}$ it will be near zero.
 
-The variance also more well-behaved, but does not provide a input-independent initialization strategy. We propose initializing with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$, as this is the solution for an input with unit-variance and large $H_{\ell-1}$ and large $H_{\ell}$. However, feel free to compute more exact solutions.
+The variance is also more well-behaved, but does not provide a input-independent initialization strategy. We propose initializing with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$, as this is the solution for an input with unit-variance and large $H_{\ell-1}$ and large $H_{\ell}$. However, feel free to compute more exact solutions.
 
-Be aware that for $Var[z_{h_{\ell-1}}] > 4$ no solutions exists. Thus a third alternative is to normalize the input $z_{h_{\ell-1}}$ by its standard deviation and then upscale the output as $\hat{z}_{h_{\ell-1}} = z_{h_{\ell-1}} Var[z_{h_{\ell-1}}]^{\frac{1}{2} \sum_{h_{\ell-1} = 1}^{H_{\ell-1}} W_{h_{\ell-1}, h_\ell}}$. This does not maintain constant variance, but bounds how much it can grow and somewhat solves the initialization issue for an input with high variance.
+Be aware that for $Var[z_{h_{\ell-1}}] > 4$ no solutions exists. Thus a third alternative is to normalize the input $z_{h_{\ell-1}}$ by its standard deviation and then upscale the output as $\hat{z}_{h_{\ell-1}} = z_{h_{\ell-1}} Var[z_{h_{\ell-1}}]^{\frac{1}{2} \sum_{h_{\ell-1} = 1}^{H_{\ell-1}} W_{h_{\ell-1}, h_\ell}}$. This does not maintain constant variance, but bounds how much it can grow and somewhat solves the initialization issue for an input with high variance. \todo{This section is mostly just an untested thought, perhaps it shouldn't be included or maybe it is better suited for a Future Work section.}

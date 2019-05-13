@@ -42,10 +42,12 @@ E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, 
 
 The first iteration for which $\mathrm{extrapolation} < \epsilon$, is also reported. Again, only models that did solve the task are considered.
 
-\begin{figure}[H]
+For all experiements the $\mathcal{R}_{\ell,\mathrm{oob}}$ regularizer is added to the loss without modification or scaling, while the $\mathcal{R}_{\ell,\mathrm{bias}}$ regularizer is gradually upscaled with $0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Generally this regularizer should just be sufficiently small to not interfear with earily training.
+
+\begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{paper/results/function-task-static-example.pdf}
-\caption{Example of exploration error, interpolation error, and sparsity error, for the task $a \cdot b$ with the default dataset parameters.}
+\caption{Example of exploration error, interpolation error, and sparsity error, for the task $a \cdot b$ with the default dataset parameters. The horizontal line shows $\epsilon = 0.2$.}
 \end{figure}
 
 \subsubsection{Very simple function}
@@ -107,7 +109,7 @@ Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NAL
 \label{fig:simple-fnction-static-subset}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_range.pdf}
 \caption{Shows the effect of the interpolation range. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[0,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[1,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[1, 40]}$.}
@@ -116,11 +118,18 @@ Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NAL
 
 \subsection{Sequential MNIST}
 
-\todo[inline]{Still waiting for results}
+To evaluate NAU and NMU in a end-to-end context in combination with a more complex network. We consider the Sequential MNIST Arithmetic task, also presented in the Original NALU paper \cite{trask-nalu}.
+
+The task is to take a sequence of MNIST images, then use a CNN layer to produce a hidden layer with 10 elements which somehow describes the number. An recurrent arithmetic unit, is then used to either sum or multiply each MNIST digit together.
+
+This is slightly different from \cite{trask-nalu}, as they only considered addition in the form of counting and a sum. While here consider the sum and the product of a sequence is a considered (figure \ref{fig:mnist-sequence-problem}). Such that the multiplication layer also can be judged.
 
 \begin{figure}[H]
 \centering
 \includegraphics[scale=1]{graphics/mnist_sequence_problem.pdf}
-\caption{Lorem Ipsum.}
+\caption{Shows how $3 \cdot 4 \cdot2$ is computed from a sequence of MNIST digits.}
+\label{fig:mnist-sequence-problem}
 \end{figure}
+
+\todo[inline]{Still waiting for results to be computed.}
 

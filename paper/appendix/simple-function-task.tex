@@ -1,7 +1,9 @@
 \section{Simple function task}
 
+\subsection{Dataset generation}
+
 \begin{algorithm}[H]
-  \caption{Dataset Sampler}
+  \caption{Dataset sampling algorithm}
   \begin{algorithmic}[1]
     \Function{Dataset}{${\Call{Op}{\cdot, \cdot}: \mathrm{Operation}}$, ${i: \mathrm{Input Size}}$, ${s: \mathrm{Subset Ratio}}$, ${o: \mathrm{Overlap Ratio}}$, ${\hspace{3cm}R: \mathrm{Range}}$}
       \Let{$\mathbf{x}$}{\Call{Uniform}{$R_{lower}, R_{upper}, i$}} \Comment{Sample $i$ elements uniformly}

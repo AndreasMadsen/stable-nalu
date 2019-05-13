@@ -31,7 +31,6 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{mathtools}
-\usepackage{xfrac}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{caption}
@@ -39,6 +38,7 @@
 \usepackage{layouts}
 \usepackage{float}
 \usepackage{todonotes}
+\usepackage{enumitem}
 
 % Algorithms
 \usepackage{algorithm}
@@ -85,28 +85,34 @@ Arithmetic presents unique challenges to machine learning models as they are sol
 Neural networks has, with millions and sometimes billions of parameters, an ability to internalize incredible complex functions.
 However, when extrapolating to out-of-distribution examples they often fail as the neural network learns an approximation and not the underlying logic.
 %What’s your contribution?
-We propose a plug-and-play module for neural networks that trains with stochastic gradient descent and can learn the of addition, subtraction and multiplication.
-Our proposed Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU) rely on weight constraints to learn rules and extrapolate well beyond current solutions.
+We propose a plug-and-play differentiable neural unit that can be trained using stochastic gradient descent and can learn addition, subtraction and multiplication.
+Our proposed Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU) rely on weight constraints to learn rules and extrapolate well beyond the training distribution.
 %Why is it novel?
 %What’s interesting about it?
 The proposed NAU and NMU are inspired by the Neural Arithmetic Logic Unit (NALU).
-We find that replacing the nonlinearities in the weight matrix with a clipped linear function and adding an identity function to the log-exp multiplication unit is crucial for converging consistently.
+We find that replacing the nonlinearities in the weight matrix with a clipped linear function and fundamentally reformulate the multiplication unit is crucial for converging consistently.
 %How does it perform?
 Through analytic and empirical analysis we justify how the NAU and NMU improve the Neural Arithmetic Logic Unit (NALU) and standard multi-layer perceptron (MLP) models.
-Our empirical results are fewer parameters, more consistent convergence, faster learning and more meaningful discrete values than the NALU.\footnote{In the interrest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}. }
+Our models have fewer parameters, convergence more consistently, learns faster and have more meaningful discrete values than the NALU.\footnote{In the interest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}.}
 \end{abstract}
 
 \input{sections/introduction}
 \input{sections/nalu}
 \input{sections/results}
 \input{sections/future-work}
-
+\input{sections/conclusion}
 
 \subsubsection*{Acknowledgments}
 
-\blackout{Use unnumbered third level headings for the acknowledgments. All acknowledgments go at the end of the paper. Do not include acknowledgments in the anonymized submission, only in the final paper.}
+\xblackout{We would like to thank Andrew Trask and the other authors of the NALU paper, for highlighting the importance and challenges of etrapolation in Neural Networks. We would also like to thank the students Raja Shan Zaker Kreen and William Frisch Moller from The Technical University of Denmark, who showed us that the NALU does not converge consistently.}
 
 \bibliographystyle{plainnat}
 \bibliography{bibliography}
+
+\newpage
+\appendix
+\input{appendix/gradient-derivatives}
+\input{appendix/moments}
+\input{appendix/simple-function-task}
 
 \end{document}
