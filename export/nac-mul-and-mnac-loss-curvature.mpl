@@ -24,25 +24,25 @@ MNACalt := proc(w1,w2,x,t)
 end proc:
 
 P := plot3d(
-	MNAC(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|0>>, <<w[2]|w[2]>>, <1,1.5,2,2>, 11.25, 1E-7),
+	MNAC(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|w[1]>>, <<w[2]|w[2]>>, <1,1.2,1.8,2>, 11.25, 1E-7),
 	w[1] = -1 .. 1, w[2] = -1 .. 1, view = [-1..1, -1..1, 0..500],
 	axes=boxed, orientation=[-45, 39, 0]):
 Export(FileTools:-JoinPath([currentdir(), "..", "paper", "graphics", "nac-mul-eps-1em7.jpeg"]), P);
 
 P := plot3d(
-	MNAC(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|0>>, <<w[2]|w[2]>>, <1,1.5,2,2>, 11.25, 1E-1),
+	MNAC(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|w[1]>>, <<w[2]|w[2]>>, <1,1.2,1.8,2>, 11.25, 1E-1),
 	w[1] = -1 .. 1, w[2] = -1 .. 1, view = [-1..1, -1..1, 0..500],
 	axes=boxed, orientation=[-45, 39, 0]):
 Export(FileTools:-JoinPath([currentdir(), "..", "paper", "graphics", "nac-mul-eps-1em1.jpeg"]), P);
 
 P := plot3d(
-	MNAC(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|0>>, <<w[2]|w[2]>>, <1,1.5,2,2>, 11.25, 1),
+	MNAC(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|w[1]>>, <<w[2]|w[2]>>, <1,1.2,1.8,2>, 11.25, 1),
 	w[1] = -1 .. 1, w[2] = -1 .. 1, view = [-1..1, -1..1, 0..500],
 	axes=boxed, orientation=[-45, 39, 0]):
 Export(FileTools:-JoinPath([currentdir(), "..", "paper", "graphics", "nac-mul-eps-1.jpeg"]), P);
 
 P := plot3d(
-	MNACalt(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|0>>, <w[2]|w[2]>, <1,1.5,2,2>, 11.25),
+	MNACalt(<<w[1]|w[1]|0|0>, <w[1]|w[1]|w[1]|w[1]>>, <w[2]|w[2]>, <1,1.2,1.8,2>, 11.25),
 	w[1] = -1 .. 1, w[2] = 0 .. 1, view = [-1..1, 0..1, 0..500],
 	axes=boxed, orientation=[-45, 39, 0]):
 Export(FileTools:-JoinPath([currentdir(), "..", "paper", "graphics", "nac-mul-nmu.jpeg"]), P);
