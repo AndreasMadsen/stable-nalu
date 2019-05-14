@@ -44,7 +44,7 @@ The first iteration for which $\mathrm{extrapolation} < \epsilon$, is also repor
 
 For all experiements the $\mathcal{R}_{\ell,\mathrm{oob}}$ regularizer is added to the loss without modification or scaling, while the $\mathcal{R}_{\ell,\mathrm{bias}}$ regularizer is gradually upscaled with $0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Generally this regularizer should just be sufficiently small to not interfear with earily training.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{results/function-task-static-example.pdf}
 \caption{Example of exploration error, interpolation error, and sparsity error, for the task $a \cdot b$ with the default dataset parameters. The horizontal line shows $\epsilon = 0.2$.}
