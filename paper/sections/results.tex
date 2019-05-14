@@ -1,6 +1,9 @@
 \section{Experimental results}
+\label{sec:experiments}
 
 \subsection{Simple function task}
+
+\subsubsection{Task definition}
 
 Our simple function task samples an input vector $\mathbf{x}$ from a uniform distribution. From this input vector, the sum of two subsets $a$ and $b$ are then computed. Finally the target $t$ is then an operation performed on $a$ and $b$ (e.g. $a \cdot b$). This is identical to the task by the same name in the Original NALU paper \cite{trask-nalu}. Except that we parameterize it in order to compare the models for different configurations, see figure \ref{fig:simple-function-task-problem}. To make comparison simple, we define a set of default parameters (table \ref{tab:simple-function-task-defaults}) and only vary one of them at the time.
 
@@ -27,12 +30,16 @@ Our simple function task samples an input vector $\mathbf{x}$ from a uniform dis
  \bottomrule
 \end{tabular}
 \end{table}
+\todo{should extrapolation be $U[2,6]$?}
+
+The training set is sampled from the interpolation range throughout training. The extrapolation range is defined as 2048 samples picked for each seed at the start of training.\todo{should we define valid and test sets? maybe we should make one BIG test set and have all models run on that}
+
+\subsubsection{Criterion}
 
 Normally one would report the interpolation and extrapolation loss. However, the complex approximations that one would typically see in neural networks are not considered good enough. The goal is to achieve a solution that is sufficiently close to a perfect solution. Because there can be many valid permutations of a perfect solution, especially for addition, a solution is judged firsts on the final extrapolation error, and then on a sparsity error.
+Because the interpolation and extrapolation errors are quite noisy, even for a near perfect solution. The median over the last 100 measurements is reported\todo{use the 2048 as a validation set and just pick the best instead. Then report test results for those}.
 
-All errors; extrapolation, interpolation, and sparsity are computed every 1000 iterations for 2048 new observations. Because the interpolation and extrapolation errors are quite noisy, even for a near perfect solution. The median over the last 100 measurements is reported.
-
-A model is considered a success if the extrapolation median is less than $\epsilon = 0.2$. This value was acquired by inspecting the error of a near perfect solution. \todo{Get a better critation.}
+A model is considered a success if the extrapolation median is less than $\epsilon = 0.2$. This value was acquired by inspecting the error of a near perfect solution. \todo{Get a better criterion.}
 
 The sparsity error is computed as in equation \ref{eq:sparsity-error}, and is only considered for the models that did solve the last.
 \begin{equation}
@@ -42,13 +49,15 @@ E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, 
 
 The first iteration for which $\mathrm{extrapolation} < \epsilon$, is also reported. Again, only models that did solve the task are considered.
 
-For all experiements the $\mathcal{R}_{\ell,\mathrm{oob}}$ regularizer is added to the loss without modification or scaling, while the $\mathcal{R}_{\ell,\mathrm{bias}}$ regularizer is gradually upscaled with $0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Generally this regularizer should just be sufficiently small to not interfear with earily training.
+\subsubsection{Model setup}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{results/function-task-static-example.pdf}
-\caption{Example of exploration error, interpolation error, and sparsity error, for the task $a \cdot b$ with the default dataset parameters. The horizontal line shows $\epsilon = 0.2$.}
-\end{figure}
+For all experiements the $\mathcal{R}_{\ell,\mathrm{oob}}$ regularizer is added to the loss without modification or scaling, while the $\mathcal{R}_{\ell,\mathrm{bias}}$ regularizer is gradually upscaled with $0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Generally this regularizer should just be sufficiently small to not interfer with earily training.
+
+%\begin{figure}[ht]
+%\centering
+%\includegraphics[width=\linewidth]{results/function-task-static-example.pdf}
+%\caption{Example of exploration error, interpolation error, and sparsity error, for the task $a \cdot b$ with the default dataset parameters. The horizontal line shows $\epsilon = 0.2$.}
+%\end{figure}
 
 \subsubsection{Very simple function}
 
@@ -76,7 +85,7 @@ As seen the NMU model, unlike the $\mathrm{NAC}_{\bullet}$ model always converge
 The NAU model, like the $\mathrm{NAC}_{+}$ model, always converges. However, NAU model converges more than twice as fast. It even converges faster than a Linear model. Also notice that the $\mathrm{NAC}_{+}$ model have a poor sparsity error. This is because it doesn't bias to $\{-1, 0, -1\}$.
 
 \input{results/function_task_static.tex}
-
+\todo{add linear to multiplication}
 \subsubsection{Exploration of dataset parameters}
 
 Finally, the parameters from which the dataset is constructed are considered for just the multiplication problem ($a \cdot b$). The setup is the same the results from table \ref{tab:function-task-static-defaults}. The results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, \ref{fig:simple-fnction-static-range}, and \ref{fig:simple-fnction-static-subset}. Errors bars show the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.
