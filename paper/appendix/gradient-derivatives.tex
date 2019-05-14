@@ -1,7 +1,8 @@
 \section{Gradient derivatives}
+\label{sec:appendix:gradient-derivatives}
 
 \subsection{Weight matrix construction}
-
+\label{sec:appendix:gradient-derivatives:weight-matrix-construction}
 For clarity the weight matrix construction is defined using scalar notation
 \begin{equation}
 W_{h_\ell, h_{\ell-1}} = \tanh(\hat{W}_{h_\ell, h_{\ell-1}}) \sigma(\hat{M}_{h_\ell, h_{\ell-1}})
@@ -20,6 +21,7 @@ The of the loss with respect to $\hat{W}_{h_\ell, h_{\ell-1}}$ and $\hat{M}_{h_\
 As seen from this result, one only needs to consider $\frac{\partial\mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}}$ for $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, as the gradient with respect to $\hat{W}_{h_\ell, h_{\ell-1}}$ and $\hat{M}_{h_\ell, h_{\ell-1}}$ is just a multiplication on $\frac{\partial\mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}}$.
 
 \subsection{Gradient of $\mathrm{NAC}_{\bullet}$}
+\label{sec:appendix:gradient-derivatives:gradient-nac-mul}
 
 First the $\textrm{NAC}_\bullet$ is defined using scalar notation.
 \begin{equation}
@@ -56,6 +58,7 @@ The gradient of $\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}$ is then:
 $\mathrm{abs}'(z_{h_{\ell}})$ is the gradient of the absolute function. In the paper we denote this as $\mathrm{sign}(z_{h_{\ell}})$ for brevity. However, depending on the exact defintion used there may be a difference for $z_{h_{\ell}} = 0$, as $\mathrm{abs}'(0)$ is undefined. In practicality this doesn't matter much though, although theoretically it does mean that the expectation of this is theoretically undefined when $E[z_{h_{\ell}}] = 0$.
 
 \subsection{Gradient of NMU}
+\label{sec:appendix:gradient-derivatives:gradient-nmu}
 
 In scalar notation the NMU is defined as:
 \begin{equation}

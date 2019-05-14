@@ -1,6 +1,8 @@
 \section{Moments}
+\label{sec:appendix:moments}
 
 \subsection{Expectation and variance for weight matrix construction in NAC layers}
+\label{sec:appendix:moments:weight-matrix-construction}
 
 The weight matrix construction in NAC, is defined in scalar notation as: 
 \begin{equation}
@@ -51,6 +53,7 @@ Finally this gives the variance:
 \end{equation}
 
 \subsection{Expectation and variance of $\mathrm{NAC}_{\bullet}$}
+\label{sec:appendix:moments:nac-mul}
 \subsubsection{Forward pass}
 Assuming that each $z_{h_{\ell-1}}$ are independent the expectation can be simplified to:
 \begin{equation}
@@ -185,7 +188,6 @@ Var[z_{h_\ell}] &= E\left[f(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}}) \r
 \end{equation}
 
 \subsubsection{Backward pass}
-
 The expectation of the backpropagation term:
 \begin{equation}
 E[\delta_{h_\ell}] = E\left[\sum_{h_{\ell+1}=1}^{H_{\ell+1}} \delta_{h_{\ell+1}} \frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}\right] = H_{\ell+1} E[\delta_{h_{\ell+1}}] E\left[\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}\right]
@@ -231,9 +233,8 @@ Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Va
 \end{equation}
 
 \subsection{Expectation and variance of NMU}
-
+\label{sec:appendix:moments:nmu}
 \subsubsection{Forward pass}
-
 Assuming that each $z_{h_{\ell-1}}$ are independent, that $E[z_{h_{\ell-1}}] = 0$, and that $E[W_{h_{\ell-1},h_\ell}] = \nicefrac{1}{2}$ the expectation is:
 \begin{equation}
 \begin{aligned}
@@ -300,6 +301,7 @@ Var&\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] = H_\ell V
 \end{equation}
 
 \subsubsection{Initialization}
+\label{sec:appendix:moments:nmu:initialization}
 
 The expectation of $W_{h_{\ell-1},h_\ell}$ should be $E[W_{h_{\ell-1},h_\ell}] = \frac{1}{2}$. Using the variance approximations found, the variance should be according to the forward pass:
 

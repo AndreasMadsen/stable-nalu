@@ -118,16 +118,16 @@ Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NAL
 
 \subsection{Sequential MNIST}
 
-To evaluate NAU and NMU in a end-to-end context in combination with a more complex network. We consider the Sequential MNIST Arithmetic task, also presented in the Original NALU paper \cite{trask-nalu}.
+To evaluate NAU and NMU in a end-to-end context in combination with a more complex network. We consider the Sequential MNIST Arithmetic task, also presented in the NALU paper \cite{trask-nalu}.
 
-The task is to take a sequence of MNIST images, then use a CNN layer to produce a hidden layer with 10 elements which somehow describes the number. An recurrent arithmetic unit, is then used to either sum or multiply each MNIST digit together.
+The task is to take a sequence of MNIST images, then use a CNN layer \footnote{We use the model from \url{https://github.com/pytorch/examples/tree/master/mnist} which is also used in the NALU paper, \cite{trask-nalu}.} to produce a hidden layer with 10 elements which somehow describes the number. An recurrent arithmetic unit, is then used to either sum or multiply each MNIST digit together.
 
 This is slightly different from \cite{trask-nalu}, as they only considered addition in the form of counting and a sum. While here consider the sum and the product of a sequence is a considered (figure \ref{fig:mnist-sequence-problem}). Such that the multiplication layer also can be judged.
 
 \begin{figure}[H]
 \centering
 \includegraphics[scale=1]{graphics/mnist_sequence_problem.pdf}
-\caption{Shows how $3 \cdot 4 \cdot2$ is computed from a sequence of MNIST digits.}
+\caption{Shows how $3 \cdot 4 \cdot2$ is computed from a sequence of MNIST digits. $f$ is a CNN layer, that transforms the image into a 10-long vector representation.}
 \label{fig:mnist-sequence-problem}
 \end{figure}
 

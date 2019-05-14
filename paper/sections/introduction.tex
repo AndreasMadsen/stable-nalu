@@ -1,13 +1,13 @@
 \section{Introduction}
 
-The ability for neurons to hold numbers and do arithmetic operations have been documented in both humans, non-human primates \cite{nieder-neuronal-number}, as well as newborn chicks \cite{rugani-arithmetic-chicks}, and even bees \cite{gallistel-numbers-in-brain}.
+The ability for neurons to hold numbers and do arithmetic operations has been documented in both humans, non-human primates \cite{nieder-neuronal-number}, newborn chicks \cite{rugani-arithmetic-chicks} and bees \cite{gallistel-numbers-in-brain}.
 In our race to solve intelligence we have put much faith in neural networks, which in turn has provided unparalleled and often superhuman performance in many tasks requiring high cognitive ability \cite{natureGo,googleNMT,resnet}.
 However, when using neural networks to solve simple arithmetic problems, such as counting, they systematically fail to extrapolate \cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}.
 
-In this paper, we analyze and dramatically improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}.
+In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}.
 The NALU is a neural network layer with two modules.
-The two modules, $\text{NAC}_{+}$ for addition/subtraction and $\text{NAC}_{\bullet}$ for multiplication/division, are selected softly between using a using a sigmoid gating mechanism.
-By using trainable weights, and restricting the weights towards $\{-1,0,1\}$ the $\text{NAC}_{+}$ is able to approximate addition and subtraction between hidden units in the previous layer.
+The two modules, $\text{NAC}_{+}$ for addition/subtraction and $\text{NAC}_{\bullet}$ for multiplication/division, are softly gated between using the sigmoid function.
+By using trainable weights, and restricting the weights towards $\{-1,0,1\}$ the $\text{NAC}_{+}$ is able to approximate addition and subtraction of hidden units in the previous layer.
 The $\text{NAC}_{\bullet}$ extends this capability with to achieve multiplication and division. \todo{The text before is repeating a lot. Consider just deleting it.}
 These rules should be learned only by observing arithmetic input-output pairs and using backpropagation\cite{rumelhart1986learning}.
 
