@@ -181,6 +181,7 @@ dataset = stable_nalu.dataset.SequentialMnistDataset(
 )
 dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader()
 dataset_valid_interpolation = dataset.fork(seq_length=args.interpolation_length, subset='test').dataloader()
+dataset_valid_extrapolation_class = dataset.fork(seq_length=1, subset='test').dataloader()
 dataset_valid_extrapolation_short = dataset.fork(seq_length=args.extrapolation_short_length, subset='test').dataloader()
 dataset_valid_extrapolation_long = dataset.fork(seq_length=args.extrapolation_long_length, subset='test').dataloader()
 
@@ -226,10 +227,12 @@ for epoch_i in range(0, args.max_epochs + 1):
         # Log validation
         if epoch_i % 10 == 0 and i_train == 0:
             interpolation_error = test_model(dataset_valid_interpolation)
+            extrapolation_class_error = test_model(dataset_valid_extrapolation_class)
             extrapolation_short_error = test_model(dataset_valid_extrapolation_short)
             extrapolation_long_error = test_model(dataset_valid_extrapolation_long)
 
             summary_writer.add_scalar('loss/valid/interpolation', interpolation_error)
+            summary_writer.add_scalar('loss/valid/extrapolation/class', extrapolation_class_error)
             summary_writer.add_scalar('loss/valid/extrapolation/short', extrapolation_short_error)
             summary_writer.add_scalar('loss/valid/extrapolation/long', extrapolation_long_error)
 
@@ -246,7 +249,7 @@ for epoch_i in range(0, args.max_epochs + 1):
         summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
         summary_writer.add_scalar('loss/train/total', loss_train)
         if i_train % 10 == 0:
-            print('train %d[%d%%]: %.5f, inter: %.5f, short: %.5f, long: %.5f' % (epoch_i, round(i_train / len(dataset_train) * 100), loss_train_criterion, interpolation_error, extrapolation_short_error, extrapolation_long_error))
+            print('train %d[%d%%]: %.5f, inter: %.5f, class: %.5f, short: %.5f, long: %.5f' % (epoch_i, round(i_train / len(dataset_train) * 100), loss_train_criterion, interpolation_error, extrapolation_class_error, extrapolation_short_error, extrapolation_long_error))
 
         # Optimize model
         if loss_train.requires_grad:
@@ -261,6 +264,7 @@ for epoch_i in range(0, args.max_epochs + 1):
 # Compute losses
 loss_train = test_model(dataset_train)
 loss_valid_interpolation = test_model(dataset_valid_interpolation)
+loss_valid_extrapolation_class = test_model(loss_valid_extrapolation_class)
 loss_valid_extrapolation_short = test_model(loss_valid_extrapolation_short)
 loss_valid_extrapolation_long = test_model(loss_valid_extrapolation_long)
 
@@ -268,5 +272,6 @@ loss_valid_extrapolation_long = test_model(loss_valid_extrapolation_long)
 print(f'finished:')
 print(f'  - loss_train: {loss_train}')
 print(f'  - loss_valid_interpolation: {loss_valid_interpolation}')
+print(f'  - loss_valid_extrapolation_class: {loss_valid_extrapolation_class}')
 print(f'  - loss_valid_extrapolation_short: {loss_valid_extrapolation_short}')
 print(f'  - loss_valid_extrapolation_long: {loss_valid_extrapolation_long}')
