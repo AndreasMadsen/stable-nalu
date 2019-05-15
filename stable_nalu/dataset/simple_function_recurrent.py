@@ -15,5 +15,5 @@ class SimpleFunctionRecurrentDataset(SimpleFunctionDataset):
                          min_subset_overlap=min_subset_overlap,
                          max_subset_overlap=max_subset_overlap, **kwargs)
 
-    def fork(self, seq_length=10, input_range=1):
-        return super().fork((seq_length, self._vector_size), input_range)
+    def fork(self, seq_length=10, input_range=1, *args, **kwargs):
+        return super().fork((seq_length, self._vector_size), input_range, *args, **kwargs)

@@ -93,15 +93,21 @@ class SimpleFunctionDataset:
     def get_input_size(self):
         return self._input_size
 
-    def fork(self, shape, sample_range):
+    def fork(self, shape, sample_range, seed=None):
         assert shape[-1] == self._input_size
 
-        rng = np.random.RandomState(self._rng.randint(0, 2**32 - 1))
+        rng = np.random.RandomState(self._rng.randint(0, 2**32 - 1) if seed is None else seed)
         return SimpleFunctionDatasetFork(self, shape, sample_range, rng)
 
 class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
     def __init__(self, parent, shape, sample_range, rng):
         super().__init__()
+
+        if not isinstance(sample_range[0], list):
+            sample_range = [sample_range]
+        else:
+            if (sample_range[0][0] - sample_range[0][1]) != (sample_range[1][0] - sample_range[1][1]):
+                raise ValueError(f'unsymetric range for {sample_range}')
 
         self._shape = shape
         self._sample_range = sample_range
@@ -117,14 +123,36 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
         self._b_start = parent.b_start
         self._b_end = parent.b_end
 
+    def _multi_uniform_sample(self, batch_size):
+        if len(self._sample_range) == 1:
+            return self._rng.uniform(
+                low=self._sample_range[0][0],
+                high=self._sample_range[0][1],
+                size=(batch_size, ) + self._shape)
+        elif len(self._sample_range) == 2:
+            part_0 = self._rng.uniform(
+                low=self._sample_range[0][0],
+                high=self._sample_range[0][1],
+                size=(batch_size, ) + self._shape)
+
+            part_1 = self._rng.uniform(
+                low=self._sample_range[1][0],
+                high=self._sample_range[1][1],
+                size=(batch_size, ) + self._shape)
+
+            choose = self._rng.random.randint(
+                2,
+                size=(batch_size, ) + self._shape)
+
+            return np.select(choose, [part_0, part_1])
+        else:
+            raise NotImplemented()
+
     def __getitem__(self, select):
         # Assume select represent a batch_size by using self[0:batch_size]
         batch_size = select.stop - select.start if isinstance(select, slice) else 1
 
-        input_vector = self._rng.uniform(
-            low=self._sample_range[0],
-            high=self._sample_range[1],
-            size=(batch_size, ) + self._shape)
+        input_vector = self._multi_uniform_sample(batch_size)
 
         # Compute a and b values
         sum_axies = tuple(range(1, 1 + len(self._shape)))

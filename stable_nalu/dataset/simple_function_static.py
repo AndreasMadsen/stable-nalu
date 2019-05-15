@@ -9,5 +9,5 @@ class SimpleFunctionStaticDataset(SimpleFunctionDataset):
         super().__init__(operation, input_size,
                          **kwargs)
 
-    def fork(self, sample_range=[1, 2]):
-        return super().fork((self._input_size, ), sample_range)
+    def fork(self, sample_range=[1, 2], *args, **kwargs):
+        return super().fork((self._input_size, ), sample_range, *args, **kwargs)
