@@ -6,11 +6,13 @@
 \toprule
 Operation & Model & Success rate & Converged at & Sparsity error\\
 \midrule
- & $\mathrm{NAC}_{\bullet}$ & $40\%$ & $3371250$ & \textbf{$4.7 \times 10^{-4}$}\\
+ & $\mathrm{NAC}_{\bullet}$ & $40\%$ & $3371250$ & $4.3 \times 10^{-4}$\\
+
+ & Linear & $0\%$ & --- & ---\\
 
  & NALU & $0\%$ & --- & ---\\
 
-\multirow{-3}{*}{\raggedleft\arraybackslash ${a \cdot b}$} & NMU & \textbf{$100\%$} & \textbf{$1571900$} & $2.5 \times 10^{-3}$\\
+\multirow{-4}{*}{\raggedleft\arraybackslash ${a \cdot b}$} & NMU & $100\%$ & $1571900$ & $1.8 \times 10^{-3}$\\
 \cmidrule{1-5}
  & $\mathrm{NAC}_{+}$ & $100\%$ & $6300$ & $4.7 \times 10^{-1}$\\
 
@@ -18,7 +20,7 @@ Operation & Model & Success rate & Converged at & Sparsity error\\
 
  & NALU & $40\%$ & $1963250$ & $4.3 \times 10^{-1}$\\
 
-\multirow{-4}{*}{\raggedleft\arraybackslash $a - b$} & NAU & $100\%$ & $3700$ & $1.7 \times 10^{-3}$\\
+\multirow{-4}{*}{\raggedleft\arraybackslash $a - b$} & NAU & $100\%$ & $3700$ & $1.8 \times 10^{-3}$\\
 \cmidrule{1-5}
  & $\mathrm{NAC}_{+}$ & $100\%$ & $42900$ & $4.8 \times 10^{-1}$\\
 
@@ -26,7 +28,7 @@ Operation & Model & Success rate & Converged at & Sparsity error\\
 
  & NALU & $10\%$ & $81000$ & $4.5 \times 10^{-1}$\\
 
-\multirow{-4}{*}{\raggedleft\arraybackslash $a + b$} & NAU & $100\%$ & $15500$ & $2.1 \times 10^{-3}$\\
+\multirow{-4}{*}{\raggedleft\arraybackslash $a + b$} & NAU & $100\%$ & $15500$ & $2.2 \times 10^{-3}$\\
 \bottomrule
 \end{tabular}
 \end{table}

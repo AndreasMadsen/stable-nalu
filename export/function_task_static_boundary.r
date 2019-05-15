@@ -10,10 +10,15 @@ library(xtable)
 source('./_expand_name.r')
 
 eps = 0.2
-median_range = 100
+best.range = 100
 
-xtabs.data.first = function (data, formular, ...) {
-  return(xtabs(formular, data, ...))
+best.model.step.fn = function (errors) {
+  best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
+  if (length(best.step) == 0) {
+    return(length(errors))
+  } else {
+    return(best.step)
+  }
 }
 
 plot.parameter = function(name.parameter, name.label, name.file, name.output) {
@@ -26,20 +31,21 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     group_by(name) %>%
     #filter(n() == 5001) %>%
     summarise(
-      interpolation.last = median(tail(interpolation, median_range), na.rm=T),
-      extrapolation.last = median(tail(extrapolation, median_range), na.rm=T),
+      best.model.step = best.model.step.fn(interpolation),
+      interpolation.last = interpolation[best.model.step],
+      extrapolation.last = extrapolation[best.model.step],
       interpolation.step.solved = first(which(interpolation < eps)) * 1000,
       extrapolation.step.solved = first(which(extrapolation < eps)) * 1000,
-      sparse.error.max = median(tail(sparse.error.max, median_range), na.rm=T),
-      sparse.error.mean = median(tail(sparse.error.mean, median_range), na.rm=T),
-      solved = replace_na(median(tail(extrapolation, median_range), na.rm=T) < eps, FALSE),
+      sparse.error.max = sparse.error.max[best.model.step],
+      sparse.error.mean = sparse.error.mean[best.model.step],
+      solved = replace_na(extrapolation[best.model.step] < eps, FALSE),
       model = last(model),
       operation = last(operation),
       parameter = last(parameter),
       seed = last(seed),
       size = n()
     )
-  
+
   dat.last.rate = dat.last %>%
     group_by(model, operation, parameter) %>%
     summarise(
@@ -47,16 +53,16 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
       success.rate.mean = mean(solved),
       success.rate.upper = NA,
       success.rate.lower = NA,
-      
+
       converged.at.mean = mean(extrapolation.step.solved[solved]),
       converged.at.upper = quantile(extrapolation.step.solved[solved], 0.9),
       converged.at.lower = quantile(extrapolation.step.solved[solved], 0.1),
-      
+
       sparse.error.mean = mean(sparse.error.max[solved]),
       sparse.error.upper = quantile(sparse.error.max[solved], 0.9),
       sparse.error.lower = quantile(sparse.error.max[solved], 0.1)
     )
-  
+
   dat.gather.mean = dat.last.rate %>%
     mutate(
       success.rate = success.rate.mean,
@@ -83,13 +89,13 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     ) %>%
     select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
     gather('key', 'lower.value', success.rate, converged.at, sparse.error)
-  
+
   dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
     mutate(
       model=droplevels(model),
       key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
     )
-  
+
   p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
     geom_point(aes(y = mean.value)) +
     geom_line(aes(y = mean.value)) +

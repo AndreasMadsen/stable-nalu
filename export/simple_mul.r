@@ -8,17 +8,22 @@ library(tidyr)
 library(readr)
 library(kableExtra)
 
-xtabs.data.first = function (data, formular, ...) {
-  return(xtabs(formular, data, ...))
-}
-
 extract.part.from.name = function (name, index) {
   flattened_split = unlist(strsplit(name, "_"))
   return(flattened_split[seq(index, length(flattened_split), 6)])
 }
 
+best.model.step.fn = function (errors) {
+  best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
+  if (length(best.step) == 0) {
+    return(length(errors))
+  } else {
+    return(best.step)
+  }
+}
+
 eps = 0.2
-median_range = 10
+best.range = 10
 
 model.full.to.short = c(
   'linear'='linear',
@@ -45,13 +50,14 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    interpolation.last = median(tail(interpolation, median_range)),
-    extrapolation.last = median(tail(extrapolation, median_range)),
-    interpolation.index.solved = first(which(interpolation < eps)) * 100,
-    extrapolation.index.solved = first(which(extrapolation < eps)) * 100,
-    sparse.error.max = median(tail(sparse.error.max, median_range)),
-    sparse.error.mean = median(tail(sparse.error.mean, median_range)),
-    solved = median(tail(extrapolation, median_range)) < eps,
+    best.model.step = best.model.step.fn(interpolation),
+    interpolation.last = interpolation[best.model.step],
+    extrapolation.last = extrapolation[best.model.step],
+    interpolation.step.solved = first(which(interpolation < eps)) * 1000,
+    extrapolation.step.solved = first(which(extrapolation < eps)) * 1000,
+    sparse.error.max = sparse.error.max[best.model.step],
+    sparse.error.mean = sparse.error.mean[best.model.step],
+    solved = replace_na(extrapolation[best.model.step] < eps, FALSE),
     model = last(model),
     operation = last(operation),
     seed = last(seed),
@@ -63,8 +69,8 @@ dat.last.rate = dat.last %>%
   summarise(
     rate.interpolation = mean(interpolation.last < eps),
     rate.extrapolation = mean(extrapolation.last < eps),
-    interpolation.solved = mean(interpolation.index.solved[solved]),
-    extrapolation.solved = mean(extrapolation.index.solved[solved]),
+    interpolation.solved = mean(interpolation.step.solved[solved]),
+    extrapolation.solved = mean(extrapolation.step.solved[solved]),
     mean.sparse.error.max = mean(sparse.error.max[solved]),
     mean.sparse.error.mean = mean(sparse.error.mean[solved]),
     size = n()

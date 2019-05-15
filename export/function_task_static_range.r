@@ -10,12 +10,16 @@ library(xtable)
 source('./_expand_name.r')
 
 eps = 0.2
-median_range = 100
+best.range = 100
 
-xtabs.data.first = function (data, formular, ...) {
-  return(xtabs(formular, data, ...))
+best.model.step.fn = function (errors) {
+  best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
+  if (length(best.step) == 0) {
+    return(length(errors))
+  } else {
+    return(best.step)
+  }
 }
-
 name.parameter = 'interpolation.range'
 name.label = 'Interpolation range'
 name.file = '../results/function_task_static_mul_range.csv'
@@ -30,13 +34,14 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 5001) %>%
   summarise(
-    interpolation.last = median(tail(interpolation, median_range), na.rm=T),
-    extrapolation.last = median(tail(extrapolation, median_range), na.rm=T),
+    best.model.step = best.model.step.fn(interpolation),
+    interpolation.last = interpolation[best.model.step],
+    extrapolation.last = extrapolation[best.model.step],
     interpolation.step.solved = first(which(interpolation < eps)) * 1000,
     extrapolation.step.solved = first(which(extrapolation < eps)) * 1000,
-    sparse.error.max = median(tail(sparse.error.max, median_range), na.rm=T),
-    sparse.error.mean = median(tail(sparse.error.mean, median_range), na.rm=T),
-    solved = replace_na(median(tail(extrapolation, median_range), na.rm=T) < eps, FALSE),
+    sparse.error.max = sparse.error.max[best.model.step],
+    sparse.error.mean = sparse.error.mean[best.model.step],
+    solved = replace_na(extrapolation[best.model.step] < eps, FALSE),
     model = last(model),
     operation = last(operation),
     parameter = last(parameter),
