@@ -42,7 +42,7 @@ class AbstractNALULayer(ExtendedTorchModule):
             self.nac_mul = NACOp(in_features, out_features, writer=self.writer, name='nac_mul', **kwargs)
         else:
             self.nac_add = NACOp(in_features, out_features, writer=self.writer, **kwargs)
-            self.nac_mul = lambda x: self.nac_add(x, reuse=True)
+            self.nac_mul = self._nac_add_reuse
 
         self.G_add = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         if nalu_two_gate:
@@ -61,6 +61,9 @@ class AbstractNALULayer(ExtendedTorchModule):
         if nalu_two_gate:
             self.stored_gate_mul = torch.tensor([0], dtype=torch.float32)
         self.stored_input = torch.tensor([0], dtype=torch.float32)
+
+    def _nac_add_reuse(self, x):
+        return self.nac_add(x, reuse=True)
 
     def regualizer(self):
         regualizers = {}

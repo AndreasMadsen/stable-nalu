@@ -1,6 +1,7 @@
 /logs/
 /tensorboard/
 /results/
+/save/
 /stable_nalu/dataset/data/
 
 # Byte-compiled / optimized / DLL files

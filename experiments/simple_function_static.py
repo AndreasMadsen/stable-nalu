@@ -289,3 +289,6 @@ print(f'finished:')
 print(f'  - loss_train: {loss_train}')
 print(f'  - loss_valid_inter: {loss_valid_inter}')
 print(f'  - loss_valid_extra: {loss_valid_extra}')
+
+# Use saved weights to visualize the intermediate values.
+stable_nalu.writer.save_model(summary_writer.name, model)
