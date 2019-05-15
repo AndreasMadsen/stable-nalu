@@ -1,5 +1,5 @@
 #!/bin/bash
-experiment_name = 'simple_mul'
+experiment_name='simple_mul'
 
 for seed in {0..99}
 do
