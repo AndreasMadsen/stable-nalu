@@ -140,11 +140,11 @@ class SimpleFunctionDatasetFork(torch.utils.data.Dataset):
                 high=self._sample_range[1][1],
                 size=(batch_size, ) + self._shape)
 
-            choose = self._rng.random.randint(
+            choose = self._rng.randint(
                 2,
                 size=(batch_size, ) + self._shape)
 
-            return np.select(choose, [part_0, part_1])
+            return np.where(choose, part_0, part_1)
         else:
             raise NotImplemented()
 
