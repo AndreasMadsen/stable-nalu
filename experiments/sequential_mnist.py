@@ -232,6 +232,7 @@ for epoch_i in range(0, args.max_epochs + 1):
     for i_train, (x_train, t_train) in enumerate(dataset_train):
         global_step += 1
         summary_writer.set_iteration(global_step)
+        summary_writer.add_scalar('epoch', epoch_i)
 
         # Prepear model
         model.set_parameter('tau', max(0.5, math.exp(-1e-5 * global_step)))
