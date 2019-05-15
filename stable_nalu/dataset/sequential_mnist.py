@@ -51,11 +51,11 @@ class SequentialMnistDataset:
         else:
             return ItemShape((None, 28, 28), (10, ))
 
-    def fork(self, seq_length=10, subset='train'):
+    def fork(self, seq_length=10, subset='train', seed=None):
         if subset not in {'train', 'test'}:
             raise ValueError(f'subset must be either train or test, it is {subset}')
 
-        rng = np.random.RandomState(self._rng.randint(0, 2**32 - 1))
+        rng = np.random.RandomState(self._rng.randint(0, 2**32 - 1) if seed is None else seed)
         return SequentialMnistDatasetFork(self, seq_length, subset, rng)
 
 class SequentialMnistDatasetFork(torch.utils.data.Dataset):
@@ -66,6 +66,7 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
         self._num_workers = parent._num_workers
         self._use_cuda = parent._use_cuda
 
+        self._subset = subset
         self._seq_length = seq_length
         self._rng = rng
 

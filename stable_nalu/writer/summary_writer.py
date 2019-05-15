@@ -100,10 +100,11 @@ class SummaryWriterNamespace:
 class SummaryWriter(SummaryWriterNamespace):
     def __init__(self, name, remove_existing_data=False, **kwargs):
         super().__init__()
+        self.name = name
         self._iteration = 0
 
         log_dir = path.join(TENSORBOARD_DIR, name)
-        if path.exists(log_dir):
+        if path.exists(log_dir) and remove_existing_data:
             shutil.rmtree(log_dir)
 
         self.writer = SummaryWriterRaw(log_dir=log_dir, **kwargs)

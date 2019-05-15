@@ -1,5 +1,6 @@
 
 import os
+import ast
 import math
 import torch
 import stable_nalu
@@ -45,19 +46,14 @@ parser.add_argument('--seed',
 
 parser.add_argument('--interpolation-length',
                     action='store',
-                    default=3,
+                    default=10,
                     type=int,
                     help='Specify the sequence length for interpolation')
-parser.add_argument('--extrapolation-short-length',
+parser.add_argument('--extrapolation-lengths',
                     action='store',
-                    default=30,
-                    type=int,
-                    help='Specify the sequence length for short extrapolation')
-parser.add_argument('--extrapolation-long-length',
-                    action='store',
-                    default=300,
-                    type=int,
-                    help='Specify the sequence length for long extrapolation')
+                    default=[100, 1000],
+                    type=ast.literal_eval,
+                    help='Specify the sequence lengths used for the extrapolation dataset')
 
 parser.add_argument('--nac-mul',
                     action='store',
@@ -121,8 +117,7 @@ print(f'  - batch_size: {args.batch_size}')
 print(f'  - seed: {args.seed}')
 print(f'  -')
 print(f'  - interpolation_length: {args.interpolation_length}')
-print(f'  - extrapolation_short_length: {args.extrapolation_short_length}')
-print(f'  - extrapolation_long_length: {args.extrapolation_long_length}')
+print(f'  - extrapolation_lengths: {args.extrapolation_lengths}')
 print(f'  -')
 print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nalu_bias: {args.nalu_bias}')
@@ -159,7 +154,7 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'_o-{args.operation.lower()}'
     f'_r-{args.regualizer}'
     f'_i-{args.interpolation_length}'
-    f'_e-{args.extrapolation_short_length}-{args.extrapolation_long_length}'
+    f'_e-{"-".join(map(str, args.extrapolation_lengths))}'
     f'_b{args.batch_size}'
     f'_s{args.seed}',
     remove_existing_data=args.remove_existing_data
@@ -179,11 +174,18 @@ dataset = stable_nalu.dataset.SequentialMnistDataset(
     use_cuda=args.cuda,
     seed=args.seed
 )
-dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader()
-dataset_valid_interpolation = dataset.fork(seq_length=args.interpolation_length, subset='test').dataloader()
-dataset_valid_extrapolation_class = dataset.fork(seq_length=1, subset='test').dataloader()
-dataset_valid_extrapolation_short = dataset.fork(seq_length=args.extrapolation_short_length, subset='test').dataloader()
-dataset_valid_extrapolation_long = dataset.fork(seq_length=args.extrapolation_long_length, subset='test').dataloader()
+dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader(shuffle=True)
+# Seeds are from random.org
+dataset_valid_validation = dataset.fork(seq_length=args.interpolation_length, subset='train',
+                                        seed=62379872).dataloader(shuffle=False)
+dataset_valid_classification = dataset.fork(seq_length=1, subset='test',
+                                            seed=47430696).dataloader(shuffle=False)
+dataset_valid_extrapolations = [
+    ( seq_length,
+      dataset.fork(seq_length=seq_length, subset='test',
+                   seed=88253339).dataloader(shuffle=False)
+    ) for seq_length in args.extrapolation_lengths
+]
 
 # setup model
 model = stable_nalu.network.SequentialMnistNetwork(
@@ -203,12 +205,23 @@ if args.cuda:
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
+
+def test_mnist(dataloader):
+    with torch.no_grad(), model.no_internal_logging(), model.no_random():
+        acc_loss = 0
+        for x, t in dataloader:
+            # forward
+            l, _ = model(x)
+            acc_loss += criterion(l, t).item() * len(t)
+
+        return acc_loss / len(dataloader.dataset)
+
 def test_model(dataloader):
     with torch.no_grad(), model.no_internal_logging(), model.no_random():
         acc_loss = 0
         for x, t in dataloader:
             # forward
-            y = model(x)
+            _, y = model(x)
             acc_loss += criterion(y, t).item() * len(t)
 
         return acc_loss / len(dataloader.dataset)
@@ -225,19 +238,17 @@ for epoch_i in range(0, args.max_epochs + 1):
         optimizer.zero_grad()
 
         # Log validation
-        if epoch_i % 10 == 0 and i_train == 0:
-            interpolation_error = test_model(dataset_valid_interpolation)
-            extrapolation_class_error = test_model(dataset_valid_extrapolation_class)
-            extrapolation_short_error = test_model(dataset_valid_extrapolation_short)
-            extrapolation_long_error = test_model(dataset_valid_extrapolation_long)
+        if epoch_i % 100 == 0 and i_train == 0:
+            validation_error = test_model(dataset_valid_validation)
+            mnist_classification_error = test_mnist(dataset_valid_classification)
+            summary_writer.add_scalar('loss/valid/validation', validation_error)
+            summary_writer.add_scalar('loss/valid/mnist_classification', mnist_classification_error)
 
-            summary_writer.add_scalar('loss/valid/interpolation', interpolation_error)
-            summary_writer.add_scalar('loss/valid/extrapolation/class', extrapolation_class_error)
-            summary_writer.add_scalar('loss/valid/extrapolation/short', extrapolation_short_error)
-            summary_writer.add_scalar('loss/valid/extrapolation/long', extrapolation_long_error)
+            for seq_length, dataloader in dataset_valid_extrapolations:
+                summary_writer.add_scalar(f'loss/valid/extrapolation/{seq_length}', test_model(dataloader))
 
         # forward
-        y_train = model(x_train)
+        _, y_train = model(x_train)
         regualizers = model.regualizer()
 
         loss_train_criterion = criterion(y_train, t_train)
@@ -248,8 +259,8 @@ for epoch_i in range(0, args.max_epochs + 1):
         summary_writer.add_scalar('loss/train/critation', loss_train_criterion)
         summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
         summary_writer.add_scalar('loss/train/total', loss_train)
-        if i_train % 10 == 0:
-            print('train %d[%d%%]: %.5f, inter: %.5f, class: %.5f, short: %.5f, long: %.5f' % (epoch_i, round(i_train / len(dataset_train) * 100), loss_train_criterion, interpolation_error, extrapolation_class_error, extrapolation_short_error, extrapolation_long_error))
+        if epoch_i % 100 == 0 and i_train == 0:
+            print('train %d: %.5f, valid: %.5f, mnist: %.5f' % (epoch_i, loss_train_criterion, validation_error, mnist_classification_error))
 
         # Optimize model
         if loss_train.requires_grad:
@@ -261,17 +272,11 @@ for epoch_i in range(0, args.max_epochs + 1):
         if args.verbose:
             model.log_gradients()
 
-# Compute losses
-loss_train = test_model(dataset_train)
-loss_valid_interpolation = test_model(dataset_valid_interpolation)
-loss_valid_extrapolation_class = test_model(loss_valid_extrapolation_class)
-loss_valid_extrapolation_short = test_model(loss_valid_extrapolation_short)
-loss_valid_extrapolation_long = test_model(loss_valid_extrapolation_long)
-
 # Write results for this training
 print(f'finished:')
 print(f'  - loss_train: {loss_train}')
-print(f'  - loss_valid_interpolation: {loss_valid_interpolation}')
-print(f'  - loss_valid_extrapolation_class: {loss_valid_extrapolation_class}')
-print(f'  - loss_valid_extrapolation_short: {loss_valid_extrapolation_short}')
-print(f'  - loss_valid_extrapolation_long: {loss_valid_extrapolation_long}')
+print(f'  - validation: {validation_error}')
+print(f'  - mnist_classification: {mnist_classification_error}')
+
+# Use saved weights to visualize the intermediate values.
+stable_nalu.writer.save_model(summary_writer.name, model)

@@ -4,7 +4,7 @@ from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer, GeneralizedCell
 
 # Copied from https://github.com/pytorch/examples/blob/master/mnist/main.py, just added a
-# reset_parameters method and changed log_softmax to softmax.
+# reset_parameters method and changed final layer to have one output.
 
 class _Image2LabelCNN(ExtendedTorchModule):
     def __init__(self, **kwargs):
@@ -12,7 +12,7 @@ class _Image2LabelCNN(ExtendedTorchModule):
         self.conv1 = torch.nn.Conv2d(1, 20, 5, 1)
         self.conv2 = torch.nn.Conv2d(20, 50, 5, 1)
         self.fc1 = torch.nn.Linear(4*4*50, 500)
-        self.fc2 = torch.nn.Linear(500, 10)
+        self.fc2 = torch.nn.Linear(500, 1)
 
     def reset_parameters(self):
         self.conv1.reset_parameters()
@@ -51,7 +51,7 @@ class SequentialMnistNetwork(ExtendedTorchModule):
 
         if nac_mul == 'mnac':
             unit_name = unit_name[0:-3] + 'MNAC'
-        self.recurent_cell = GeneralizedCell(10, self.output_size,
+        self.recurent_cell = GeneralizedCell(1, self.output_size,
                                              unit_name,
                                              writer=self.writer,
                                              **kwags)
@@ -79,8 +79,11 @@ class SequentialMnistNetwork(ExtendedTorchModule):
                 self.zero_state_h.repeat(x.size(0), 1),
                 self.zero_state_c.repeat(x.size(0), 1)
             )
+            self.writer.add_tensor('h_tm1/h', h_tm1[0])
+            self.writer.add_tensor('h_tm1/c', h_tm1[1])
         else:
             h_tm1 = self.zero_state.repeat(x.size(0), 1)
+            self.writer.add_tensor('h_tm1', h_tm1)
 
         for t in range(x.size(1)):
             x_t = x[:, t]
@@ -98,7 +101,7 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         # Grap the final hidden output and use as the output from the recurrent layer
         z_1 = h_t[0] if self.unit_name == 'LSTM' else h_t
 
-        return z_1
+        return l_t, z_1
 
     def extra_repr(self):
         return 'unit_name={}, output_size={}'.format(
