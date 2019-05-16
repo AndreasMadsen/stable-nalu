@@ -51,6 +51,12 @@ class SequentialMnistNetwork(ExtendedTorchModule):
 
         if nac_mul == 'mnac':
             unit_name = unit_name[0:-3] + 'MNAC'
+        if unit_name == 'LSTM':
+            del kwags['nalu_bias']
+            del kwags['nalu_two_nac']
+            del kwags['nalu_two_gate']
+            del kwags['nalu_mul']
+            del kwags['nalu_gate']
         self.recurent_cell = GeneralizedCell(1, self.output_size,
                                              unit_name,
                                              writer=self.writer,
