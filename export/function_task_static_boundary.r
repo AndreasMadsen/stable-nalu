@@ -9,7 +9,6 @@ library(readr)
 library(xtable)
 source('./_expand_name.r')
 
-eps = 0.2
 best.range = 100
 
 best.model.step.fn = function (errors) {
@@ -21,8 +20,27 @@ best.model.step.fn = function (errors) {
   }
 }
 
+first.solved.step = function (steps, errors, epsilon) {
+  index = first(which(errors < epsilon))
+  if (is.na(index)) {
+    return(NA)
+  } else {
+    return(steps[index])
+  }
+}
+
+eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
+  filter(simple == FALSE & parameter != 'default') %>%
+  mutate(
+    input.size = as.integer(input.size),
+    operation = revalue(operation, operation.full.to.short),
+    epsilon = mse
+  ) %>%
+  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, epsilon)
+
 plot.parameter = function(name.parameter, name.label, name.file, name.output) {
   dat = expand.name(read_csv(name.file)) %>%
+    merge(eps) %>%
     mutate(
       parameter = !!as.name(name.parameter)
     )
@@ -31,14 +49,15 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     group_by(name) %>%
     #filter(n() == 5001) %>%
     summarise(
+      epsilon = last(epsilon),
       best.model.step = best.model.step.fn(interpolation),
       interpolation.last = interpolation[best.model.step],
       extrapolation.last = extrapolation[best.model.step],
-      interpolation.step.solved = first(which(interpolation < eps)) * 1000,
-      extrapolation.step.solved = first(which(extrapolation < eps)) * 1000,
+      interpolation.step.solved = first.solved.step(step, interpolation, epsilon),
+      extrapolation.step.solved = first.solved.step(step, extrapolation, epsilon),
       sparse.error.max = sparse.error.max[best.model.step],
       sparse.error.mean = sparse.error.mean[best.model.step],
-      solved = replace_na(extrapolation[best.model.step] < eps, FALSE),
+      solved = replace_na(extrapolation[best.model.step] < epsilon, FALSE),
       model = last(model),
       operation = last(operation),
       parameter = last(parameter),
