@@ -7,6 +7,9 @@ from .nac import NACLayer, NACCell
 from .mnac import MNACLayer, MNACCell
 from .nalu import NALULayer, NALUCell
 
+from .pos_nac import PosNACLayer, PosNACCell
+from .pos_nalu import PosNALULayer, PosNALUCell
+
 from .gumbel_nac import GumbelNACLayer, GumbelNACCell
 from .gumbel_mnac import GumbelMNACLayer, GumbelMNACCell
 from .gumbel_nalu import GumbelNALULayer, GumbelNALUCell
@@ -27,11 +30,14 @@ from .gradient_bandit_nac import GradientBanditNACLayer, GradientBanditNACCell
 from .gradient_bandit_nalu import GradientBanditNALULayer, GradientBanditNALUCell
 
 from .regualized_linear_nac import RegualizedLinearNACLayer, RegualizedLinearNACCell
+from .regualized_linear_mnac import RegualizedLinearMNACLayer, RegualizedLinearMNACCell
 from .regualized_linear_nalu import RegualizedLinearNALULayer, RegualizedLinearNALUCell
 
 from .re_regualized_linear_nac import ReRegualizedLinearNACLayer, ReRegualizedLinearNACCell
 from .re_regualized_linear_mnac import ReRegualizedLinearMNACLayer, ReRegualizedLinearMNACCell
 from .re_regualized_linear_nalu import ReRegualizedLinearNALULayer, ReRegualizedLinearNALUCell
+
+from .silly_re_regualized_linear_mnac import SillyReRegualizedLinearMNACLayer, SillyReRegualizedLinearMNACCell
 
 from ..abstract import ExtendedTorchModule
 
@@ -39,6 +45,9 @@ unit_name_to_layer_class = {
     'NAC': NACLayer,
     'MNAC': MNACLayer,
     'NALU': NALULayer,
+
+    'PosNAC': PosNACLayer,
+    'PosNALU': PosNALULayer,
 
     'GumbelNAC': GumbelNACLayer,
     'GumbelMNAC': GumbelMNACLayer,
@@ -60,11 +69,15 @@ unit_name_to_layer_class = {
     'GradientBanditNALU': GradientBanditNALULayer,
 
     'RegualizedLinearNAC': RegualizedLinearNACLayer,
+    'RegualizedLinearMNAC': RegualizedLinearMNACLayer,
     'RegualizedLinearNALU': RegualizedLinearNALULayer,
 
     'ReRegualizedLinearNAC': ReRegualizedLinearNACLayer,
     'ReRegualizedLinearMNAC': ReRegualizedLinearMNACLayer,
     'ReRegualizedLinearNALU': ReRegualizedLinearNALULayer,
+
+    'SillyReRegualizedLinearNAC': None,
+    'SillyReRegualizedLinearMNAC': SillyReRegualizedLinearMNACLayer,
 }
 
 unit_name_to_cell_class = {

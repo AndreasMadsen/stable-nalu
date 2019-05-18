@@ -10,5 +10,7 @@ def mnac(x, W, mode='prod'):
         return torch.prod(x * W + 1 - W, -2)
     elif mode == 'exp-log':
         return torch.exp(torch.sum(torch.log(x * W + 1 - W), -2))
+    elif mode == 'no-idendity':
+        return torch.prod(x * W, -2)
     else:
         raise ValueError(f'mnac mode "{mode}" is not implemented')

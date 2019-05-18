@@ -27,6 +27,11 @@ parser.add_argument('--regualizer',
                     default=0.1,
                     type=float,
                     help='Specify the regualization lambda to be used')
+parser.add_argument('--regualizer-oob',
+                    action='store',
+                    default=1,
+                    type=float,
+                    help='Specify the oob-regualization lambda to be used')
 
 parser.add_argument('--max-iterations',
                     action='store',
@@ -80,10 +85,10 @@ parser.add_argument('--nac-mul',
                     choices=['none', 'normal', 'safe', 'max-safe', 'mnac'],
                     type=str,
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
-parser.add_argument('--nac-first',
-                    action='store_true',
-                    default=False,
-                    help='Force the first layer to be a NAC')
+parser.add_argument('--first-layer',
+                    action='store',
+                    default=None,
+                    help='Set the first layer to be a different type')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -132,8 +137,10 @@ setattr(args, 'cuda', torch.cuda.is_available() and not args.no_cuda)
 # Print configuration
 print(f'running')
 print(f'  - layer_type: {args.layer_type}')
+print(f'  - first_layer: {args.first_layer}')
 print(f'  - operation: {args.operation}')
 print(f'  - regualizer: {args.regualizer}')
+print(f'  - regualizer_oob: {args.regualizer_oob}')
 print(f'  -')
 print(f'  - max_iterations: {args.max_iterations}')
 print(f'  - batch_size: {args.batch_size}')
@@ -147,7 +154,6 @@ print(f'  - overlap_ratio: {args.overlap_ratio}')
 print(f'  - simple: {args.simple}')
 print(f'  -')
 print(f'  - nac_mul: {args.nac_mul}')
-print(f'  - nac_first: {args.nac_first}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_two_gate: {args.nalu_two_gate}')
@@ -180,7 +186,7 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
     f'_o-{args.operation.lower()}'
-    f'_r-{args.regualizer}'
+    f'_r-{args.regualizer}{"" if args.regualizer_oob == 1 else f"-{args.regualizer_oob}"}'
     f'_i-{args.interpolation_range[0]}-{args.interpolation_range[1]}'
     f'_e-{args.extrapolation_range[0]}-{args.extrapolation_range[1]}'
     f'_z-{"simple" if args.simple else f"{args.input_size}-{args.subset_ratio}-{args.overlap_ratio}"}'
@@ -219,8 +225,8 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     args.layer_type,
     input_size=dataset.get_input_size(),
     writer=summary_writer.every(1000) if args.verbose else None,
+    first_layer=args.first_layer,
     nac_mul=args.nac_mul,
-    nac_first=args.nac_first,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
     nalu_two_gate=args.nalu_two_gate,
@@ -260,7 +266,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     regualizers = model.regualizer()
 
     loss_train_criterion = criterion(y_train, t_train)
-    loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + 1 * regualizers['z'] + 1 * regualizers['W-OOB']
+    loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + 1 * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
     loss_train = loss_train_criterion + loss_train_regualizer
 
     # Log loss
