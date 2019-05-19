@@ -37,12 +37,7 @@ safe.quantile = function (vec, prop) {
   } else {
     return(median(vec, prop))
   }
-}
-
-name.parameter = 'interpolation.range'
-name.label = 'Interpolation range'
-name.file = '../results/function_task_static_mul_range.csv'
-name.output = '../paper/results/simple_function_static_range.pdf'
+} 
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter != 'default') %>%
@@ -53,12 +48,16 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, epsilon)
 
+name.parameter = 'regualizer'
+name.label = 'Sparse regualizer'
+name.file = '../results/function_task_static_regualization.csv'
+name.output = '../paper/results/function_task_static_regualization.pdf'
+
 dat = expand.name(read_csv(name.file)) %>%
   merge(eps) %>%
   mutate(
     parameter = !!as.name(name.parameter)
   )
-
 
 dat.last = dat %>%
   group_by(name) %>%
@@ -73,9 +72,9 @@ dat.last = dat %>%
     sparse.error.max = sparse.error.max[best.model.step],
     sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
     solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    parameter = last(parameter),
     model = last(model),
     operation = last(operation),
-    parameter = last(parameter),
     seed = last(seed),
     size = n()
   )
@@ -101,7 +100,7 @@ dat.gather.mean = dat.last.rate %>%
   mutate(
     success.rate = success.rate.mean,
     converged.at = converged.at.mean,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.mean)
+    sparse.error = sparse.error.mean
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'mean.value', success.rate, converged.at, sparse.error)
@@ -110,7 +109,7 @@ dat.gather.upper = dat.last.rate %>%
   mutate(
     success.rate = success.rate.upper,
     converged.at = converged.at.upper,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.upper)
+    sparse.error = sparse.error.upper
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'upper.value', success.rate, converged.at, sparse.error)
@@ -119,7 +118,7 @@ dat.gather.lower = dat.last.rate %>%
   mutate(
     success.rate = success.rate.lower,
     converged.at = converged.at.lower,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.lower)
+    sparse.error = sparse.error.lower
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'lower.value', success.rate, converged.at, sparse.error)
@@ -130,11 +129,12 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
-p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parameter, model))) +
-  geom_point(aes(y = mean.value), position=position_dodge(width=0.3)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3)) +
+p = ggplot(dat.gather, aes(x = as.factor(parameter), colour=model, group=model)) +
+  geom_point(aes(y = mean.value)) +
+  geom_line(aes(y = mean.value)) +
+  geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  scale_x_discrete(name = name.label) +
+  xlab(name.label) +
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
@@ -144,7 +144,6 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parame
     )
   )) +
   theme(legend.position="bottom") +
-  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points")) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
 print(p)
-ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
+ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")

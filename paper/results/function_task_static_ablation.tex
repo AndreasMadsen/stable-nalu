@@ -1,0 +1,22 @@
+\begin{table}[H]
+
+\caption{\label{tab:function-task-static-defaults}Shows the success-rate for extrapolation < $\epsilon$, at what global step the model converged at, and the sparsity error for all weight matrices.}
+\centering
+\begin{tabular}{rrlll}
+\toprule
+Operation & Model & Success rate & Converged at & Sparsity error\\
+\midrule
+ & $\mathrm{NAC}_{\bullet}$ & $40\%$ & $3125000$ & $2.8 \times 10^{-2}$\\
+
+ & $\mathrm{NAC}_{\bullet}$ ($\mathbf{W} = \sigma(\mathbf{\hat{W}}$) & $100\%$ & $1905000$ & $1.1 \times 10^{-4}$\\
+
+ & NMU & $100\%$ & $1181800$ & $1.6 \times 10^{-3}$\\
+
+ & NMU ($\mathbf{z} = \mathbf{W} \cdot \mathbf{x}$) & $100\%$ & $1181800$ & $1.6 \times 10^{-3}$\\
+
+ & NMU (no $\mathcal{R}_{oob}$) & $100\%$ & $1174300$ & $1.7 \times 10^{-3}$\\
+
+\multirow{-6}{*}{\raggedleft\arraybackslash ${a \cdot b}$} & NMU (no $\mathcal{R}_{sparse}$) & $100\%$ & $1182500$ & $1.7 \times 10^{-3}$\\
+\bottomrule
+\end{tabular}
+\end{table}

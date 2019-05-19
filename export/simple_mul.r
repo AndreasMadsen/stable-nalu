@@ -7,11 +7,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(kableExtra)
-
-extract.part.from.name = function (name, index) {
-  flattened_split = unlist(strsplit(name, "_"))
-  return(flattened_split[seq(index, length(flattened_split), 6)])
-}
+source('./_function_task_expand_name.r')
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -43,10 +39,6 @@ model.full.to.short = c(
   'reregualizedlinearnac-nac-m'='NMU'
 )
 
-operation.full.to.short = c(
-  'o-mul'='$a \\cdot b$'
-)
-
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == TRUE & operation == 'o-mul') %>%
   mutate(
@@ -56,12 +48,8 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   ) %>%
   select(operation, epsilon)
 
-dat = read_csv('../results/simple_mul.csv') %>%
-  mutate(
-    model = revalue(extract.part.from.name(name, 1), model.full.to.short),
-    operation = revalue(paste0('o-', extract.part.from.name(name, 2)), operation.full.to.short),
-    seed = extract.part.from.name(name, 6)
-  ) %>%
+
+dat = expand.name(read_csv('../results/simple_mul.csv')) %>%
   merge(eps)
 
 dat.last = dat %>%
@@ -69,14 +57,14 @@ dat.last = dat %>%
   #filter(n() == 201) %>%
   summarise(
     epsilon = last(epsilon),
-    best.model.step = best.model.step.fn(interpolation),
-    interpolation.last = interpolation[best.model.step],
-    extrapolation.last = extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, extrapolation, epsilon),
+    best.model.step = best.model.step.fn(loss.valid.interpolation),
+    interpolation.last = loss.valid.interpolation[best.model.step],
+    extrapolation.last = loss.valid.extrapolation[best.model.step],
+    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
+    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
     sparse.error.max = sparse.error.max[best.model.step],
-    sparse.error.mean = sparse.error.mean[best.model.step],
-    solved = replace_na(extrapolation[best.model.step] < epsilon, FALSE),
+    sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
+    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
     model = last(model),
     operation = last(operation),
     seed = last(seed),

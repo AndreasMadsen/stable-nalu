@@ -29,6 +29,16 @@ first.solved.step = function (steps, errors, epsilon) {
   }
 }
 
+safe.quantile = function (vec, prop) {
+  if (length(vec) <= 1) {
+    return(NA)
+  } else if (length(vec) <= 3) {
+    return(ifelse(prop < 0.5, min(vec), max(vec)))
+  } else {
+    return(median(vec, prop))
+  }
+} 
+
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter != 'default') %>%
   mutate(
@@ -47,20 +57,20 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
 
   dat.last = dat %>%
     group_by(name) %>%
-    #filter(n() == 5001) %>%
+    #filter(n() == 201) %>%
     summarise(
       epsilon = last(epsilon),
-      best.model.step = best.model.step.fn(interpolation),
-      interpolation.last = interpolation[best.model.step],
-      extrapolation.last = extrapolation[best.model.step],
-      interpolation.step.solved = first.solved.step(step, interpolation, epsilon),
-      extrapolation.step.solved = first.solved.step(step, extrapolation, epsilon),
+      best.model.step = best.model.step.fn(loss.valid.interpolation),
+      interpolation.last = loss.valid.interpolation[best.model.step],
+      extrapolation.last = loss.valid.extrapolation[best.model.step],
+      interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
+      extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
       sparse.error.max = sparse.error.max[best.model.step],
-      sparse.error.mean = sparse.error.mean[best.model.step],
-      solved = replace_na(extrapolation[best.model.step] < epsilon, FALSE),
+      sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
+      solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+      parameter = last(parameter),
       model = last(model),
       operation = last(operation),
-      parameter = last(parameter),
       seed = last(seed),
       size = n()
     )
@@ -74,19 +84,19 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
       success.rate.lower = NA,
 
       converged.at.mean = mean(extrapolation.step.solved[solved]),
-      converged.at.upper = quantile(extrapolation.step.solved[solved], 0.9),
-      converged.at.lower = quantile(extrapolation.step.solved[solved], 0.1),
+      converged.at.upper = safe.quantile(extrapolation.step.solved[solved], 0.9),
+      converged.at.lower = safe.quantile(extrapolation.step.solved[solved], 0.1),
 
       sparse.error.mean = mean(sparse.error.max[solved]),
-      sparse.error.upper = quantile(sparse.error.max[solved], 0.9),
-      sparse.error.lower = quantile(sparse.error.max[solved], 0.1)
+      sparse.error.upper = safe.quantile(sparse.error.max[solved], 0.9),
+      sparse.error.lower = safe.quantile(sparse.error.max[solved], 0.1)
     )
 
   dat.gather.mean = dat.last.rate %>%
     mutate(
       success.rate = success.rate.mean,
       converged.at = converged.at.mean,
-      sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.mean)
+      sparse.error = sparse.error.mean
     ) %>%
     select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
     gather('key', 'mean.value', success.rate, converged.at, sparse.error)
@@ -95,7 +105,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     mutate(
       success.rate = success.rate.upper,
       converged.at = converged.at.upper,
-      sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.upper)
+      sparse.error = sparse.error.upper
     ) %>%
     select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
     gather('key', 'upper.value', success.rate, converged.at, sparse.error)
@@ -104,7 +114,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     mutate(
       success.rate = success.rate.lower,
       converged.at = converged.at.lower,
-      sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.lower)
+      sparse.error = sparse.error.lower
     ) %>%
     select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
     gather('key', 'lower.value', success.rate, converged.at, sparse.error)
@@ -121,7 +131,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
     scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
     xlab(name.label) +
-    scale_y_continuous(name = element_blank()) +
+    scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
         success.rate = "Success rate",
@@ -135,7 +145,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
   ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
 }
 
-plot.parameter('input.size', 'Input size', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf')
-plot.parameter('subset.ratio', 'Subset ratio', '../results/function_task_static_mul_subset.csv', '../paper/results/simple_function_static_subset.pdf')
-plot.parameter('overlap.ratio', 'Overlap ratio', '../results/function_task_static_mul_overlap.csv', '../paper/results/simple_function_static_overlap.pdf')
-#plot.parameter('interpolation.range', 'Interpolation range', '../results/function_task_static_mul_range.csv', '../paper/results/simple_function_static_range.pdf')
+#plot.parameter('input.size', 'Input size', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf')
+#plot.parameter('subset.ratio', 'Subset ratio', '../results/function_task_static_mul_subset.csv', '../paper/results/simple_function_static_subset.pdf')
+#plot.parameter('overlap.ratio', 'Overlap ratio', '../results/function_task_static_mul_overlap.csv', '../paper/results/simple_function_static_overlap.pdf')
+plot.parameter('regualizer', 'Sparse regualizer', '../results/function_task_static_regualization.csv', '../paper/results/function_task_static_regualization.pdf')

@@ -53,34 +53,34 @@ simulate.mse = function (epsilon, samples, operation, simple, input.size, subset
 }
 
 cases = rbind(
-  c(parameter='default', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=6, range.mirror=F),
-  c(parameter='default', operation='add', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=6, range.mirror=F),
-  c(parameter='default', operation='sub', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=6, range.mirror=F),
+  c(parameter='default', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='default', operation='add', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='default', operation='sub', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
 
-  c(parameter='default', operation='mul', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=1, range.b=6, range.mirror=F),
-  c(parameter='default', operation='add', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=1, range.b=6, range.mirror=F),
-  c(parameter='default', operation='sub', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=1, range.b=6, range.mirror=F)
+  c(parameter='default', operation='mul', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='default', operation='add', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='default', operation='sub', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F)
 )
 
 for (input.size in c(4,10,25,50,75,100,125,150,175,200)) {
-  cases = rbind(cases, c(parameter='input.size', operation='mul', simple=F, input.size=input.size, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=6, range.mirror=F))
+  cases = rbind(cases, c(parameter='input.size', operation='mul', simple=F, input.size=input.size, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F))
 }
 
 for (subset.ratio in c(0.05, 0.10, 0.25, 0.50)) {
-  cases = rbind(cases, c(parameter='subset.ratio', operation='mul', simple=F, input.size=100, subset.ratio=subset.ratio, overlap.ratio=0.5, range.a=1, range.b=6, range.mirror=F))
+  cases = rbind(cases, c(parameter='subset.ratio', operation='mul', simple=F, input.size=100, subset.ratio=subset.ratio, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F))
 }
 
 for (overlap.ratio in c(0.0, 0.1, 0.25, 0.5, 0.75, 1.0)) {
-  cases = rbind(cases, c(parameter='overlap.ratio', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=overlap.ratio, range.a=1, range.b=6, range.mirror=F))
+  cases = rbind(cases, c(parameter='overlap.ratio', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=overlap.ratio, range.a=2, range.b=6, range.mirror=F))
 }
 
 cases = rbind(cases,
-  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=-6, range.b=6, range.mirror=F),
-  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=0, range.b=5, range.mirror=F),
-  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=0, range.b=2, range.mirror=F),
-  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=6, range.mirror=F),
-  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1.1, range.b=6, range.mirror=F),
-  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=40, range.mirror=F)
+  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=T),
+  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=5, range.mirror=F),
+  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=0.2, range.b=2, range.mirror=F),
+  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1.2, range.b=6, range.mirror=F),
+  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=20, range.b=40, range.mirror=F)
 )
 
 eps = data.frame(rbind(

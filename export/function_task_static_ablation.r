@@ -38,8 +38,11 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   ) %>%
   select(operation, epsilon)
 
-dat = expand.name(read_csv('../results/function_task_static.csv')) %>%
+dat = expand.name(read_csv('../results/function_task_static_ablation.csv')) %>%
   merge(eps)
+dat$model = as.character(dat$model)
+dat$model = ifelse(dat$regualizer == 0, paste0(dat$model, ' (no $\\mathcal{R}_{sparse}$)'), dat$model)
+dat$model = ifelse(dat$regualizer.oob == 0, paste0(dat$model, ' (no $\\mathcal{R}_{oob}$)'), dat$model)
 
 dat.last = dat %>%
   group_by(name) %>%
@@ -93,10 +96,6 @@ dat.last.rate %>%
     sparse.error = latex.scientific(mean.sparse.error.max)
   ) %>%
   select(operation, model, success.rate, converged.at, sparse.error) %>%
-  filter(
-    (operation %in% c('$a + b$', '$a - b$') & model %in% c('Linear', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('${a \\cdot b}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
-  ) %>%
   arrange(operation, model) %>%
   kable(
     "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label="function-task-static-defaults",
@@ -109,5 +108,5 @@ dat.last.rate %>%
   ) %>%
   kable_styling(latex_options=c('HOLD_position')) %>%
   collapse_rows(columns = c(1,2), latex_hline = "major") %>%
-  write("../paper/results/function_task_static.tex")
+  write("../paper/results/function_task_static_ablation.tex")
 
