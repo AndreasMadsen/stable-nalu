@@ -7,7 +7,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(xtable)
-source('./_expand_name.r')
+source('./_function_task_expand_name.r')
 
 best.range = 100
 
@@ -44,7 +44,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     mutate(
       parameter = !!as.name(name.parameter)
     )
-  
+
   dat.last = dat %>%
     group_by(name) %>%
     #filter(n() == 5001) %>%

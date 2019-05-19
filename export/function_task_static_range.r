@@ -7,7 +7,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(xtable)
-source('./_expand_name.r')
+source('./_function_task_expand_name.r')
 
 eps = 0.2
 best.range = 100
@@ -77,11 +77,11 @@ dat.last.rate = dat.last %>%
     success.rate.mean = mean(solved),
     success.rate.upper = NA,
     success.rate.lower = NA,
-    
+
     converged.at.mean = mean(extrapolation.step.solved[solved]),
     converged.at.upper = quantile(extrapolation.step.solved[solved], 0.9),
     converged.at.lower = quantile(extrapolation.step.solved[solved], 0.1),
-    
+
     sparse.error.mean = mean(sparse.error.max[solved]),
     sparse.error.upper = quantile(sparse.error.max[solved], 0.9),
     sparse.error.lower = quantile(sparse.error.max[solved], 0.1)

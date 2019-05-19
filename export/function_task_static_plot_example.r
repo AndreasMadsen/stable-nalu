@@ -8,7 +8,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(kableExtra)
-source('./_expand_name.r')
+source('./_function_task_expand_name.r')
 
 eps = 0.2
 median_range = 100
@@ -47,7 +47,7 @@ p = ggplot(dat.ggplot, aes(x=iteration, y=error, colour=model)) +
       sparse.error = "Sparsity error"
     )
   )) +
-  theme(legend.position="bottom") + 
+  theme(legend.position="bottom") +
   theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
 print(p)
 ggsave('../paper/results/function-task-static-example.pdf', p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
