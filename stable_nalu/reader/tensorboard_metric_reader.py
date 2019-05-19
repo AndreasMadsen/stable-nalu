@@ -47,6 +47,7 @@ class TensorboardMetricReader:
 
     def _parse_tensorboard_data(self, inputs):
         (dirname, filename, reader) = inputs
+        print(dirname)
 
         columns = collections.defaultdict(list)
         columns['name'] = dirname
@@ -112,7 +113,11 @@ class TensorboardMetricReader:
                     sparse_error_collected_at = step
                     sparse_error_first_collected = False
 
-        if missing_sparse_error:
+        if sparse_errors_inserted == 0:
+            columns['sparse.error.max'] = [None] * len(columns['step'])
+            columns['sparse.error.sum'] = [None] * len(columns['step'])
+            columns['sparse.error.count'] = [None] * len(columns['step'])
+        elif missing_sparse_error:
             columns['sparse.error.max'].append(sparse_error_max)
             columns['sparse.error.sum'].append(sparse_error_sum)
             columns['sparse.error.count'].append(sparse_error_count)
