@@ -51,6 +51,8 @@ class TensorboardMetricReader:
         columns = collections.defaultdict(list)
         columns['name'] = dirname
 
+        current_epoch = None
+
         missing_sparse_error = False
         sparse_errors_inserted = 0
         sparse_error_first_collected = True
@@ -63,13 +65,30 @@ class TensorboardMetricReader:
             step = e.step - self.step_start
 
             for v in e.summary.value:
+                if missing_sparse_error and step != sparse_error_collected_at and not sparse_error_first_collected:
+                    columns['sparse.error.max'].append(sparse_error_max)
+                    columns['sparse.error.sum'].append(sparse_error_sum)
+                    columns['sparse.error.count'].append(sparse_error_count)
+                    missing_sparse_error = False
+                    sparse_errors_inserted += 1
 
-                if self.metric_matcher(v.tag):
+                if v.tag == 'epoch':
+                    current_epoch = v.simple_value
+
+                elif self.metric_matcher(v.tag):
                     columns[v.tag].append(v.simple_value)
 
                     # Syncronize the step count with the loss metrics
                     if len(columns['step']) != len(columns[v.tag]):
                         columns['step'].append(step)
+
+                    # Syncronize the wall.time with the loss metrics
+                    if len(columns['wall.time']) != len(columns[v.tag]):
+                        columns['wall.time'].append(e.wall_time)
+
+                    # Syncronize the epoch with the loss metrics
+                    if current_epoch is not None and len(columns['epoch']) != len(columns[v.tag]):
+                        columns['epoch'].append(current_epoch)
 
                     # Syncronize with the next sampled sparse.error, this should
                     # be from the same step.
@@ -81,14 +100,7 @@ class TensorboardMetricReader:
                     W_error = np.minimum(np.abs(W), np.abs(1 - np.abs(W)))
 
                     # Step changed, update sparse error
-                    if step != sparse_error_collected_at and not sparse_error_first_collected:
-                        if missing_sparse_error:
-                            columns['sparse.error.max'].append(sparse_error_max)
-                            columns['sparse.error.sum'].append(sparse_error_sum)
-                            columns['sparse.error.count'].append(sparse_error_count)
-                            missing_sparse_error = False
-                            sparse_errors_inserted += 1
-
+                    if step != sparse_error_collected_at:
                         sparse_error_max = np.max(W_error)
                         sparse_error_sum = np.sum(W_error)
                         sparse_error_count = W_error.size
@@ -113,9 +125,9 @@ class TensorboardMetricReader:
              multiprocessing.Pool(self.processes) as pool:
 
             columns_order = None
-            #for data in pool.imap_unordered(self._parse_tensorboard_data, reader):
-            for data in map(self._parse_tensorboard_data, reader):
+            for data in pool.imap_unordered(self._parse_tensorboard_data, reader):
                 pbar.update()
+
                 df = pandas.DataFrame(data)
 
                 # Ensure the columns are always order the same

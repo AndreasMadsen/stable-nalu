@@ -30,11 +30,11 @@ def matcher(tag):
 reader = stable_nalu.reader.TensorboardMetricReader(
     args.tensorboard_dir,
     metric_matcher=matcher,
+    step_start=0,
     processes=allowed_processes
 )
 
 with open(args.csv_out, 'w') as csv_fp:
-    writer = csv.writer(csv_fp, delimiter=",")
-    writer.writerow(reader.COLUMN_NAMES)
-    for row in reader:
-            writer.writerow(row)
+    for index, df in enumerate(reader):
+        df.to_csv(csv_fp, header = (index == 0), index=False)
+        csv_fp.flush()

@@ -25,8 +25,8 @@ class TensorboardReader:
         """
         for subdir in self._directories:
             logfiles = _listdir_filter_hidden_files(path.join(self._sourcedir, subdir))
-            if len(logfiles) > 1:
-                raise Exception(f'more than one logfile was found in {subdir}')
+            if len(logfiles) != 1:
+                raise Exception(f'wrong number of logfile was found in {subdir}')
 
             filename = path.join(self._sourcedir, subdir, logfiles[0])
 

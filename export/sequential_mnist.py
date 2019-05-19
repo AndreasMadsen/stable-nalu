@@ -25,15 +25,19 @@ else:
     allowed_processes = None
 
 def matcher(tag):
-    return tag in ['loss/valid/interpolation', 'loss/valid/extrapolation/short', 'loss/valid/extrapolation/long']
+    return (
+        tag in ['loss/valid/validation', 'loss/valid/mnist_classification'] or
+        tag.startswith('loss/valid/extrapolation/')
+    )
 
 reader = stable_nalu.reader.TensorboardMetricReader(
     args.tensorboard_dir,
     metric_matcher=matcher,
     step_start=1,
-    processes=1
+    processes=allowed_processes
 )
 
 with open(args.csv_out, 'w') as csv_fp:
     for index, df in enumerate(reader):
         df.to_csv(csv_fp, header = (index == 0), index=False)
+        csv_fp.flush()
