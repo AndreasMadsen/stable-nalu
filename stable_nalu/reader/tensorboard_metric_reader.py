@@ -47,7 +47,6 @@ class TensorboardMetricReader:
 
     def _parse_tensorboard_data(self, inputs):
         (dirname, filename, reader) = inputs
-        print(dirname)
 
         columns = collections.defaultdict(list)
         columns['name'] = dirname
