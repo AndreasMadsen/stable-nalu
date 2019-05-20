@@ -1,13 +1,13 @@
 rm(list = ls())
 setwd(dirname(parent.frame(2)$ofile))
 
-library(xtable)
 library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
 library(kableExtra)
 source('./_function_task_expand_name.r')
+source('./_function_task_table.r')
 
 best.range = 100
 
@@ -26,6 +26,18 @@ first.solved.step = function (steps, errors, epsilon) {
     return(NA)
   } else {
     return(steps[index])
+  }
+}
+
+t.confidence.interval = function (alpha, vec) {
+  return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
+}
+
+safe.median = function (vec) {
+  if (length(vec) == 0) {
+    return(NA)
+  } else {
+    return(median(vec))
   }
 }
 
@@ -65,49 +77,30 @@ dat.last.rate = dat.last %>%
   summarise(
     rate.interpolation = mean(interpolation.last < epsilon),
     rate.extrapolation = mean(solved),
-    interpolation.solved = mean(interpolation.step.solved[solved]),
-    extrapolation.solved = mean(extrapolation.step.solved[solved]),
+    
+    median.interpolation.solved = safe.median(interpolation.step.solved[solved]),
+    mean.interpolation.solved = mean(interpolation.step.solved[solved]),
+    
+    median.extrapolation.solved = safe.median(extrapolation.step.solved[solved]),
+    mean.extrapolation.solved = mean(extrapolation.step.solved[solved]),
+    ci.extrapolation.solved = t.confidence.interval(0.95, extrapolation.step.solved[solved]),
+    
+    median.sparse.error.max = safe.median(sparse.error.max[solved]),
     mean.sparse.error.max = mean(sparse.error.max[solved]),
+    ci.sparse.error.max = t.confidence.interval(0.95, sparse.error.max[solved]),
+    
     mean.sparse.error.mean = mean(sparse.error.mean[solved]),
-    size = n()
+    size = n() 
   )
 
-latex.scientific = function (d) {
-  return(sub("NaN|NA", "---",
-             sanitize.numbers(format(as.numeric(d), scientific = TRUE, digits=2),
-                              type = "latex", math.style.exponents = TRUE)))
-}
+print(dat.last.rate)
 
-latex.digit = function (d) {
-  return(sub("\\$(NaN|NA)\\$", "---", sprintf("$%.0f$", as.numeric(d))))
-}
-
-latex.rate = function (d) {
-  return(sub("\\$(NaN|NA)\\\\%\\$", "---", sprintf("$%.0f\\%%$", as.numeric(d) * 100)))
-}
-
-dat.last.rate %>%
-  mutate(
-    success.rate = latex.rate(rate.extrapolation),
-    converged.at = latex.digit(extrapolation.solved),
-    sparse.error = latex.scientific(mean.sparse.error.max)
-  ) %>%
-  select(operation, model, success.rate, converged.at, sparse.error) %>%
-  filter(
-    (operation %in% c('$a + b$', '$a - b$') & model %in% c('Linear', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('${a \\cdot b}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
-  ) %>%
-  arrange(operation, model) %>%
-  kable(
-    "latex", booktabs=T, align = c('r', 'r', 'l', 'l', 'l'), escape=F, label="function-task-static-defaults",
-    caption="Shows the success-rate for extrapolation < $\\epsilon$, at what global step the model converged at, and the sparsity error for all weight matrices.",
-    col.names = c("Operation",
-                  "Model",
-                  "Success rate",
-                  "Converged at",
-                  "Sparsity error")
-  ) %>%
-  kable_styling(latex_options=c('HOLD_position')) %>%
-  collapse_rows(columns = c(1,2), latex_hline = "major") %>%
-  write("../paper/results/function_task_static.tex")
-
+save.table(
+  dat.last.rate %>% filter(
+    (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', 'ReLU', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
+    (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'ReLU', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
+  ),
+  "function-task-static-defaults",
+  "Shows the success-rate for $\\mathcal{L}_{\\mathbf{W}_1, \\mathbf{W}_2} < \\mathcal{L}_{\\mathbf{W}_1^\\epsilon, \\mathbf{W}_2^*}$, at what global step the model converged at, and the sparsity error for all weight matrices.",
+  "../paper/results/function_task_static.tex"
+)

@@ -7,12 +7,12 @@ model.full.to.short = c(
   'relu6'='ReLU6',
   'nac'='$\\mathrm{NAC}_{+}$',
   'nac-nac-n'='$\\mathrm{NAC}_{\\bullet}$',
-  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet}$ ($\\mathbf{W} = \\sigma(\\mathbf{\\hat{W}}$)',
+  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet}$ ($\\mathbf{W} = \\sigma(\\mathbf{\\hat{W}}$))',
   'nalu'='NALU',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU',
   'regualizedlinearnac-nac-m'='NMU ($\\mathbf{W} = \\mathbf{\\hat{W}}$)',
-  'sillyreregualizedlinearnac-nac-m'='NMU ($\\mathbf{z} = \\mathbf{W} \\cdot \\mathbf{x}$)'
+  'sillyreregualizedlinearnac-nac-m'='NMU ($\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$)'
 )
 
 model.latex.to.exp = c(
@@ -34,12 +34,12 @@ model.to.exp = function(v) {
 }
 
 operation.full.to.short = c(
-  'o-add'='$a + b$',
-  'o-sub'='$a - b$',
-  'o-mul'='${a \\cdot b}$',
-  'o-div'='${a \\mathbin{/} b}$',
-  'o-squared'='${a^2}$',
-  'o-root'='${\\sqrt{a}}$'
+  'o-add'='$\\bm{+}$',
+  'o-sub'='$\\bm{-}$',
+  'o-mul'='$\\bm{\\times}$',
+  'o-div'='$\\bm{\\mathbin{/}}$',
+  'o-squared'='$z^2$',
+  'o-root'='$\\sqrt{z}$'
 )
 
 range.full.to.short.element = function (range) {

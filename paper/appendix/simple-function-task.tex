@@ -1,6 +1,14 @@
 \section{Simple function task}
 \subsection{Dataset generation}
 \label{sec:appendix:simple-function-task:data-generation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.8]{graphics/function_task_static_problem.pdf}
+\caption{Dataset is parameterized into ``Input Size'', ``Subset Ratio'', ``Overlap Ratio'', an Operation (here showing multiplication), ``Interpolation Range'' and ``Extrapolation Range'' from which the data set sampled.}
+\label{fig:simple-function-task-problem}
+\end{figure}
+
 All datasets in the simple function task experiments are generated using the following algorithm:
 
 \begin{algorithm}[H]
@@ -16,3 +24,59 @@ All datasets in the simple function task experiments are generated using the fol
     \EndFunction
   \end{algorithmic}
 \end{algorithm}
+
+\subsection{Ablation study}
+\input{results/function_task_static_ablation.tex}
+
+\todo[inline]{Remove both regualizers}
+
+\subsubsection{Moments and initialization for addition} \label{sssec:nac-add-moments}
+
+Initialization is important for fast and consistent convergence. The desired properties are according to Glorot et al. \cite{glorot-initialization}:
+\begin{equation}
+\begin{aligned}
+E[z_{h_\ell}] &= 0 & E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= 0 \\
+Var[z_{h_\ell}] &= Var\left[z_{h_{\ell-1}}\right] &
+Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell}}}\right]
+\end{aligned}
+\end{equation}
+
+The $\mathrm{NAU}$ layer is trivial, as this is just a linear layer. Thus the result from Glorot et al. ($Var[W_{h_{\ell-1},h_{\ell}}] = \frac{2}{H_{\ell-1} + H_{\ell}}$) can be used \cite{glorot-initialization}.
+
+However, the original $\mathrm{NAC}_{+}$ unit is less trivial as $W_{h_{\ell-1},h_{\ell}}$ is not sampled directly. Assuming that $\hat{W}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ and $\hat{M}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ then the variance can be derived (see proof in Appendix \ref{sec:appendix:moments:weight-matrix-construction}) to be:
+\begin{equation}
+Var[W_{h_{\ell-1},h_{\ell}}] = \frac{1}{2r} \left(1 - \frac{\tanh(r)}{r}\right) \left(r - \tanh\left(\frac{r}{2}\right)\right)
+\end{equation}
+One can the solve for $r$, given the desired variance.
+
+\subsubsection{Moments and initialization for multiplication} \label{sssec:nac-mul-moments}
+\todo{Maybe put this entire section in appendix?}
+
+Using second order multivariate Taylor approximation and some assumptions\todo{put in assumptions in appendix} of uncorrelated stochastic variables, the expectation and variance of the $\mathrm{NAC}_{\bullet}$ layer can be estimated to:
+\begin{equation}
+\begin{aligned}
+f(c_1, c_2) &= \left(1 + c_1 \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{c_2\ H_{\ell-1}} \\
+E[z_{h_\ell}] &\approx f\left(1, 1\right) \\
+Var[z_{h_2}] &\approx f\left(4, 1\right) - f\left(1, 2\right) \\
+E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= 0 \\
+Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell}}}\right] H_{\ell}\ f\left(4, 1\right)\ Var[W_{h_{\ell}, h_{\ell-1}}] \\
+&\cdot \left(\frac{1}{\left(|E[z_{h_{\ell-1}}]| + \epsilon\right)^2} + \frac{3}{\left(|E[z_{h_{\ell-1}}]| + \epsilon\right)^4} Var[z_{h_{\ell-1}}]\right)
+\end{aligned}
+\end{equation}
+
+This is problematic because $E[z_{h_\ell}] \ge 1$, and the variance explodes for $E[z_{h_{\ell-1}}] = 0$ which is normally a desired property.
+
+For our proposed NMU, the expectation and variance can be derived (see proof in Appendix \ref{sec:appendix:moments:nmu}) using the same assumptions as before, although no Taylor approximation is required:
+\begin{equation}
+\begin{aligned}
+E[z_{h_\ell}] &\approx \left(\frac{1}{2}\right)^{H_{\ell-1}} \\
+E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx 0 \\
+Var[z_{h_\ell}] &\approx \left(Var[W_{h_{\ell-1},h_\ell}] + \frac{1}{4}\right)^{H_{\ell-1}} \left(Var[z_{h_{\ell-1}}] + 1\right)^{H_{\ell-1}} - \left(\frac{1}{4}\right)^{H_{\ell-1}} \\
+Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_\ell}}\right] H_\ell \\
+& \cdot \left( \left(Var[W_{h_{\ell-1},h_\ell}] + \frac{1}{4}\right)^{H_{\ell-1}} \left(Var[z_{h_{\ell-1}}] + 1\right)^{H_{\ell-1}-1} - \left(\frac{1}{4}\right)^{H_{\ell-1}}\right)
+\end{aligned}
+\end{equation}\todo{consider throwing in appendix}
+
+These expectations are much more well behaved. It is properly unlikely to expect that the expectation can become zero, since the identity for multiplication is 1. However, for a large $H_{\ell-1}$ it will be near zero.
+
+The variance is also more well-behaved, but does not provide a input-independent initialization strategy. We propose initializing with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$, as this is the solution to $Var[z_{h_\ell}] = Var[z_{h_{\ell-1}}]$ assuming $Var[z_{h_{\ell-1}}] = 1$ and a large $H_{\ell-1}$ (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}). However, feel free to compute more exact solutions.

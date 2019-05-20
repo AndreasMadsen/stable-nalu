@@ -1,6 +1,7 @@
 rm(list = ls())
 setwd(dirname(parent.frame(2)$ofile))
 
+library(plyr)
 library(dplyr)
 
 simulate.mse = function (epsilon, samples, operation, simple, input.size, subset.ratio, overlap.ratio, range.a, range.b, range.mirror) {

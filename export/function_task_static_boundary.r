@@ -29,15 +29,13 @@ first.solved.step = function (steps, errors, epsilon) {
   }
 }
 
-safe.quantile = function (vec, prop) {
+safe.interval = function (alpha, vec) {
   if (length(vec) <= 1) {
     return(NA)
-  } else if (length(vec) <= 3) {
-    return(ifelse(prop < 0.5, min(vec), max(vec)))
-  } else {
-    return(median(vec, prop))
   }
-} 
+  
+  return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
+}
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter != 'default') %>%
@@ -84,12 +82,12 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
       success.rate.lower = NA,
 
       converged.at.mean = mean(extrapolation.step.solved[solved]),
-      converged.at.upper = safe.quantile(extrapolation.step.solved[solved], 0.9),
-      converged.at.lower = safe.quantile(extrapolation.step.solved[solved], 0.1),
-
+      converged.at.upper = converged.at.mean + safe.interval(0.95, extrapolation.step.solved[solved]),
+      converged.at.lower = converged.at.mean - safe.interval(0.95, extrapolation.step.solved[solved]),
+      
       sparse.error.mean = mean(sparse.error.max[solved]),
-      sparse.error.upper = safe.quantile(sparse.error.max[solved], 0.9),
-      sparse.error.lower = safe.quantile(sparse.error.max[solved], 0.1)
+      sparse.error.upper = sparse.error.mean + safe.interval(0.95, sparse.error.max[solved]),
+      sparse.error.lower = sparse.error.mean - safe.interval(0.95, sparse.error.max[solved])
     )
 
   dat.gather.mean = dat.last.rate %>%
@@ -145,7 +143,6 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
   ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
 }
 
-#plot.parameter('input.size', 'Input size', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf')
-#plot.parameter('subset.ratio', 'Subset ratio', '../results/function_task_static_mul_subset.csv', '../paper/results/simple_function_static_subset.pdf')
-#plot.parameter('overlap.ratio', 'Overlap ratio', '../results/function_task_static_mul_overlap.csv', '../paper/results/simple_function_static_overlap.pdf')
-plot.parameter('regualizer', 'Sparse regualizer', '../results/function_task_static_regualization.csv', '../paper/results/function_task_static_regualization.pdf')
+plot.parameter('input.size', 'Input size', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf')
+plot.parameter('subset.ratio', 'Subset ratio', '../results/function_task_static_mul_subset.csv', '../paper/results/simple_function_static_subset.pdf')
+plot.parameter('overlap.ratio', 'Overlap ratio', '../results/function_task_static_mul_overlap.csv', '../paper/results/simple_function_static_overlap.pdf')

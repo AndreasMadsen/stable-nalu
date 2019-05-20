@@ -1,22 +1,26 @@
 \begin{table}[H]
 
-\caption{\label{tab:function-task-static-defaults}Shows the success-rate for extrapolation < $\epsilon$, at what global step the model converged at, and the sparsity error for all weight matrices.}
+\caption{\label{tab:function-task-static-ablation}Shows the success-rate for $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, at what global step the model converged at, and the sparsity error for all weight matrices.}
 \centering
-\begin{tabular}{rrlll}
+\begin{tabular}{rllll}
 \toprule
-Operation & Model & Success rate & Converged at & Sparsity error\\
+\multicolumn{1}{c}{Model} & \multicolumn{1}{c}{Success} & \multicolumn{2}{c}{Converged at} & \multicolumn{1}{c}{Sparsity error} \\
+\cmidrule(l{3pt}r{3pt}){1-1} \cmidrule(l{3pt}r{3pt}){2-2} \cmidrule(l{3pt}r{3pt}){3-4} \cmidrule(l{3pt}r{3pt}){5-5}
+ & Rate & Median & Mean & Mean\\
 \midrule
- & $\mathrm{NAC}_{\bullet}$ & $40\%$ & $3125000$ & $2.8 \times 10^{-2}$\\
+$\mathrm{NAC}_{\bullet}$ & $40\%$ & $2.8 \cdot 10^{6}$ & $3.1 \cdot 10^{6} \pm 2.0 \cdot 10^{6}$ & $2.8 \cdot 10^{-2} \pm 8.9 \cdot 10^{-2}$\\
 
- & $\mathrm{NAC}_{\bullet}$ ($\mathbf{W} = \sigma(\mathbf{\hat{W}}$) & $100\%$ & $1905000$ & $1.1 \times 10^{-4}$\\
+$\mathrm{NAC}_{\bullet}$ ($\mathbf{W} = \sigma(\mathbf{\hat{W}}$)) & $100\%$ & $1.9 \cdot 10^{6}$ & $1.9 \cdot 10^{6} \pm 3.1 \cdot 10^{5}$ & $1.1 \cdot 10^{-4} \pm 1.0 \cdot 10^{-4}$\\
 
- & NMU & $100\%$ & $1181800$ & $1.6 \times 10^{-3}$\\
+NMU & $100\%$ & $1.2 \cdot 10^{6}$ & $1.2 \cdot 10^{6} \pm 2.0 \cdot 10^{5}$ & $1.6 \cdot 10^{-3} \pm 9.2 \cdot 10^{-4}$\\
 
- & NMU ($\mathbf{z} = \mathbf{W} \cdot \mathbf{x}$) & $100\%$ & $1181800$ & $1.6 \times 10^{-3}$\\
+NMU ($\mathbf{W} = \mathbf{\hat{W}}$) & $100\%$ & $1.3 \cdot 10^{6}$ & $1.2 \cdot 10^{6} \pm 1.9 \cdot 10^{5}$ & $3.9 \cdot 10^{-3} \pm 1.2 \cdot 10^{-3}$\\
 
- & NMU (no $\mathcal{R}_{oob}$) & $100\%$ & $1174300$ & $1.7 \times 10^{-3}$\\
+NMU ($\mathbf{z} = \mathbf{W} \odot \mathbf{x}$) & $100\%$ & $1.2 \cdot 10^{6}$ & $1.2 \cdot 10^{6} \pm 2.0 \cdot 10^{5}$ & $1.6 \cdot 10^{-3} \pm 9.2 \cdot 10^{-4}$\\
 
-\multirow{-6}{*}{\raggedleft\arraybackslash ${a \cdot b}$} & NMU (no $\mathcal{R}_{sparse}$) & $100\%$ & $1182500$ & $1.7 \times 10^{-3}$\\
+NMU (no $\mathcal{R}_{oob}$) & $100\%$ & $1.2 \cdot 10^{6}$ & $1.2 \cdot 10^{6} \pm 1.9 \cdot 10^{5}$ & $1.7 \cdot 10^{-3} \pm 4.6 \cdot 10^{-4}$\\
+
+NMU (no $\mathcal{R}_{sparse}$) & $100\%$ & $1.2 \cdot 10^{6}$ & $1.2 \cdot 10^{6} \pm 1.9 \cdot 10^{5}$ & $1.7 \cdot 10^{-3} \pm 9.0 \cdot 10^{-4}$\\
 \bottomrule
 \end{tabular}
 \end{table}

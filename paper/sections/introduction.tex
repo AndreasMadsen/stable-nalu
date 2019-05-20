@@ -4,16 +4,16 @@ The ability for neurons to hold numbers and do arithmetic operations has been do
 In our race to solve intelligence we have put much faith in neural networks, which in turn has provided unparalleled and often superhuman performance in many tasks requiring high cognitive ability \cite{natureGo,googleNMT,resnet}.
 However, when using neural networks to solve simple arithmetic problems, such as counting, they systematically fail to extrapolate \cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}.
 
-In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}. Our solution is an alternative formulation of the weight constraint with a clipped linear activation, a regularizer that bias throwards sparse solutions, and a reformulation of the multiplication unit to be partially linear. All of which significantly improves upon the existing $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units as shown through extensive testing on synthetic tasks and images.
+In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}. Our contribution is an alternative formulation of the weight constraint with a clipped linear activation, a regularizer that bias throwards sparse solutions, and a reformulation of the multiplication unit to be partially linear. All of which significantly improves upon the existing $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units as shown through extensive testing on arithmetic constructions.
 
 The NALU is a neural network layer with two sub-units. The two sub-units, $\text{NAC}_{+}$ for addition/subtraction and $\text{NAC}_{\bullet}$ for multiplication/division, are softly gated between with a sigmoid function. By using trainable weights, and restricting the weights towards $\{-1,0,1\}$. The weights are learned by observing arithmetic input-output pairs and using backpropagation\cite{rumelhart1986learning}.
 
-We focus only on the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ as we have found that the gating in NALU can be cumbersome. This is because of the difficulties in selecting between, and simultaneously training, two vastly different operations. \todo{We have spent a lot of time on gating, and have an intuition on why it might not work. It turns out to be extremely difficult. Unfortunately we have no solution. How do we argue that we don't look at gating?}
+We focus only on the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ as we have found that the gating in NALU can be cumbersome, as shown in table \ref{tab:function-task-static-defaults} where the NALU performs significantly worse than $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$. This is because of the difficulties in selecting between, and simultaneously training, two vastly different operations.
 
-We will thus assume that the appropriate operation is already known, or can empirically be found by varying the network architecture (oracle gating). We find that the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units poses optimization difficulties. Our analysis presents the following findings:
+We will thus assume that the appropriate operation is already known, or can empirically be found by varying the network architecture (oracle gating). We find that the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units poses optimization difficulties. We present the following findings:
 
 \begin{itemize}
-\item The weight matrix constraint in the NALU, under zero expectation of the mean layer value\cite{glorot-initialization}, has a gradient of zero.
+\item The gradients from the weight matrix construction in $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, have zero expectation.
 
 \item The $\text{NAC}_{\bullet}$ have a treacherous optimization space with unwanted global minimas (as shown in figure \ref{fig:nac-mul-eps-issue}) and have exploding/vanishing gradients.
 
@@ -21,6 +21,12 @@ We will thus assume that the appropriate operation is already known, or can empi
 \end{itemize}
 
 Motivated by these convergence and sparsity issue, we propose alternative formulations of the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, which we call the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU).
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.8]{graphics/nmu.pdf}
+\caption{Visualization of NMU for a single output scalar $z_1$, this construction repeats for every element in the output vector $\mathbf{z}$.}
+\end{figure}
 
 %It is fair to assume that the ability to perform arithmetic operations is crucial modern intelligence.
 %However, Neural networks(nature, yann lecun), even though it has great expressiveness, has shown an inability to count severe lacks the ability to explicitly only has the ability to has an extreme capacity to interpolate complex functions from simply observing data (ICLR best paper 2017).

@@ -1,6 +1,7 @@
 rm(list = ls())
 setwd(dirname(parent.frame(2)$ofile))
 
+library(plyr)
 library(dplyr)
 
 rowProds = function (X) {

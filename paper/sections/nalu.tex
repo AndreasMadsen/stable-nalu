@@ -1,11 +1,11 @@
 \section{Introducing differentiable binary arithmetic operations}
-Our goal is to achieve arithmetic operations between the elements of a vector. Formally defined as \todo{Can this be more formally defined}.
+Our goal is to achieve arithmetic operations between the elements of a vector. Such that the output is an addition, subtraction, multiplication, or division of arbitrary elements of a vector $\mathbf{x}$ (e.g. ${x_5 + x_1 \cdot x_7}$). Formally defined as:
 \begin{equation}
-x_1\circ_1 x_2 \circ_2 \cdots x_{k-1} \circ_{k-1} x_{k}\ |\ (x_1, \dots, x_k) \in \mathbf{x}, \mathbf{x} \in \mathbb{R}^n, \circ \in \{+, -, \cdot, \div \}
+x_1\circ_1 x_2 \circ_2 \cdots x_{k-1} \circ_{k-1} x_{k}\ |\ (x_1, \dots, x_k) \in \mathbf{x}, \mathbf{x} \in \mathbb{R}^n, \circ_i \in \{+, -, \times, \div \}
 \label{eq:goal}
 \end{equation}
 
-The Neural Arithmetic Logic Unit (NALU)\cite{trask-nalu} attempts to solve equation \ref{eq:goal} by presenting two sub-units; the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ to exclusively represent either the $\{+, -\}$ or the $\{\cdot, \div \}$ operations.
+The Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu} attempts to solve equation \ref{eq:goal} by presenting two sub-units; the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ to exclusively represent either the $\{+, -\}$ or the $\{\times, \div \}$ operations.
 The NALU attempts to have either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ selected exclusively, which could require the NALU to be applied multiple times (alternating between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$) in order to represent the entire space of solutions for equation \ref{eq:goal}.
 
 The $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ are defined accordingly,
@@ -15,23 +15,21 @@ W_{h_\ell, h_{\ell-1}} &= \tanh(\hat{W}_{h_\ell, h_{\ell-1}}) \sigma(\hat{M}_{h_
 \textrm{NAC}_+:\ z_{h_\ell} &= \sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}} \label{eq:naca}\\
 \textrm{NAC}_\bullet:\ z_{h_\ell} &= \exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \label{eq:nacm}\log(|z_{h_{\ell-1}}| + \epsilon) \right)
 \end{align}
-where $\hat{\mathbf{W}}, \hat{\mathbf{M}} \in \mathbb{R}^{H_{\ell} \times H_{\ell-1}}$ are trainable weight matrices. These are then combined using tanh and sigmoid transformation to bias the parameters towards a $\{-1,0,1\}$ solution\todo{maybe visualize the function space}. Having $\{-1,0,1\}$ allows a linear layer to exactly emulate the binary $\{+, -\}$ operation between elements of a vector as used when computing the $\text{NAC}_{+}$.
-The $\text{NAC}_{\bullet}$ extends the $\text{NAC}_{+}$ by using an exponential log transformation, which, with $\{-1,0,1\}$ weight values, becomes the $\{\cdot, \div \}$ operations (within $\epsilon$ precision).
+where $\hat{\mathbf{W}}, \hat{\mathbf{M}} \in \mathbb{R}^{H_{\ell} \times H_{\ell-1}}$ are trainable weight matrices. The matrices are combined using tanh and sigmoid transformation to bias the parameters towards a $\{-1,0,1\}$ solution. Having $\{-1,0,1\}$ allows a linear layer to exactly emulate the binary $\{+, -\}$ operation between elements of a vector as used when computing the $\text{NAC}_{+}$.
+The $\text{NAC}_{\bullet}$ extends the $\text{NAC}_{+}$ by using an exponential log transformation, which, with $\{-1,0,1\}$ weight values, becomes the $\{\times, \div \}$ operations (within $\epsilon$ precision).
 
 The NALU combines these units with a gating mechanism $\mathbf{z} = \mathbf{g} \odot \text{NAC}_{+} + (1 - \mathbf{g}) \odot \text{NAC}_{\bullet}$ given $\mathbf{g} = \sigma(\mathbf{G} \mathbf{x})$. The idea is that the NALU should be a plug-and-play component in a neural network and has the ability to, with stochastic gradient descent and backpropagation, to learn the functionality in equation \ref{eq:goal}.
 
 \subsection{Challenges of the NALU, $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$}
-To simplify the problem we have chosen to leave out the gating mechanism and focus on the sub-units, assuming "oracle gating". \todo{We find this reasonable given ...}
+To simplify the problem we have chosen to leave out the gating mechanism and focus on the sub-units, assuming "oracle gating". We have not had any consistent success of convergence using the gating mechanism using the NALU or by combining our own proposed sub-units (NAU, NMU), as shown in table \ref{tab:function-task-static-defaults}. We find that gating between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ is challenging. This is likely due to the vastly different gradients, causing addition to be learned much faster than multiplication.
 
-We find that gating between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ is challenging to make converge and it it not obvious whether or not the gate could bias towards a specific sub-unit. We have not had any consistent success of convergence using the gating mechanism using the NALU or by combining our own proposed sub-units (NAU, NMU). We find that gating between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ is challenging. This is likely due to the vastly different gradients, causing addition to be learned much faster than multiplication.
+%In section \ref{sssec:weight} we analyse the gradients of equation \ref{eq:weight} and propose a cliped linear alternative, with a regularizer that biases towards $\{-1, 0, 1\}$. This results in an alternative addition unit called NAU.
 
-In section \ref{sssec:weight} we analyse the gradients of equation \ref{eq:weight} and propose a cliped linear alternative, with a regularizer that biases towards $\{-1, 0, 1\}$. This results in an alternative addition unit called NAU.
+%In section \ref{sssec:nac-mul} we analyse the gradient of $\text{NAC}_{\bullet}$, and propose an alternative construction called NMU, that has a more well-behaved loss space.
 
-In section \ref{sssec:nac-mul} we analyse the gradient of $\text{NAC}_{\bullet}$, and propose an alternative construction called NMU, that has a more well-behaved loss space.
+%In section \ref{sssec:nac-add-moments} we analyse the moments of $\text{NAC}_{+}$ and NAU, and derive the optimal weight initializations.
 
-In section \ref{sssec:nac-add-moments} we analyse the moments of $\text{NAC}_{+}$ and NAU, and derive the optimal weight initializations.
-
-In section \ref{sssec:nac-mul-moments} we analyse the moments of $\text{NAC}_{\bullet}$ and NMU, and show that the NMU have a more well-behaved expectation and variance. \todo{Maybe remove this overview?}
+%In section \ref{sssec:nac-mul-moments} we analyse the moments of $\text{NAC}_{\bullet}$ and NMU, and show that the NMU have a more well-behaved expectation and variance. \todo{Maybe remove this overview?}
 
 \subsubsection{Weight matrix construction}\label{sssec:weight}
 
@@ -74,7 +72,7 @@ However, backpropagation through the $\text{NAC}_{\bullet}$ unit reveals that if
 \end{align}
 (see full derivation in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nac-mul})
 
-This is not an issue for for positive values of $W_{h_{\ell-1},h_\ell}$ (multiplication), as $z_{h_{\ell}}$ and $z_{h_{\ell-1}}$ will be correlated causing the terms $z_{h_\ell}$ and $\frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}$ to cancel out.
+This is not an issue for for positive values of $W_{h_{\ell-1},h_\ell}$ (multiplication), as $z_{h_{\ell}}$ and $z_{h_{\ell-1}}$ will be correlated causing the terms $z_{h_\ell}$ and $\frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}$ to partially cancel out.
 %However, for negative values of $W_{h_{\ell-1},h_\ell}$ the terms will be negatively correlated causing an unwanted loss space, which is visualized in figure \ref{fig:nac-mul-eps-issue}.
 
 \begin{figure}[H]
@@ -103,7 +101,7 @@ w_2 & w_2
 \label{fig:nac-mul-eps-issue}
 \end{figure}
 
-These observations are particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. An alternative multiplication operator must thus be able to not explode for $z_{h_{\ell-1}}$ near zero. To that end we propose a new neural multplication units (NMU): 
+This gradient can be particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. An alternative multiplication operator must thus be able to not explode for $z_{h_{\ell-1}}$ near zero. To that end we propose a new neural multplication units (NMU): 
 
 \begin{equation}
 \begin{aligned}
@@ -113,10 +111,12 @@ These observations are particular problematic when considering that $E[z_{h_{\el
 \textrm{NMU}:\ &z_{h_\ell} = \prod_{h_{\ell-1}=1}^{H_{\ell-1}} \left(W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell} \right)
 \end{aligned}
 \end{equation}
+Notable is the multiplicative identity for when $W_{h_{\ell-1},h_\ell}=0$.
+This unit does not support division, but supporting division is likely infeasible as dividing by $z_{h_{\ell-1}}$ near zero would cause explosions.
+As shown in \cite{trask-nalu}, experiments using the NALU for division does not work well hence very little is lost with this modification.
+As opposed to the NALU, the NMU can represent input of both negative and positive $z_{h_{\ell-1}}$ values and is not $\epsilon$ dependent, which allows the NMU to extrapolate inputs that are negative or smaller than $\epsilon$.
 
-This units does not support division, but supporting division is likely infeasible if $z_{h_{\ell-1}}$ near zero should not cause explosions. The NALU paper also shows that division doesn't work well for their unit, hence very little is lost here \cite{trask-nalu}. On the other hand, this unit construction understand the difference between a negative and a positive $z_{h_{\ell-1}}$ values, which should be considered an added bonus, as this allows extrapolations into the negative input range.
-
-The gradients weight gradient and backpropagation term of the NMU are (see details in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}):
+The gradients with respect to the weight and input in the NMU are (see details in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}):
 \begin{equation}
 \begin{aligned}
 \frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right) \\
@@ -124,7 +124,7 @@ The gradients weight gradient and backpropagation term of the NMU are (see detai
 \end{aligned}
 \end{equation}
 
-These is much more well-behaved. Note also that the fraction does not explode for $z_{h_{\ell-1}}$ close to zero, as the denominator simply cancels out a term in $z_{h_\ell}$.
+Note that the fraction does not explode for $z_{h_{\ell-1}}$ close to zero, as the denominator simply cancels out a term in $z_{h_\ell}$.
 
 \begin{figure}[H]
 \centering
@@ -136,71 +136,20 @@ These is much more well-behaved. Note also that the fraction does not explode fo
 
 Initialization is important to consider for fast and consistent convergence \cite{glorot-initialization}.
 
-Our proposed NAU, can be initialize using Glorot initialzation as it is just a linear layer. The $\mathrm{NAC}_{+}$ unit can also achieve an ideal initialization, although it is less trivial (details in Appendix \ref{sec:appendix:moments:weight-matrix-construction}).
+Our proposed NAU, can be initialize using Glorot initialzation as it is a linear layer. The $\mathrm{NAC}_{+}$ unit can also achieve an ideal initialization, although it is less trivial (details in Appendix \ref{sec:appendix:moments:weight-matrix-construction}).
 
 Using second order multivariate Taylor approximation and some assumptions of uncorrelated stochastic variables, the expectation of $\mathrm{NAC}_{\bullet}$ can be estimated to be
 \begin{equation}
 E[z_{h_\ell}] \approx \left(1 + \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}} \Rightarrow E[z_{h_\ell}] > 1 \label{eq:nac-mul:expectation}
 \end{equation}
-(proof in Appendix \ref{sec:appendix:moments:nac-mul}). An ideal initialization should satisfy $E[z_{h_\ell}] = 0$ \cite{glorot-initialziation}, which the expectation for $\mathrm{NAC}_{\bullet}$ can't.
+(proof in Appendix \ref{sec:appendix:moments:nac-mul}). An ideal initialization should satisfy $E[z_{h_\ell}] = 0$ \cite{glorot-initialziation}, which the expectation for $\mathrm{NAC}_{\bullet}$ is infeasible.
 
 Our proposed NMU when initialized with $E[W_{h_{\ell}, h_{\ell - 1}}] = \nicefrac{1}{2}$ has an expectation of
 \begin{equation}
 E[z_{h_\ell}] \approx \left(\frac{1}{2}\right)^{H_{\ell-1}}
 \end{equation}
-which is not zero, but does approach zero for $H_{\ell-1} \rightarrow \infty$ (proof in Appendix \ref{sec:appendix:moments:nmu}).
+which approaches zero for $H_{\ell-1} \rightarrow \infty$ (proof in Appendix \ref{sec:appendix:moments:nmu}).
 
-The variance is also more well-behaved, but does similarly to $\mathrm{NAC}_{\bullet}$ not provide a input-independent initialization strategy (proof in Appendix \ref{sec:appendix:moments:nac-mul} and \ref{sec:appendix:moments:nmu}). We propose initializing with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$, as this provides an ideal initialization if $Var[z_{h_{\ell-1}}] = 1$ and $H_{\ell-1}$ is large (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}).
-
-\subsubsection{Moments and initialization for addition} \label{sssec:nac-add-moments}
-\todo{Maybe put this entire section in appendix?}
-
-Initialization is important for fast and consistent convergence. The desired properties are according to Glorot et al. \cite{glorot-initialization}:
-\begin{equation}
-\begin{aligned}
-E[z_{h_\ell}] &= 0 & E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= 0 \\
-Var[z_{h_\ell}] &= Var\left[z_{h_{\ell-1}}\right] &
-Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell}}}\right]
-\end{aligned}
-\end{equation}
-
-The $\mathrm{NAU}$ layer is trivial, as this is just a linear layer. Thus the result from Glorot et al. ($Var[W_{h_{\ell-1},h_{\ell}}] = \frac{2}{H_{\ell-1} + H_{\ell}}$) can be used \cite{glorot-initialization}.
-
-However, the original $\mathrm{NAC}_{+}$ unit is less trivial as $W_{h_{\ell-1},h_{\ell}}$ is not sampled directly. Assuming that $\hat{W}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ and $\hat{M}_{h_\ell, h_{\ell-1}} \sim \mathrm{Uniform}[-r, r]$ then the variance can be derived (see proof in Appendix \ref{sec:appendix:moments:weight-matrix-construction}) to be:
-\begin{equation}
-Var[W_{h_{\ell-1},h_{\ell}}] = \frac{1}{2r} \left(1 - \frac{\tanh(r)}{r}\right) \left(r - \tanh\left(\frac{r}{2}\right)\right)
-\end{equation}
-One can the solve for $r$, given the desired variance.
-
-\subsubsection{Moments and initialization for multiplication} \label{sssec:nac-mul-moments}
-\todo{Maybe put this entire section in appendix?}
-
-Using second order multivariate Taylor approximation and some assumptions\todo{put in assumptions in appendix} of uncorrelated stochastic variables, the expectation and variance of the $\mathrm{NAC}_{\bullet}$ layer can be estimated to:
-\begin{equation}
-\begin{aligned}
-f(c_1, c_2) &= \left(1 + c_1 \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{c_2\ H_{\ell-1}} \\
-E[z_{h_\ell}] &\approx f\left(1, 1\right) \\
-Var[z_{h_2}] &\approx f\left(4, 1\right) - f\left(1, 2\right) \\
-E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= 0 \\
-Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell}}}\right] H_{\ell}\ f\left(4, 1\right)\ Var[W_{h_{\ell}, h_{\ell-1}}] \\
-&\cdot \left(\frac{1}{\left(|E[z_{h_{\ell-1}}]| + \epsilon\right)^2} + \frac{3}{\left(|E[z_{h_{\ell-1}}]| + \epsilon\right)^4} Var[z_{h_{\ell-1}}]\right)
-\end{aligned}
-\end{equation}
-
-This is problematic because $E[z_{h_\ell}] \ge 1$, and the variance explodes for $E[z_{h_{\ell-1}}] = 0$ which is normally a desired property.
-
-For our proposed NMU, the expectation and variance can be derived (see proof in Appendix \ref{sec:appendix:moments:nmu}) using the same assumptions as before, although no Taylor approximation is required:
-\begin{equation}
-\begin{aligned}
-E[z_{h_\ell}] &\approx \left(\frac{1}{2}\right)^{H_{\ell-1}} \\
-E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx 0 \\
-Var[z_{h_\ell}] &\approx \left(Var[W_{h_{\ell-1},h_\ell}] + \frac{1}{4}\right)^{H_{\ell-1}} \left(Var[z_{h_{\ell-1}}] + 1\right)^{H_{\ell-1}} - \left(\frac{1}{4}\right)^{H_{\ell-1}} \\
-Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_\ell}}\right] H_\ell \\
-& \cdot \left( \left(Var[W_{h_{\ell-1},h_\ell}] + \frac{1}{4}\right)^{H_{\ell-1}} \left(Var[z_{h_{\ell-1}}] + 1\right)^{H_{\ell-1}-1} - \left(\frac{1}{4}\right)^{H_{\ell-1}}\right)
-\end{aligned}
-\end{equation}\todo{consider throwing in appendix}
-
-These expectations are much more well behaved. It is properly unlikely to expect that the expectation can become zero, since the identity for multiplication is 1. However, for a large $H_{\ell-1}$ it will be near zero.
-
-The variance is also more well-behaved, but does not provide a input-independent initialization strategy. We propose initializing with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$, as this is the solution to $Var[z_{h_\ell}] = Var[z_{h_{\ell-1}}]$ assuming $Var[z_{h_{\ell-1}}] = 1$ and a large $H_{\ell-1}$ (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}). However, feel free to compute more exact solutions.
+The $\mathrm{NAC}_{\bullet}$ can not be input-independent initialization and has an exploding variance in depth (proof in Appendix \ref{sec:appendix:moments:nac-mul} and \ref{sec:appendix:moments:nmu}).
+The NMU can, with the assumption that, $Var[z_{h_{\ell-1}}] = 1$ and $H_{\ell-1}$ is large, be intitialized optimally with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$ (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}).
 

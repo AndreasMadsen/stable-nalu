@@ -1,18 +1,17 @@
 \section{Experimental results}
 \label{sec:experiments}
 
-\subsection{Simple function task}
+\subsection{Arithmetic datasets}
 
-\subsubsection{Task definition}
-
-Our simple function task samples an input vector $\mathbf{x}$ from a uniform distribution. From this input vector, the sum of two subsets $a$ and $b$ are then computed. Finally the target $t$ is then an operation performed on $a$ and $b$ (e.g. $a \cdot b$). This is identical to the task by the same name in the Original NALU paper \cite{trask-nalu}. Except that we parameterize it in order to compare the models for different configurations, see figure \ref{fig:simple-function-task-problem}. To make comparison simple, we define a set of default parameters (table \ref{tab:simple-function-task-defaults}) and only vary one of them at the time.
-
-\begin{figure}[H]
-\centering
-\includegraphics[scale=0.8]{graphics/function_task_static_problem.pdf}
-\caption{Dataset is parameterized into ``Input Size'', ``Subset Ratio'', ``Overlap Ratio'', an Operation (here showing multiplication), ``Interpolation Range'' and ``Extrapolation Range'' from which the data set sampled.}
-\label{fig:simple-function-task-problem}
-\end{figure}
+The arithmetic dataset is a replica of the "simple function task" shown in \cite{trask-nalu}.
+The goal is to sum two subsets of a vector and perform a arithmetic operation as defined below
+\begin{equation}
+t = \sum_{i = a_{\mathrm{start}}}^{a_{\mathrm{end}}} \mathbf{x}_i \circ \sum_{i = b_{\mathrm{start}}}^{b_{\mathrm{end}}} \mathbf{x}_i \quad \text{where } \mathbf{x} \in \mathbb{R}^n, x_i \sim \mathrm{Uniform}[r_{\mathrm{lower}}, r_{\mathrm{upper}}], \circ \in \{+, -, \times\}
+\label{eq:arithmetic-problem}
+\end{equation}
+where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size and subset overlap are dataset parameters that we use to test the models ability to learn.
+We define a set of default parameters, see table (table \ref{tab:simple-function-task-defaults}).
+When probing a specific dataset parameter, e.g. subset overlap, the default will be the used for the remaining parameters.
 
 \begin{table}[H]
 \caption{Default dataset parameters}
@@ -20,74 +19,96 @@ Our simple function task samples an input vector $\mathbf{x}$ from a uniform dis
 \centering
 \begin{tabular}{r l}
 \toprule
- Parameter Name & Default Value \\
+ Parameter name & Default value \\
  \midrule
- Input Size & 100 \\
- Subset Ratio & 0.25 \\
- Overlap Ratio & 0.5 \\
- Interpolation Range & $U[1,2]$ \\
- Extrapolation Range & $U[1,6]$ \\
+ Input size & 100 \\
+ Subset ratio & 0.25 \\
+ Overlap ratio & 0.5 \\
+ Interpolation range & $U[1,2]$ \\
+ Extrapolation range & $U[2,6]$ \\
  \bottomrule
 \end{tabular}
 \end{table}
-\todo{should extrapolation be $U[2,6]$?}
-
-The training set is sampled from the interpolation range throughout training. The extrapolation range is defined as 2048 samples picked for each seed at the start of training.\todo{should we define valid and test sets? maybe we should make one BIG test set and have all models run on that}
 
 \subsubsection{Criterion}
 
-Normally one would report the interpolation and extrapolation loss. However, the complex approximations that one would typically see in neural networks are not considered good enough. The goal is to achieve a solution that is sufficiently close to a perfect solution. Because there can be many valid permutations of a perfect solution, especially for addition, a solution is judged firsts on the final extrapolation error, and then on a sparsity error.
-Because the interpolation and extrapolation errors are quite noisy, even for a near perfect solution. The median over the last 100 measurements is reported\todo{use the 2048 as a validation set and just pick the best instead. Then report test results for those}.
+The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range.
 
-A model is considered a success if the extrapolation median is less than $\epsilon = 0.2$. This value was acquired by inspecting the error of a near perfect solution. \todo{Get a better criterion.}
+If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error. Meaning the MSE for the fitted model, should be less than the MSE for a nearly perfect solution.
 
-The sparsity error is computed as in equation \ref{eq:sparsity-error}, and is only considered for the models that did solve the last.
+\begin{equation}
+    \mathbf{W}_1^\epsilon = \begin{bmatrix}
+    1 - \epsilon & 1 - \epsilon & 0 + \epsilon & 0 + \epsilon \\
+    1 - \epsilon & 1 - \epsilon & 1 - \epsilon & 1 - \epsilon
+    \end{bmatrix}, \mathbf{W}_2^* = \begin{bmatrix}
+    1 & 1
+    \end{bmatrix}
+    \label{eq:nearly-perfect-solution-example}
+\end{equation}
+
+All experiments are evaluated multiple times with different seeds. We define the success rate as the percentage of experiments that achives success.
+
+A sparsity error is also reported, the is defined in equation \ref{eq:sparsity-error}. This is only considered for model instances that did solve the task.
 \begin{equation}
 E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, |1 - |W_{h_{\ell-1},h_\ell}||)
 \label{eq:sparsity-error}
 \end{equation}
 
-The first iteration for which $\mathrm{extrapolation} < \epsilon$, is also reported. Again, only models that did solve the task are considered.
+The first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, is also reported. Again, only model instances that did solve the task are considered.
 
 \subsubsection{Model setup}
 
-For all experiements the $\mathcal{R}_{\ell,\mathrm{oob}}$ regularizer is added to the loss without modification or scaling, while the $\mathcal{R}_{\ell,\mathrm{bias}}$ regularizer is gradually upscaled with $0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Generally this regularizer should just be sufficiently small to not interfer with earily training.
+To solve the task, we compare the models defined in table \ref{tab:model-defintions}.
 
-%\begin{figure}[ht]
-%\centering
-%\includegraphics[width=\linewidth]{results/function-task-static-example.pdf}
-%\caption{Example of exploration error, interpolation error, and sparsity error, for the task $a \cdot b$ with the default dataset parameters. The horizontal line shows $\epsilon = 0.2$.}
-%\end{figure}
+\begin{table}[H]
+\caption{Model defintions}
+\label{tab:model-defintions}
+\centering
+\begin{tabular}{r l l}
+\toprule
+ Model & Layer 1 & Layer 2 \\
+ \midrule
+ NMU & NAU & NMU \\
+ NAU & NAU & NAU \\
+ $\mathrm{NAC}_{\bullet}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet}$ \\
+ $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ \\
+ NALU & NALU & NALU \\
+ Linear & Linear & Linear \\
+ ReLU & ReLU & ReLU \\
+ \bottomrule
+\end{tabular}
+\end{table}
+
+For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training.
+
+For all experiments Adam optimization \cite{adam-optimization} with default parameters is used.
+
+The training dataset is continuously sampled from the interpolation range, a different seed is used for each experiment. Training is done with a mini-batch size of 128 observations.
+
+A fixed validation dataset with $10000$ observations is sampled from the interpolation range. A fixed test dataset with $10000$ observations is sample from the extrapolation range.
+
+Validation error, test error and sparsity error is sampled every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error among the last $100$ samples is used.
 
 \subsubsection{Very simple function}
 
-To empirically validate the theoretical problems with $\mathrm{NAC}_{\bullet}$, let's consider the very simple problem shown earlier in figure \ref{fig:nac-mul-eps-issue}. That is $x \in \mathbb{R}^4$, $a = x_1 + x_2$ and $b = x_1 + x_2 + x_3 + x_4$. The solution to this problem is that seen in equation \ref{eq:very-simple-function-ideal-solution}.
-\begin{equation}
-    \mathbf{W}_1 = \begin{bmatrix}
-    1 & 1 & 0 & 0 \\
-    1 & 1 & 1 & 1
-    \end{bmatrix}, \mathbf{W}_2 = \begin{bmatrix}
-    1 & 1
-    \end{bmatrix}
-    \label{eq:very-simple-function-ideal-solution}
-\end{equation}
+To empirically validate the theoretical challenges with $\mathrm{NAC}_{\bullet}$ consider the very simple problem shown earlier in figure \ref{fig:nac-mul-eps-issue}. That is, $t = (x_1 + x_2) \circ (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$.
 
-Each model is trained 100 times with different seeds, and stopped after 200000 iterations. Default Adam optimization is used, with a mini-batch size of 128 observations. The results (as seen in table \ref{tab:very-simple-function-results}), shows that NMU have a much higher success rate and converges much faster. The few cases that did not converge successfully are because of underflow when $w = 0$ in the NMU layer.
+Each experiment is conducted 100 times with different seeds, and stopped after 200000 iterations.
+
+The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to underflow when $w = 0$ in the NMU layer.
 
 \input{results/simple_mul.tex}
 
-\subsubsection{Defaults}
+\subsubsection{Arithmetic operation comparison}
+We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in  \ref{tab:function-task-static-defaults}. 
 
-To compare on the exact same task as used in the Original NALU paper \cite{trask-nalu}. We report the success rate, the iteration which the model converged, and the sparsity error in table \ref{tab:function-task-static-defaults}. The models are trainined for 5000000 iterations. Default Adam optimization is used, with a mini-batch size of 128 observations. The NMU model is an NAU layer followed by an NMU layer. Likewise the  $\mathrm{NAC}_{\bullet}$ model, is a $\mathrm{NAC}_{+}$ layer followed by a $\mathrm{NAC}_{\bullet}$ layer.
+Each experiment is trained for $5 \cdot 10^6$ iterations.
 
-As seen the NMU model, unlike the $\mathrm{NAC}_{\bullet}$ model always converges, and even when $\mathrm{NAC}_{\bullet}$ model converges the NMU models converges about twice as fast.
-
-The NAU model, like the $\mathrm{NAC}_{+}$ model, always converges. However, NAU model converges more than twice as fast. It even converges faster than a Linear model. Also notice that the $\mathrm{NAC}_{+}$ model have a poor sparsity error. This is because it doesn't bias to $\{-1, 0, -1\}$.
+For multiplication, the NMU success more often and converges faster. For subtraction, the NAU model converges almost 3 orders of magnitude faster. For addition, \todo{add median to table (DONE) and discuss.}.
 
 \input{results/function_task_static.tex}
-\todo{add linear to multiplication}
-\subsubsection{Exploration of dataset parameters}
 
+\subsubsection{Exploration of dataset parameters}
 Finally, the parameters from which the dataset is constructed are considered for just the multiplication problem ($a \cdot b$). The setup is the same the results from table \ref{tab:function-task-static-defaults}. The results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, \ref{fig:simple-fnction-static-range}, and \ref{fig:simple-fnction-static-subset}. Errors bars show the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.
 
 Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NALU. Some important observations to make:
@@ -118,27 +139,16 @@ Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NAL
 \label{fig:simple-fnction-static-subset}
 \end{figure}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{results/simple_function_static_regualization.pdf}
+\caption{Shows the effect of the subset ratio, on the simple function task problem.}
+\label{fig:simple-fnction-static-subset}
+\end{figure}
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_range.pdf}
 \caption{Shows the effect of the interpolation range. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[0,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[1,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[1, 40]}$.}
 \label{fig:simple-fnction-static-range}
 \end{figure}
-
-\subsection{Sequential MNIST}
-
-To evaluate NAU and NMU in a end-to-end context in combination with a more complex network. We consider the Sequential MNIST Arithmetic task, also presented in the NALU paper \cite{trask-nalu}.
-
-The task is to take a sequence of MNIST images, then use a CNN layer \footnote{We use the model from \url{https://github.com/pytorch/examples/tree/master/mnist} which is also used in the NALU paper, \cite{trask-nalu}.} to produce a hidden layer with 10 elements which somehow describes the number. An recurrent arithmetic unit, is then used to either sum or multiply each MNIST digit together.
-
-This is slightly different from \cite{trask-nalu}, as they only considered addition in the form of counting and a sum. While here consider the sum and the product of a sequence is a considered (figure \ref{fig:mnist-sequence-problem}). Such that the multiplication layer also can be judged.
-
-\begin{figure}[H]
-\centering
-\includegraphics[scale=1]{graphics/mnist_sequence_problem.pdf}
-\caption{Shows how $3 \cdot 4 \cdot2$ is computed from a sequence of MNIST digits. $f$ is a CNN layer, that transforms the image into a 10-long vector representation.}
-\label{fig:mnist-sequence-problem}
-\end{figure}
-
-\todo[inline]{Still waiting for results to be computed.}
-

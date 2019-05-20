@@ -34,7 +34,7 @@ reader = stable_nalu.reader.TensorboardMetricReader(
     args.tensorboard_dir,
     metric_matcher=matcher,
     step_start=1,
-    processes=allowed_processes
+    processes=2
 )
 
 with open(args.csv_out, 'w') as csv_fp:
