@@ -79,6 +79,11 @@ parser.add_argument('--simple',
                     default=False,
                     help='Use a very simple dataset with t = sum(v[0:2]) + sum(v[4:6])')
 
+parser.add_argument('--hidden-size',
+                    action='store',
+                    default=2,
+                    type=int,
+                    help='Specify the vector size of the hidden layer.')
 parser.add_argument('--nac-mul',
                     action='store',
                     default='none',
@@ -153,6 +158,7 @@ print(f'  - subset_ratio: {args.subset_ratio}')
 print(f'  - overlap_ratio: {args.overlap_ratio}')
 print(f'  - simple: {args.simple}')
 print(f'  -')
+print(f'  - hidden_size: {args.hidden_size}')
 print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
@@ -191,7 +197,8 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'_e-{args.extrapolation_range[0]}-{args.extrapolation_range[1]}'
     f'_z-{"simple" if args.simple else f"{args.input_size}-{args.subset_ratio}-{args.overlap_ratio}"}'
     f'_b{args.batch_size}'
-    f'_s{args.seed}',
+    f'_s{args.seed}'
+    f'_h{args.hidden_size}',
     remove_existing_data=args.remove_existing_data
 )
 
@@ -226,6 +233,7 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     input_size=dataset.get_input_size(),
     writer=summary_writer.every(1000) if args.verbose else None,
     first_layer=args.first_layer,
+    hidden_size=args.hidden_size,
     nac_mul=args.nac_mul,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,

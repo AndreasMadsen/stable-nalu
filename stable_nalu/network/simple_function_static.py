@@ -6,7 +6,7 @@ from ..layer import GeneralizedLayer, BasicLayer
 class SimpleFunctionStaticNetwork(ExtendedTorchModule):
     UNIT_NAMES = GeneralizedLayer.UNIT_NAMES
 
-    def __init__(self, unit_name, input_size=100, writer=None, first_layer=None, nac_mul='none', eps=1e-7, **kwags):
+    def __init__(self, unit_name, input_size=100, hidden_size=2, writer=None, first_layer=None, nac_mul='none', eps=1e-7, **kwags):
         super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
         self.input_size = input_size
@@ -18,7 +18,7 @@ class SimpleFunctionStaticNetwork(ExtendedTorchModule):
         else:
             unit_name_1 = unit_name
 
-        self.layer_1 = GeneralizedLayer(input_size, 2,
+        self.layer_1 = GeneralizedLayer(input_size, hidden_size,
                                         unit_name_1,
                                         writer=self.writer,
                                         name='layer_1',
@@ -29,7 +29,7 @@ class SimpleFunctionStaticNetwork(ExtendedTorchModule):
         else:
             unit_name_2 = unit_name
 
-        self.layer_2 = GeneralizedLayer(2, 1,
+        self.layer_2 = GeneralizedLayer(hidden_size, 1,
                                         'linear' if unit_name_2 in BasicLayer.ACTIVATIONS else unit_name_2,
                                         writer=self.writer,
                                         name='layer_2',
