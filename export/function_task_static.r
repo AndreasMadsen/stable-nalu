@@ -97,10 +97,17 @@ print(dat.last.rate)
 
 save.table(
   dat.last.rate %>% filter(
-    (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', 'ReLU', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'ReLU', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
+    (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
+    (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
   ),
   "function-task-static-defaults",
   "Shows the success-rate for $\\mathcal{L}_{\\mathbf{W}_1, \\mathbf{W}_2} < \\mathcal{L}_{\\mathbf{W}_1^\\epsilon, \\mathbf{W}_2^*}$, at what global step the model converged at, and the sparsity error for all weight matrices.",
   "../paper/results/function_task_static.tex"
+)
+
+save.table(
+  dat.last.rate,
+  "function-task-static-defaults-all",
+  "Shows the success-rate for $\\mathcal{L}_{\\mathbf{W}_1, \\mathbf{W}_2} < \\mathcal{L}_{\\mathbf{W}_1^\\epsilon, \\mathbf{W}_2^*}$, at what global step the model converged at, and the sparsity error for all weight matrices.",
+  "../paper/results/function_task_static_all.tex"
 )

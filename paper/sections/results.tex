@@ -56,9 +56,11 @@ E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, 
 
 The first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, is also reported. Again, only model instances that did solve the task are considered.
 
+For sparsity error and ``solved at'' the 95\% confidence interval is reported.
+
 \subsubsection{Model setup}
 
-To solve the task, we compare the models defined in table \ref{tab:model-defintions}.
+To solve the task, we compare the models defined in table \ref{tab:model-defintions}. All models have by default two hidden units in the multiplication layer.
 
 \begin{table}[H]
 \caption{Model defintions}
@@ -74,14 +76,13 @@ To solve the task, we compare the models defined in table \ref{tab:model-definti
  $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ \\
  NALU & NALU & NALU \\
  Linear & Linear & Linear \\
- ReLU & ReLU & ReLU \\
  \bottomrule
 \end{tabular}
 \end{table}
 
-For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training.
+For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}.
 
-For all experiments Adam optimization \cite{adam-optimization} with default parameters is used.
+For all experiments Adam optimization \cite{adam-optimization} with default parameters is used and computed on an HPC cluster using \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
 
 The training dataset is continuously sampled from the interpolation range, a different seed is used for each experiment. Training is done with a mini-batch size of 128 observations.
 
@@ -95,28 +96,21 @@ To empirically validate the theoretical challenges with $\mathrm{NAC}_{\bullet}$
 
 Each experiment is conducted 100 times with different seeds, and stopped after 200000 iterations.
 
-The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to underflow when $w = 0$ in the NMU layer.
+The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to underflow when $w = 0$ in the NMU layer.\todo{Highlight best results in tables.}
 
 \input{results/simple_mul.tex}
 
 \subsubsection{Arithmetic operation comparison}
-We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in  \ref{tab:function-task-static-defaults}. 
+We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations.
 
-Each experiment is trained for $5 \cdot 10^6$ iterations.
-
-For multiplication, the NMU success more often and converges faster. For subtraction, the NAU model converges almost 3 orders of magnitude faster. For addition, \todo{add median to table (DONE) and discuss.}.
+For multiplication, the NMU success more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a more sparse solution.
 
 \input{results/function_task_static.tex}
 
 \subsubsection{Exploration of dataset parameters}
-Finally, the parameters from which the dataset is constructed are considered for just the multiplication problem ($a \cdot b$). The setup is the same the results from table \ref{tab:function-task-static-defaults}. The results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, \ref{fig:simple-fnction-static-range}, and \ref{fig:simple-fnction-static-subset}. Errors bars show the upper and lower 10\% quantile, computed over 10 different seeds for each configuration. The center shows the mean of those 10 observations.
+To stress test the NMU in comparison with the  $\mathrm{NAC}_{\bullet}$ and NALU, on the multiplication task, the dataset parameters (table \ref{tab:simple-function-task-defaults}) and the size of the multiplication layer are varied. Each experiment runs for 10 different seeds, the results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, \ref{fig:simple-fnction-static-range}, and \ref{fig:simple-fnction-static-subset}. \todo{Update refs for what we keep}
 
-Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NALU. Some important observations to make:
-
-\begin{itemize}
-\item Input size $> 100$. The NMU model's success-rate very suddenly decreases when the input size is greater than 100. We have been unable to explain why this happens. We suspect it is a problem with the signal-to-noie ratio of the problem. However the result is also seen if the mini-batch size is dramatically increased.
-\item Overlap ratio $= 0$: Both the NMU and also the $\mathrm{NAC}_{\bullet}$ when it does converge, finds a suboptimal solution where in the addition layer $w=1$ for the overlapping input between $a$ and $b$, and $w = 0$ for where the input isn't used. However when an input-scalar is only used in either $a$ or $b$, convergence the corresponding weights is difficult and slow. Thus the lower the overlap ratio is, the harder the problem is.
-\end{itemize}
+Our results show that the NMU consistently outperform the $\mathrm{NAC}_{\bullet}$ and the NALU for all parameters.
 
 \begin{figure}[H]
 \centering
@@ -141,14 +135,14 @@ Generally the NMU performs far better than both $\mathrm{NAC}_{\bullet}$ and NAL
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{results/simple_function_static_regualization.pdf}
-\caption{Shows the effect of the subset ratio, on the simple function task problem.}
+\includegraphics[width=\linewidth]{results/simple_function_static_hidden_size.pdf}
+\caption{Shows the effect of the hidden size, on the simple function task problem.}
 \label{fig:simple-fnction-static-subset}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_range.pdf}
-\caption{Shows the effect of the interpolation range. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[0,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[1,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[1, 40]}$.}
+\caption{Shows the effect of the interpolation range. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$.}
 \label{fig:simple-fnction-static-range}
 \end{figure}

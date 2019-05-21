@@ -36,7 +36,7 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
   }
 
   align = c('c', 'r', 'l', 'l', 'l', 'l')
-  header.1 = c("Operation", "Model", "Success", "Converged at"=2, "Sparsity error")
+  header.1 = c("Operation", "Model", "Success", "Solved at"=2, "Sparsity error")
   header.2 = c("", "", "Rate", "Median", "Mean", "Mean")
 
   if (!show.operation) {

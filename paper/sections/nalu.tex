@@ -75,24 +75,30 @@ However, backpropagation through the $\text{NAC}_{\bullet}$ unit reveals that if
 This is not an issue for for positive values of $W_{h_{\ell-1},h_\ell}$ (multiplication), as $z_{h_{\ell}}$ and $z_{h_{\ell-1}}$ will be correlated causing the terms $z_{h_\ell}$ and $\frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}$ to partially cancel out.
 %However, for negative values of $W_{h_{\ell-1},h_\ell}$ the terms will be negatively correlated causing an unwanted loss space, which is visualized in figure \ref{fig:nac-mul-eps-issue}.
 
-\begin{figure}[H]
+\begin{figure}[h]
 \centering
 \begin{subfigure}{.33\textwidth}
   \centering
   \includegraphics[width=\linewidth]{graphics/nac-mul-eps-1em7.png}
-  \caption{$\epsilon = 10^{-7}$}
+  \caption{$\mathrm{NAC}_{\bullet}$ with $\epsilon = 10^{-7}$}
 \end{subfigure}%
 \begin{subfigure}{.33\textwidth}
   \centering
   \includegraphics[width=\linewidth]{graphics/nac-mul-eps-1em1.png}
-  \caption{$\epsilon = 0.1$}
+  \caption{$\mathrm{NAC}_{\bullet}$ with $\epsilon = 0.1$}
 \end{subfigure}
+%\begin{subfigure}{.33\textwidth}
+%  \centering
+%  \includegraphics[width=\linewidth]{graphics/nac-mul-eps-1.png}
+%  \caption{$\epsilon = 1$}
+%\end{subfigure}
 \begin{subfigure}{.33\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{graphics/nac-mul-eps-1.png}
-  \caption{$\epsilon = 1$}
+\includegraphics[width=\linewidth]{graphics/nac-mul-nmu.png}
+  \caption{Our NMU solution}
 \end{subfigure}
-\caption{RMS loss curvature for a $\mathrm{NAC}_{+}$ layer followed by a $\mathrm{NAC}_{\bullet}$ layer. The weight matrices constrained are to $\mathbf{W}_1 = \left[\protect\begin{smallmatrix}
+
+\caption{RMS loss curvature for a $\mathrm{NAC}_{+}$ layer followed by either a $\mathrm{NAC}_{\bullet}$ or NMU layer. The weight matrices constrained are to $\mathbf{W}_1 = \left[\protect\begin{smallmatrix}
 w_1 & w_1 & 0 & 0 \\
 w_1 & w_1 & w_1 & w_1
 \protect\end{smallmatrix}\right]$, $\mathbf{W}_2 = \left[\protect\begin{smallmatrix}
@@ -125,12 +131,6 @@ The gradients with respect to the weight and input in the NMU are (see details i
 \end{equation}
 
 Note that the fraction does not explode for $z_{h_{\ell-1}}$ close to zero, as the denominator simply cancels out a term in $z_{h_\ell}$.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.33\linewidth]{graphics/nac-mul-nmu.png}
-\caption{RMS loss curvature (without regularization) for a $\mathrm{NAC}_{+}$ layer followed by an $\mathrm{NMU}$ layer. Otherwise, the setup is identical to that in Figure \ref{fig:nac-mul-eps-issue}.}
-\end{figure}
 
 \subsubsection{Moments and initialization}
 

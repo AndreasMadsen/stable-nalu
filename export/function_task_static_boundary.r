@@ -133,7 +133,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
         success.rate = "Success rate",
-        converged.at = "Converged at",
+        converged.at = "Solved at",
         sparse.error = "Sparsity error"
       )
     )) +
@@ -146,3 +146,5 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
 plot.parameter('input.size', 'Input size', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf')
 plot.parameter('subset.ratio', 'Subset ratio', '../results/function_task_static_mul_subset.csv', '../paper/results/simple_function_static_subset.pdf')
 plot.parameter('overlap.ratio', 'Overlap ratio', '../results/function_task_static_mul_overlap.csv', '../paper/results/simple_function_static_overlap.pdf')
+plot.parameter('hidden.size', 'Hidden size', '../results/function_task_static_mul_hidden_size.csv', '../paper/results/simple_function_static_hidden_size.pdf')
+

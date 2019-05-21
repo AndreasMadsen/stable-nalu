@@ -53,8 +53,10 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
 dat = expand.name(read_csv('../results/function_task_static_ablation.csv')) %>%
   merge(eps)
 dat$model = as.character(dat$model)
-dat$model = ifelse(dat$regualizer == 0, paste0(dat$model, ' (no $\\mathcal{R}_{sparse}$)'), dat$model)
-dat$model = ifelse(dat$regualizer.oob == 0, paste0(dat$model, ' (no $\\mathcal{R}_{oob}$)'), dat$model)
+
+dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob == 0, paste0(dat$model, ' (no $\\mathcal{R}_{sparse}$, no $\\mathcal{R}_{oob}$)'), dat$model)
+dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob != 0, paste0(dat$model, ' (no $\\mathcal{R}_{sparse}$)'), dat$model)
+dat$model = ifelse(dat$regualizer != 0 & dat$regualizer.oob == 0, paste0(dat$model, ' (no $\\mathcal{R}_{oob}$)'), dat$model)
 
 dat.last = dat %>%
   group_by(name) %>%

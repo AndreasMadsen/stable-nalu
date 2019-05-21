@@ -42,7 +42,18 @@ operation.full.to.short = c(
   'o-root'='$\\sqrt{z}$'
 )
 
-range.full.to.short.element = function (range) {
+extract.by.split = function (name, index, default=NA) {
+  split = strsplit(as.character(name), '_')[[1]]
+  if (length(split) >= index) {
+    return(split[index])
+  } else {
+    return(default)
+  }
+}
+
+range.full.to.short = function (range) {
+  range = substring(range, 3)
+  
   if (substring(range, 0, 1) == '[') {
     return(paste0('U', gsub('\\]-\\[', '] ∪ U[', gsub(' ', '', range))))
   } else {
@@ -50,64 +61,58 @@ range.full.to.short.element = function (range) {
   }
 }
 
-range.full.to.short = function (range) {
-  content = substring(range, 3)
-  return(sapply(content, range.full.to.short.element))
-}
-
 regualizer.get.sparse = function (regualizer) {
-  return(sapply(regualizer, function (str) {
-    split = unlist(strsplit(str, '-'))
-    return(split[1])
-  }))
+  split = strsplit(regualizer, '-')[[1]]
+  return(as.double(split[2]))
 }
 
 regualizer.get.oob = function (regualizer) {
-  return(sapply(regualizer, function (str) {
-    split = unlist(strsplit(str, '-'))
-    if (length(split) == 1) {
-      return(1)
-    } else {
-      return(split[2])
-    }
-  }))
+  split = strsplit(regualizer, '-')[[1]]
+  if (length(split) == 2) {
+    return(as.double(1))
+  } else {
+    return(as.double(split[3]))
+  }
+}
+
+dataset.get.part = function (dataset, index, simple.value) {
+  split = strsplit(dataset, '-')[[1]]
+  if (split[2] == 'simple') {
+    return(simple.value)
+  } else {
+    return(as.numeric(split[index + 1]))
+  }
 }
 
 expand.name = function (df) {
-  names = unique(df$name)
-  names_split = unlist(strsplit(names, '_'))
-
-  subset_config = substring(names_split[seq(6, length(names_split), 8)], 3)
-  if (subset_config[1] == 'simple') {
-    input.size = 4
-    subset.ratio = NA
-    overlap.ratio = NA
-  } else {
-    subset_config_split = unlist(strsplit(subset_config, '-'))
-    input.size = as.numeric(subset_config_split[seq(1, length(subset_config_split), 3)])
-    subset.ratio = as.double(subset_config_split[seq(2, length(subset_config_split), 3)])
-    overlap.ratio = as.double(subset_config_split[seq(3, length(subset_config_split), 3)])
-  }
+  names = data.frame(name=unique(df$name))
   
-  regualizer = substring(names_split[seq(3, length(names_split), 8)], 3)
+  df.expand.name = names %>%
+    rowwise() %>%
+    mutate(
+      model=revalue(extract.by.split(name, 1), model.full.to.short, warn_missing=FALSE),
+      operation=revalue(extract.by.split(name, 2), operation.full.to.short, warn_missing=FALSE),
+      
+      regualizer=regualizer.get.sparse(extract.by.split(name, 3)),
+      regualizer.oob=regualizer.get.oob(extract.by.split(name, 3)),
+      
+      interpolation.range=range.full.to.short(extract.by.split(name, 4)),
+      extrapolation.range=range.full.to.short(extract.by.split(name, 5)),
+      
+      input.size=dataset.get.part(extract.by.split(name, 6), 1, 4),
+      subset.ratio=dataset.get.part(extract.by.split(name, 6), 2, NA),
+      overlap.ratio=dataset.get.part(extract.by.split(name, 6), 3, NA),
+
+      batch.size=as.integer(substring(extract.by.split(name, 7), 2)),
+      seed=as.integer(substring(extract.by.split(name, 8), 2)),
+      hidden.size=as.integer(substring(extract.by.split(name, 9, 'b2'), 2)),
+    )
   
-  df.expand.name = data.frame(
-    name=names,
-    model=revalue(names_split[seq(1, length(names_split), 8)], model.full.to.short),
-    operation=revalue(names_split[seq(2, length(names_split), 8)], operation.full.to.short),
-    regualizer=as.double(regualizer.get.sparse(regualizer)),
-    regualizer.oob=as.double(regualizer.get.oob(regualizer)),
-
-    interpolation.range=range.full.to.short(names_split[seq(4, length(names_split), 8)]),
-    extrapolation.range=range.full.to.short(names_split[seq(5, length(names_split), 8)]),
-
-    input.size=input.size,
-    subset.ratio=subset.ratio,
-    overlap.ratio=overlap.ratio,
-
-    batch.size=as.numeric(substring(names_split[seq(7, length(names_split), 8)], 2)),
-    seed=as.numeric(substring(names_split[seq(8, length(names_split), 8)], 2))
-  )
-
+  df.expand.name$name = as.factor(df.expand.name$name)
+  df.expand.name$operation = as.factor(df.expand.name$operation)
+  df.expand.name$model = as.factor(df.expand.name$model)
+  df.expand.name$interpolation.range = as.factor(df.expand.name$interpolation.range)
+  df.expand.name$extrapolation.range = as.factor(df.expand.name$extrapolation.range)
+  
   return(merge(df, df.expand.name))
 }

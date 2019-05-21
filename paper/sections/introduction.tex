@@ -1,10 +1,10 @@
-\section{Introduction}\footnote{In the interest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}.}
+\section{Introduction}
 
 The ability for neurons to hold numbers and do arithmetic operations has been documented in both humans, non-human primates \cite{nieder-neuronal-number}, newborn chicks \cite{rugani-arithmetic-chicks} and bees \cite{gallistel-numbers-in-brain}.
 In our race to solve intelligence we have put much faith in neural networks, which in turn has provided unparalleled and often superhuman performance in many tasks requiring high cognitive ability \cite{natureGo,googleNMT,resnet}.
 However, when using neural networks to solve simple arithmetic problems, such as counting, they systematically fail to extrapolate \cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}.
 
-In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}. Our contribution is an alternative formulation of the weight constraint with a clipped linear activation, a regularizer that bias throwards sparse solutions, and a reformulation of the multiplication unit to be partially linear. All of which significantly improves upon the existing $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units as shown through extensive testing on arithmetic constructions.
+In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}. Our contribution is an alternative formulation of the weight constraint with a clipped linear activation, a regularizer that bias throwards sparse solutions, and a reformulation of the multiplication unit to be partially linear. All of which significantly improves upon the existing $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units as shown through extensive testing on arithmetic constructions.% \footnote{In the interest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}.}
 
 The NALU is a neural network layer with two sub-units. The two sub-units, $\text{NAC}_{+}$ for addition/subtraction and $\text{NAC}_{\bullet}$ for multiplication/division, are softly gated between with a sigmoid function. By using trainable weights, and restricting the weights towards $\{-1,0,1\}$. The weights are learned by observing arithmetic input-output pairs and using backpropagation\cite{rumelhart1986learning}.
 

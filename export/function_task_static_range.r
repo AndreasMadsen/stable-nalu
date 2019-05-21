@@ -137,7 +137,7 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parame
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
       success.rate = "Success rate",
-      converged.at = "Converged at",
+      converged.at = "Solved at",
       sparse.error = "Sparsity error"
     )
   )) +

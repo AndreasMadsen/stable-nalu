@@ -38,7 +38,7 @@ safe.interval = function (alpha, vec) {
 }
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter != 'default') %>%
+  filter(simple == FALSE & parameter == 'default') %>%
   mutate(
     input.size = as.integer(input.size),
     operation = revalue(operation, operation.full.to.short),
@@ -127,21 +127,33 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
-p = ggplot(dat.gather, aes(x = as.factor(parameter), colour=model, group=model)) +
-  geom_point(aes(y = mean.value)) +
-  geom_line(aes(y = mean.value)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
-  scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  xlab(name.label) +
-  scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
-  facet_wrap(~ key, scales='free_y', labeller = labeller(
-    key = c(
-      success.rate = "Success rate",
-      converged.at = "Converged at",
-      sparse.error = "Sparsity error"
+make.plot = function (operation.latex, model.latex, filename) {
+  dat.plot = dat.gather %>%
+    filter(operation == operation.latex & model == model.latex) %>%
+    mutate(
+      model=droplevels(model)
     )
-  )) +
-  theme(legend.position="bottom") +
-  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
-print(p)
-ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
+  
+  p = ggplot(dat.plot, aes(x = as.factor(parameter), colour=model, group=model)) +
+    geom_point(aes(y = mean.value)) +
+    geom_line(aes(y = mean.value)) +
+    geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
+    scale_color_discrete(labels = model.to.exp(levels(dat.plot$model))) +
+    xlab(name.label) +
+    scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+    facet_wrap(~ key, scales='free_y', labeller = labeller(
+      key = c(
+        success.rate = "Success rate",
+        converged.at = "Solved at",
+        sparse.error = "Sparsity error"
+      )
+    )) +
+    theme(legend.position="bottom") +
+    theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
+  print(p)
+  ggsave(filename, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
+}
+
+make.plot('$\\bm{+}$', 'NAU', '../paper/results/simple_function_static_regualization_add.pdf')
+make.plot('$\\bm{-}$', 'NAU', '../paper/results/simple_function_static_regualization_sub.pdf')
+make.plot('$\\bm{\\times}$', 'NMU', '../paper/results/simple_function_static_regualization_mul.pdf')
