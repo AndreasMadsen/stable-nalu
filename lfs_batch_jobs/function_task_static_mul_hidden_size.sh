@@ -1,8 +1,7 @@
 #!/bin/bash
 experiment_name='function_task_static_mul_hidden_size'
 operation=mul
-#hidden_sizes=( 2 3 4 )
-hidden_sizes=( 3 4 )
+hidden_sizes=( 2 3 4 5 6 )
 for seed in {0..9}
 do
     for hidden_size in "${hidden_sizes[@]}"
