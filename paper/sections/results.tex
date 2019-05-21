@@ -34,7 +34,7 @@ When probing a specific dataset parameter, e.g. subset overlap, the default will
 
 The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range.
 
-If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error. Meaning the MSE for the fitted model, should be less than the MSE for a nearly perfect solution.
+If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example} \todo{Do we need that equation}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error. Meaning the MSE for the fitted model, should be less than the MSE for a nearly perfect solution.
 
 \begin{equation}
     \mathbf{W}_1^\epsilon = \begin{bmatrix}
@@ -60,7 +60,7 @@ For sparsity error and ``solved at'' the 95\% confidence interval is reported.
 
 \subsubsection{Model setup}
 
-To solve the task, we compare the models defined in table \ref{tab:model-defintions}. All models have by default two hidden units in the multiplication layer.
+To solve the task, we compare the models defined in table \ref{tab:model-defintions} \todo{Do we need that table}. All models have by default two hidden units in the multiplication layer.
 
 \begin{table}[H]
 \caption{Model definitions}
@@ -96,8 +96,7 @@ To empirically validate the theoretical challenges with $\mathrm{NAC}_{\bullet}$
 
 Each experiment is conducted 100 times with different seeds, and stopped after 200000 iterations.
 
-The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to underflow when $w = 0$ in the NMU layer.\todo{Highlight best results in tables.}
-
+The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to underflow when $w = 0$ in the NMU layer.
 \input{results/simple_mul.tex}
 
 \subsubsection{Arithmetic operation comparison}

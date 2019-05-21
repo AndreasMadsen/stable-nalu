@@ -1,6 +1,6 @@
 \section{Introduction}
 
-The ability for neurons to hold numbers and do arithmetic operations has been documented in both humans, non-human primates \cite{nieder-neuronal-number}, newborn chicks \cite{rugani-arithmetic-chicks} and bees \cite{gallistel-numbers-in-brain}.
+\todo{Remember to use anonymous submission}The ability for neurons to hold numbers and do arithmetic operations has been documented in both humans, non-human primates \cite{nieder-neuronal-number}, newborn chicks \cite{rugani-arithmetic-chicks} and bees \cite{gallistel-numbers-in-brain}.
 In our quest to solve intelligence we have put much faith in neural networks, which in turn has provided unparalleled and often superhuman performance in many tasks requiring high cognitive ability \cite{natureGo,googleNMT,resnet}.
 However, when using neural networks to solve simple arithmetic problems, such as counting, they systematically fail to extrapolate \cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}. \todo{Extend. Not convincing enough.}
 
@@ -16,7 +16,7 @@ The NALU is a neural network layer with two sub-units. The two sub-units, $\text
 
 We focus only on the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ as we have found that the gating in NALU can be cumbersome, as shown in table \ref{tab:function-task-static-defaults} where the NALU performs significantly worse than $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$. This is because of the difficulties in selecting between, and simultaneously training, two vastly different operations.
 
-We will thus assume that the appropriate operation is already known, or can empirically be found by varying the network architecture (oracle gating). We find that the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units poses optimization difficulties. We present the following findings:
+We will thus assume that the appropriate operation is already known, or can empirically be found by varying the network architecture (oracle gating). We find that the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units poses optimization difficulties. We present the following findings: \todo{Reduce space?}
 
 \begin{itemize}
 \item The gradients from the weight matrix construction in $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, have zero expectation.

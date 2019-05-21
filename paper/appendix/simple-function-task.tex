@@ -2,16 +2,16 @@
 \subsection{Dataset generation}
 \label{sec:appendix:simple-function-task:data-generation}
 
-\begin{figure}[H]
+\begin{figure}[h]
 \centering
 \includegraphics[scale=0.8]{graphics/function_task_static_problem.pdf}
 \caption{Dataset is parameterized into ``Input Size'', ``Subset Ratio'', ``Overlap Ratio'', an Operation (here showing multiplication), ``Interpolation Range'' and ``Extrapolation Range'' from which the data set sampled.}
 \label{fig:simple-function-task-problem}
 \end{figure}
 
-All datasets in the simple function task experiments are generated using the following algorithm:
+All datasets in the simple function task experiments are generated using algorithm \ref{alg:dataset-sampling}. Its parameters are visualized in figure \ref{fig:simple-function-task-problem}.
 
-\begin{algorithm}[H]
+\begin{algorithm}[h]
   \caption{Dataset sampling algorithm}
   \begin{algorithmic}[1]
     \Function{Dataset}{${\Call{Op}{\cdot, \cdot}: \mathrm{Operation}}$, ${i: \mathrm{Input Size}}$, ${s: \mathrm{Subset Ratio}}$, ${o: \mathrm{Overlap Ratio}}$, ${\hspace{3cm}R: \mathrm{Range}}$}
@@ -23,9 +23,13 @@ All datasets in the simple function task experiments are generated using the fol
       \State \Return{$x, t$}
     \EndFunction
   \end{algorithmic}
+  \label{alg:dataset-sampling}
 \end{algorithm}
 
 \subsection{Arithmetic operations comparison - all models}
+
+Results for all models on addition, subtraction, and multiplication can be found in table \ref{tab:function-task-static-defaults-all}.
+
 \label{sec:appendix:function-task-static-all-comparision}
 \input{results/function_task_static_all.tex}
 

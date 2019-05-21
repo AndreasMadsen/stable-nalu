@@ -54,9 +54,9 @@ dat = expand.name(read_csv('../results/function_task_static_ablation.csv')) %>%
   merge(eps)
 dat$model = as.character(dat$model)
 
-dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob == 0, paste0(dat$model, ' (no $\\mathcal{R}_{sparse}$, no $\\mathcal{R}_{oob}$)'), dat$model)
-dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob != 0, paste0(dat$model, ' (no $\\mathcal{R}_{sparse}$)'), dat$model)
-dat$model = ifelse(dat$regualizer != 0 & dat$regualizer.oob == 0, paste0(dat$model, ' (no $\\mathcal{R}_{oob}$)'), dat$model)
+dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob == 0, paste0(dat$model, ', no $\\mathcal{R}_{sparse},\\mathcal{R}_{oob}$'), dat$model)
+dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob != 0, paste0(dat$model, ', no $\\mathcal{R}_{sparse}$'), dat$model)
+dat$model = ifelse(dat$regualizer != 0 & dat$regualizer.oob == 0, paste0(dat$model, ', no $\\mathcal{R}_{oob}$'), dat$model)
 
 dat.last = dat %>%
   group_by(name) %>%
@@ -105,6 +105,7 @@ save.table(
   "function-task-static-ablation",
   "Shows the success-rate for $\\mathcal{L}_{\\mathbf{W}_1, \\mathbf{W}_2} < \\mathcal{L}_{\\mathbf{W}_1^\\epsilon, \\mathbf{W}_2^*}$, at what global step the model converged at, and the sparsity error for all weight matrices.",
   "../paper/results/function_task_static_ablation.tex",
-  show.operation=FALSE
+  show.operation=FALSE,
+  highlight.best=FALSE
 )
 

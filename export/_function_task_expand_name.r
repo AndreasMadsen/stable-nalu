@@ -7,12 +7,12 @@ model.full.to.short = c(
   'relu6'='ReLU6',
   'nac'='$\\mathrm{NAC}_{+}$',
   'nac-nac-n'='$\\mathrm{NAC}_{\\bullet}$',
-  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet}$ ($\\mathbf{W} = \\sigma(\\mathbf{\\hat{W}}$))',
+  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet}$, $\\mathbf{W} = \\sigma(\\mathbf{\\hat{W}})$',
   'nalu'='NALU',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU',
-  'regualizedlinearnac-nac-m'='NMU ($\\mathbf{W} = \\mathbf{\\hat{W}}$)',
-  'sillyreregualizedlinearnac-nac-m'='NMU ($\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$)'
+  'regualizedlinearnac-nac-m'='NMU, $\\mathbf{W} = \\mathbf{\\hat{W}}$',
+  'sillyreregualizedlinearnac-nac-m'='NMU, $\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$'
 )
 
 model.latex.to.exp = c(
@@ -109,7 +109,7 @@ expand.name = function (df) {
     )
   
   df.expand.name$name = as.factor(df.expand.name$name)
-  df.expand.name$operation = as.factor(df.expand.name$operation)
+  df.expand.name$operation = factor(df.expand.name$operation, c('$\\bm{\\times}$', '$\\bm{+}$', '$\\bm{-}$'))
   df.expand.name$model = as.factor(df.expand.name$model)
   df.expand.name$interpolation.range = as.factor(df.expand.name$interpolation.range)
   df.expand.name$extrapolation.range = as.factor(df.expand.name$extrapolation.range)

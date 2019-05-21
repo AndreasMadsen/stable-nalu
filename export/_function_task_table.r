@@ -1,30 +1,12 @@
 
 library(kableExtra)
 
-save.table = function(dat.last.rate, label, caption, file.out, show.operation=TRUE) {
+save.table = function(dat.last.rate, label, caption, file.out, show.operation=TRUE, highlight.best=TRUE) {
   
   latex.scientific = function (num) {
     exp = floor(log10(abs(num)))
     mech = sprintf("%.1f", num / (10^exp))
     return(paste0(mech, ' \\cdot 10^{', exp, '}'))
-  }
-  
-  latex.formater = function (num, formater) {
-    if (!is.finite(num)) {
-      return('---')
-    }
-    
-    return(paste0('$', formater(num), '$'))
-  }
-  
-  latex.ci.formater = function (mean, ci, formater) {
-    if (!is.finite(mean)) {
-      return('---')
-    }
-    if (!is.finite(ci)) {
-      return(paste0('$', formater(mean), '$'))
-    }
-    return(paste0('$', formater(mean), ' \\pm ', formater(ci), '$'))
   }
   
   latex.digit = function (d) {
@@ -33,6 +15,50 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
   
   latex.rate = function (d) {
     return(sprintf("%.0f\\%%", as.numeric(d) * 100))
+  }
+  
+  latex.math.highlighter = function (content, highlight) {
+    if (replace_na(highlight, FALSE) && highlight.best) {
+      return(paste0('$\\mathbf{', content, '}$'))
+    } else {
+      return(paste0('$', content, '$'))
+    }
+  }
+  
+  
+  latex.formater = function (vec, formater, min.best=T) {
+    df.format = data.frame(
+      is.best = vec == ifelse(min.best, min(vec, na.rm=T), max(vec, na.rm=T)),
+      num = vec
+    ) %>%
+      rowwise() %>%
+      mutate(
+        formatted = ifelse(is.finite(num),
+                           latex.math.highlighter(
+                             formater(num),
+                             is.best
+                           ),
+                           '---')
+      )
+    return(df.format$formatted)
+  }
+  
+  latex.ci.formater = function (vec.mean, vec.ci, formater, min.best=T) {
+    df.format = data.frame(
+      is.best = vec.mean == ifelse(min.best, min(vec.mean, na.rm=T), max(vec.mean, na.rm=T)),
+      mean = vec.mean,
+      ci = vec.ci
+    ) %>%
+      rowwise() %>%
+      mutate(
+        formatted = ifelse(is.finite(mean), 
+                           latex.math.highlighter(
+                            ifelse(is.finite(ci), paste0(formater(mean), ' \\pm ', formater(ci)), formater(mean)),
+                            is.best
+                           ),
+                           '---')
+      )
+    return(df.format$formatted)
   }
 
   align = c('c', 'r', 'l', 'l', 'l', 'l')
@@ -46,9 +72,9 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
   }
   
   dat.table = dat.last.rate %>%
-    group_by(model, operation) %>%
+    group_by(operation) %>%
     mutate(
-      success.rate = latex.formater(rate.extrapolation, latex.rate),
+      success.rate = latex.formater(rate.extrapolation, latex.rate, min.best=F),
       converged.at.median = latex.formater(median.extrapolation.solved, latex.scientific),
       converged.at.mean = latex.ci.formater(mean.extrapolation.solved, ci.extrapolation.solved, latex.scientific),
       sparse.error = latex.ci.formater(mean.sparse.error.max, ci.sparse.error.max, latex.scientific)
