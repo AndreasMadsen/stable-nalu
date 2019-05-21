@@ -1,25 +1,17 @@
 
 sync:
 	rsync --info=progress2 -urltv --delete \
-		--exclude 'tensorboard' --exclude 'tensorboard-backup' --exclude 'results' --exclude 'logs' --exclude 'save' \
-		-e ssh ./ computationally:~/workspace/stable-nalu
+		--exclude 'tensorboard' --exclude 'results' --exclude 'logs' --exclude 'save' \
+		-e ssh ./ dtu-data:~/workspace/stable-nalu-copy
 
-sync-dtu:
-	rsync --info=progress2 -urltv --delete \
-		--exclude 'tensorboard' --exclude 'tensorboard-backup' --exclude 'results' --exclude 'logs' --exclude 'save' \
-		-e ssh ./ dtu-data:~/workspace/stable-nalu
-
-fetch:
-	rsync --info=progress2 -urltv --delete \
-	-e ssh computationally:~/workspace/stable-nalu/tensorboard/ ./tensorboard
-	rsync --info=progress2 -urltv --delete \
-	-e ssh computationally:~/workspace/stable-nalu/results/ ./results
-	rsync --info=progress2 -urltv --delete \
-	-e ssh computationally:~/workspace/stable-nalu/logs/ ./logs
-	rsync --info=progress2 -urltv --delete \
-	-e ssh computationally:~/workspace/stable-nalu/logs/ ./save
+fetch-results:
+	rsync --info=progress2 -urltv \
+		-e ssh dtu-data:~/workspace/stable-nalu-copy/results/ ./results
 
 clean:
 	rm -rvf tensorboard/*
 	rm -rvf results/*
 	rm -rvf logs/*
+
+spellcheck:
+	find paper/ -name "*.tex" -exec aspell --lang=en --mode=tex --dont-backup check "{}" \;

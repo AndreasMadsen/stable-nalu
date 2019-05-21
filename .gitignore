@@ -3,6 +3,9 @@
 /results/
 /save/
 /stable_nalu/dataset/data/
+Makefile.custom
+python_ole_job.sh
+setup-python3.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
