@@ -107,7 +107,7 @@ w_2 & w_2
 \label{fig:nac-mul-eps-issue}
 \end{figure}
 
-This gradient can be particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. An alternative multiplication operator must thus be able to not explode for $z_{h_{\ell-1}}$ near zero. To that end we propose a new neural multplication units (NMU): 
+This gradient can be particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. An alternative multiplication operator must thus be able to not explode for $z_{h_{\ell-1}}$ near zero. To that end we propose a new neural multplication units (NMU):
 
 \begin{equation}
 \begin{aligned}
@@ -142,7 +142,7 @@ Using second order multivariate Taylor approximation and some assumptions of unc
 \begin{equation}
 E[z_{h_\ell}] \approx \left(1 + \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}} \Rightarrow E[z_{h_\ell}] > 1 \label{eq:nac-mul:expectation}
 \end{equation}
-(proof in Appendix \ref{sec:appendix:moments:nac-mul}). An ideal initialization should satisfy $E[z_{h_\ell}] = 0$ \cite{glorot-initialziation}, which the expectation for $\mathrm{NAC}_{\bullet}$ is infeasible.
+(proof in Appendix \ref{sec:appendix:moments:nac-mul}). An ideal initialization should satisfy $E[z_{h_\ell}] = 0$ \cite{glorot-initialization}, which the expectation for $\mathrm{NAC}_{\bullet}$ is infeasible.
 
 Our proposed NMU when initialized with $E[W_{h_{\ell}, h_{\ell - 1}}] = \nicefrac{1}{2}$ has an expectation of
 \begin{equation}
