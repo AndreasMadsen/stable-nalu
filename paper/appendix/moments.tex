@@ -3,7 +3,7 @@
 
 \subsection{Overview}
 \subsubsection{Moments and initialization for addition}
-The desired properties for initalization are according to Glorot et al. \cite{glorot-initialization}:
+The desired properties for initialization are according to Glorot et al. \cite{glorot-initialization}:
 \begin{equation}
 \begin{aligned}
 E[z_{h_\ell}] &= 0 & E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= 0 \\
@@ -119,12 +119,12 @@ E[z_{h_\ell}] &= E\left[\exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, 
 \end{aligned}
 \end{equation}
 
-Here we define $g$ as a non-linear transformation function of two independent stocastic variables:
+Here we define $g$ as a non-linear transformation function of two independent stochastic variables:
 \begin{equation}
 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}}) = (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}
 \end{equation}
 
-We then take the second order taylor approximation of $g$, around $(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])$.
+We then take the second order Taylor approximation of $g$, around $(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])$.
 \begin{equation}
 \begin{aligned}
 &E[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] \approx
@@ -159,7 +159,7 @@ z_{h_{\ell-1}} - E[z_{h_{\ell-1}}] \\ W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, 
 \end{aligned}
 \end{equation}
 
-Because $E[z_{h_{\ell-1}} - E[z_{h_{\ell-1}}]] = 0$, $E[W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]] = 0$, and $Cov[z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}}] = 0$. This similifies to:
+Because $E[z_{h_{\ell-1}} - E[z_{h_{\ell-1}}]] = 0$, $E[W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]] = 0$, and $Cov[z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}}] = 0$. This simplifies to:
 \begin{equation}
 \begin{aligned}
 &E[g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] \approx
@@ -197,7 +197,7 @@ E[z_{h_\ell}] &= E\left[g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{H_{\
 \end{aligned}
 \end{equation}
 
-As this expectation is of particular interrest, we evaluate the error of the approximation, where $W_{h_{\ell}, h_{\ell-1}} \sim U[-r_w,r_w]$ and $z_{h_{\ell-1}} \sim U[0, r_z]$. These distributions are what is used in the simple function task. The error is plotted in figure \ref{fig:nac-mul-expectation-estimate}.
+As this expectation is of particular interest, we evaluate the error of the approximation, where $W_{h_{\ell}, h_{\ell-1}} \sim U[-r_w,r_w]$ and $z_{h_{\ell-1}} \sim U[0, r_z]$. These distributions are what is used in the simple function task. The error is plotted in figure \ref{fig:nac-mul-expectation-estimate}.
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{graphics/nac-mul-expectation-estimate.pdf}

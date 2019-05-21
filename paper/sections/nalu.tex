@@ -64,7 +64,7 @@ W_{h_{\ell-1},h_\ell} &= \min(\max(\hat{W}_{h_{\ell-1},h_\ell}, -1), 1), \\
 
 The $\text{NAC}_{\bullet}$, as formulated in equation \ref{eq:nacm}, has the ability to learn exact multiplication and division of elements from a vector if the weights of $W_{h_{\ell-1},h_\ell}$ are one of $\{-1, 0, 1\}$.
 
-However, backpropagation through the $\text{NAC}_{\bullet}$ unit reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative and $\epsilon$ is small, the gradient term will explode and oscillate between large postive and large negative values, which can be problematic in optimization \cite{adam-optimization}, as visualized in figure \ref{fig:nac-mul-eps-issue}.
+However, backpropagation through the $\text{NAC}_{\bullet}$ unit reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative and $\epsilon$ is small, the gradient term will explode and oscillate between large positive and large negative values, which can be problematic in optimization \cite{adam-optimization}, as visualized in figure \ref{fig:nac-mul-eps-issue}.
 
 \begin{align}
 %\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} \log(|z_{h_{\ell-1}}| + \epsilon) \label{eq:dw}\\
@@ -107,7 +107,7 @@ w_2 & w_2
 \label{fig:nac-mul-eps-issue}
 \end{figure}
 
-This gradient can be particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. An alternative multiplication operator must thus be able to not explode for $z_{h_{\ell-1}}$ near zero. To that end we propose a new neural multplication units (NMU):
+This gradient can be particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. An alternative multiplication operator must thus be able to not explode for $z_{h_{\ell-1}}$ near zero. To that end we propose a new neural multiplication units (NMU):
 
 \begin{equation}
 \begin{aligned}
@@ -136,7 +136,7 @@ Note that the fraction does not explode for $z_{h_{\ell-1}}$ close to zero, as t
 
 Initialization is important to consider for fast and consistent convergence \cite{glorot-initialization}.
 
-Our proposed NAU, can be initialize using Glorot initialzation as it is a linear layer. The $\mathrm{NAC}_{+}$ unit can also achieve an ideal initialization, although it is less trivial (details in Appendix \ref{sec:appendix:moments:weight-matrix-construction}).
+Our proposed NAU, can be initialize using Glorot initialization as it is a linear layer. The $\mathrm{NAC}_{+}$ unit can also achieve an ideal initialization, although it is less trivial (details in Appendix \ref{sec:appendix:moments:weight-matrix-construction}).
 
 Using second order multivariate Taylor approximation and some assumptions of uncorrelated stochastic variables, the expectation of $\mathrm{NAC}_{\bullet}$ can be estimated to be
 \begin{equation}
@@ -151,5 +151,5 @@ E[z_{h_\ell}] \approx \left(\frac{1}{2}\right)^{H_{\ell-1}}
 which approaches zero for $H_{\ell-1} \rightarrow \infty$ (proof in Appendix \ref{sec:appendix:moments:nmu}).
 
 The $\mathrm{NAC}_{\bullet}$ can not be input-independent initialization and has an exploding variance in depth (proof in Appendix \ref{sec:appendix:moments:nac-mul} and \ref{sec:appendix:moments:nmu}).
-The NMU can, with the assumption that, $Var[z_{h_{\ell-1}}] = 1$ and $H_{\ell-1}$ is large, be intitialized optimally with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$ (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}).
+The NMU can, with the assumption that, $Var[z_{h_{\ell-1}}] = 1$ and $H_{\ell-1}$ is large, be initialized optimally with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$ (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}).
 
