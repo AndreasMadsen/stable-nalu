@@ -142,7 +142,7 @@ Using second order multivariate Taylor approximation and some assumptions of unc
 \begin{equation}
 E[z_{h_\ell}] \approx \left(1 + \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}} \Rightarrow E[z_{h_\ell}] > 1 \label{eq:nac-mul:expectation}
 \end{equation}
-(proof in Appendix \ref{sec:appendix:moments:nac-mul}). An ideal initialization should satisfy $E[z_{h_\ell}] = 0$ \cite{glorot-initialziation}, which the expectation for $\mathrm{NAC}_{\bullet}$ can't.
+(proof in Appendix \ref{sec:appendix:moments:nac-mul}). An ideal initialization should satisfy $E[z_{h_\ell}] = 0$ \cite{glorot-initialization}, which the expectation for $\mathrm{NAC}_{\bullet}$ can't.
 
 Our proposed NMU when initialized with $E[W_{h_{\ell}, h_{\ell - 1}}] = \nicefrac{1}{2}$ has an expectation of
 \begin{equation}
