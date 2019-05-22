@@ -47,14 +47,12 @@ Something that can only be ensured with $E[\hat{W}_{h_{\ell-1},h_\ell}] = 0$ \ci
 Secondly, in our empirical analysis we find that equation \ref{eq:weight} does not create the desired bias for $\{-1, 0, 1\}$, as it fails to converge towards such values.
 
 To create the desired bias of $\{-1, 0, 1\}$, we add a biasing regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$. To prevent the gradient challenges of equation \ref{eq:nac-weight-gradient} we propose a simple clamped linear construction with an out-of-bound regularizer $\mathcal{R}_{\ell,\mathrm{oob}}$ to force $\hat{W}$ to be within $[-1, 1]$ and ensure that the gradient is always present. These regualizers are added to the loss function, $\mathcal{L} = \hat{\mathcal{L}} + \lambda_{\mathrm{bias}} \mathcal{R}_{\ell,\mathrm{bias}} + \lambda_{\mathrm{oob}} \mathcal{R}_{\ell,\mathrm{oob}}$.
-\begin{equation}
-\begin{aligned}
+\begin{align}
 W_{h_{\ell-1},h_\ell} &= \min(\max(\hat{W}_{h_{\ell-1},h_\ell}, -1), 1), \\
 \mathcal{R}_{\ell,\mathrm{bias}} &= \frac{1}{H_\ell + H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \hat{W}_{h_{\ell-1},h_\ell}^2 (1 - |\hat{W}_{h_{\ell-1},h_\ell}|)^2 \\
 \mathcal{R}_{\ell,\mathrm{oob}} &= \frac{1}{H_\ell + H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \max(|\hat{W}_{h_{\ell-1},h_\ell}| - 1, 0)^2 \\
 \textrm{NAU}:\ z_{h_\ell} &= \sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}}
-\end{aligned}
-\end{equation}
+\end{align}
 
 \subsubsection{Challenges of division} \label{sssec:nac-mul}
 
@@ -98,7 +96,7 @@ w_1 & w_1 & 0 & 0 \\
 w_1 & w_1 & w_1 & w_1
 \protect\end{smallmatrix}\right]$, $\mathbf{W}_2 = \left[\protect\begin{smallmatrix}
 w_2 & w_2
-\protect\end{smallmatrix}\right]$. The problem is $x = \left(1, 1.2, 1.8, 2\right), t = 13.2$. Desired solution is $w_1 = w_2 = 1$, although this problem have additional undesired solutions.}
+\protect\end{smallmatrix}\right]$. The problem is $x = \left(1, 1.2, 1.8, 2\right), t = 13.2$. The desired solution is $w_1 = w_2 = 1$, although this problem have additional undesired solutions.}
 \label{fig:nac-mul-eps-issue}
 \end{figure}
 
@@ -107,32 +105,31 @@ Initialization is important to consider for fast and consistent convergence, one
 \begin{equation}
 E[z_{h_\ell}] \approx \left(1 + \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}} \Rightarrow E[z_{h_\ell}] > 1 \label{eq:nac-mul:expectation}
 \end{equation}
-As shown in equation \ref{eq:nac-mul:expectation}, satisfying $E[z_{h_\ell}] = 0$ for $\mathrm{NAC}_{\bullet}$ is infeasible. The variance can also not be input-independent initialized, and is likely to explode (proofs in Appendix \ref{sec:appendix:moments:nac-mul}).
+As shown in equation \ref{eq:nac-mul:expectation}, satisfying $E[z_{h_\ell}] = 0$ for $\mathrm{NAC}_{\bullet}$ is likely impossible. The variance can also not be input-independent initialized, and is likely to explode (proofs in Appendix \ref{sec:appendix:moments:nac-mul}).
 
 \subsubsection{Neural multiplication unit}
-To solve the the gradient and initialization challenges for $\mathrm{NAC}_{\bullet}$, we propose a new neural multiplication unit (NMU):
+To solve the the gradient and initialization challenges for $\mathrm{NAC}_{\bullet}$ we propose a new neural multiplication unit (NMU):
 
-\begin{equation}
-\begin{aligned}
+\begin{align}
 W_{h_{\ell-1},h_\ell} &= \min(\max(\hat{W}_{h_{\ell-1},h_\ell}, 0), 1), \\
 \mathcal{R}_{\ell,\mathrm{bias}} &= \frac{1}{H_\ell + H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \hat{W}_{h_{\ell-1},h_\ell}^2 (1 - \hat{W}_{h_{\ell-1},h_\ell})^2 \\
 \mathcal{R}_{\ell,\mathrm{oob}} &= \frac{1}{H_\ell + H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \max\left(\left|\hat{W}_{h_{\ell-1},h_\ell} - \frac{1}{2}\right| - \frac{1}{2}, 0\right)^2 \\
-\textrm{NMU}:\ z_{h_\ell} &= \prod_{h_{\ell-1}=1}^{H_{\ell-1}} \left(W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell} \right)
-\end{aligned}
-\end{equation}
-This has regualizers similar to that of NAU, and has the multiplicative identity when $W_{h_{\ell-1},h_\ell}=0$. The NMU unit does not support division, but supporting division is likely infeasible as dividing by $z_{h_{\ell-1}}$ near zero would cause explosions.
-As shown in \cite{trask-nalu}, experiments using the NALU for division does not work well hence very little is lost with this modification.
-As opposed to the NALU, the NMU can represent input of both negative and positive $z_{h_{\ell-1}}$ values and is not $\epsilon$ dependent, which allows the NMU to extrapolate inputs that are negative or smaller than $\epsilon$.
+\textrm{NMU}:\ z_{h_\ell} &= \prod_{h_{\ell-1}=1}^{H_{\ell-1}} \left(W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell} \right) \label{eq:nmu-defintion}
+\end{align}
+This has regualizers similar to that of NAU, and has the multiplicative identity when $W_{h_{\ell-1},h_\ell}=0$. The NMU unit does not support division, but supporting division is likely infeasible as dividing by $z_{h_{\ell-1}}$ near zero would cause explosions for the forward and backward pass.
+Furthermore, previous experiments using the NALU for division does not work well hence very little is lost with this modification \cite{trask-nalu}.
+As opposed to the $\mathrm{NAC}_{\bullet}$, the NMU can represent input of both negative and positive $z_{h_{\ell-1}}$ values and is not $\epsilon$ dependent, which allows the NMU to extrapolate inputs that are negative or smaller than $\epsilon$.
 
 The gradients with respect to the weight and input in the NMU are (see details in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}):
 \begin{equation}
 \begin{aligned}
+\label{eq:nmugrad}
 \frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right) \\
 \frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} W_{h_{\ell-1},h_\ell}
 \end{aligned}
 \end{equation}
 
-Note that the fraction does not explode for $z_{h_{\ell-1}}$ close to zero, as the denominator simply cancels out a term in $z_{h_\ell}$.
+Note that the fraction in equation \ref{eq:nmugrad} does not explode for $z_{h_{\ell-1}}$ close to zero because the denominator cancels out the term for $h_{\ell-1}$ in $z_{h_\ell}$, as seen in equation \ref{eq:nmu-defintion}.
 
 \subsubsection{Moments and initialization}
 Our proposed NAU can be initialized using Glorot initialization as it is a linear layer. The $\mathrm{NAC}_{+}$ unit can also achieve an ideal initialization, although it is less trivial (details in Appendix \ref{sec:appendix:moments:weight-matrix-construction}).
