@@ -125,6 +125,9 @@ dat.gather.lower = dat.last.rate %>%
   gather('key', 'lower.value', success.rate, converged.at, sparse.error)
 
 dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
+  filter(
+    model %in% c('NMU', 'NMU, $\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$')
+  ) %>%
   mutate(
     model=droplevels(model),
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))

@@ -47,7 +47,7 @@ class SillyReRegualizedLinearMNACLayer(ExtendedTorchModule):
             z_normalized = mnac(x_normalized, W, mode='no-idendity')
             return z_normalized * (c ** torch.sum(W, 1))
         else:
-            return mnac(x, W, mode='prod')
+            return mnac(x, W, mode='no-idendity')
 
     def extra_repr(self):
         return 'in_features={}, out_features={}'.format(
