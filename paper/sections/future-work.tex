@@ -1,7 +1,8 @@
 \section{Related work}
-Developing pure neural models to learn arithmetic tasks has been attempted by using deep learning architectures relying on convolutions, gating, differentiable memory and attention architectures\cite{NeuralGPU,GridLSTM,NTM}.
-Some of the results are close to perfect performance, however, with constraints of only working on the integer set of numbers and requiring well defined arithmetic setups, such as binary representations of numbers for input and output.
-We do not try and test the expressiveness of current approximate approaches, but instead develop a fundamental new unit of computation with weight constraints to learn the exact decimal operations without any assumptions of binary representations.
+Pure neural models that learns arithmetic tasks through backpropagation has previously been attempted.
+Either by utilizing relying on convolutions, gating, differentiable memory and/or attention architectures\cite{NeuralGPU,GridLSTM,NTM}.
+Some of the results are close to perfect performance, however, they are constrained to only work on the integer set of numbers and requires well defined arithmetic setups such as binary representations of numbers for input and output.
+We do not try and test the expressiveness of current approximate approaches, but instead develop a fundamental new unit of computation with weight constraints to learn exact decimal operations without any assumptions of binary representations.
 
 To handle decimal operations the Neural Arithmetic Expression Calculator\cite{NAEC} propose learning the individual components needed for decimal operations.
 They repeatedly combine the in a program induction way with a memory-encoder-decoder architecture trained with reinforcement learning.

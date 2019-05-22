@@ -3,14 +3,14 @@
 
 \subsection{Arithmetic datasets}
 
-The arithmetic dataset is a replica of the "simple function task" shown in \cite{trask-nalu}.
+The arithmetic dataset is a replica of the "simple function task" as shown in \cite{trask-nalu}.
 The goal is to sum two subsets of a vector and perform a arithmetic operation as defined below
 \begin{equation}
 t = \sum_{i = a_{\mathrm{start}}}^{a_{\mathrm{end}}} \mathbf{x}_i \circ \sum_{i = b_{\mathrm{start}}}^{b_{\mathrm{end}}} \mathbf{x}_i \quad \text{where } \mathbf{x} \in \mathbb{R}^n, x_i \sim \mathrm{Uniform}[r_{\mathrm{lower}}, r_{\mathrm{upper}}], \circ \in \{+, -, \times\}
 \label{eq:arithmetic-problem}
 \end{equation}
-where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size and subset overlap are dataset parameters that we use to test the models ability to learn.
-We define a set of default parameters, see table (table \ref{tab:simple-function-task-defaults}).
+where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size, and subset overlap are dataset parameters that we use to test the models ability to learn.
+We define a set of default parameters (see table \ref{tab:simple-function-task-defaults}).
 When probing a specific dataset parameter, e.g. subset overlap, the default will be the used for the remaining parameters.
 \begin{table}[h]
 \caption{Default dataset parameters}
@@ -29,7 +29,7 @@ When probing a specific dataset parameter, e.g. subset overlap, the default will
 \end{tabular}
 \end{table}
 
-\subsubsection{Criterion}
+\subsubsection{Model evaluation}
 
 The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example} \todo{Do we need that equation}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 0.0001$.
 
@@ -63,24 +63,25 @@ The training dataset is continuously sampled from the interpolation range, a dif
 
 Validation error, test error and sparsity error is sampled every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error among the last $100$ samples is used.
 
-\subsubsection{Very simple function}
+\subsubsection{Learning a 10 parameter function}
 
 To empirically validate the theoretical challenges with $\mathrm{NAC}_{\bullet}$ consider the very simple problem shown earlier in figure \ref{fig:nac-mul-eps-issue}. That is, $t = (x_1 + x_2) \circ (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$.
+Effectively having to learn 10 parameters to emulate discrete behaviours for exact addition and multiplication.
 
-Each experiment is conducted 100 times with different seeds, and stopped after 200000 iterations.
+For the $\mathrm{NAC}_{\bullet}$, NALU and NMU we conduct 100 experiments with different seeds, and stopped after $2 \cdot 10^5$ iterations.
 
-The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to underflow when $w = 0$ in the NMU layer.
+The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to be underflow when $w = 0$ in the NMU layer.
 \input{results/simple_mul.tex}
 
 \subsubsection{Arithmetic operation comparison}
 We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations.
 
-For multiplication, the NMU success more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a more sparse solution.
+For multiplication, the NMU succeeds more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a more sparse solution.
 
 \input{results/function_task_static.tex}
 
 \subsubsection{Exploration of dataset parameters}
-To stress test the NMU in comparison with the  $\mathrm{NAC}_{\bullet}$ and NALU, on the multiplication task, the dataset parameters (table \ref{tab:simple-function-task-defaults}) are varied. Each experiment runs for 10 different seeds, the results are visualized in in figure \ref{fig:simple-function-static-boundary}.
+To stress test the NMU in comparison with the  $\mathrm{NAC}_{\bullet}$ and NALU, on the multiplication task, the dataset parameters (table \ref{tab:simple-function-task-defaults}) are varied. Each experiment runs for 10 different seeds, the results are visualized in figure \ref{fig:simple-function-static-boundary}.
 
 Our results show that the NMU consistently outperform the $\mathrm{NAC}_{\bullet}$ and the NALU for all parameters.
 
