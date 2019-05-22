@@ -12,8 +12,7 @@ t = \sum_{i = a_{\mathrm{start}}}^{a_{\mathrm{end}}} \mathbf{x}_i \circ \sum_{i 
 where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size and subset overlap are dataset parameters that we use to test the models ability to learn.
 We define a set of default parameters, see table (table \ref{tab:simple-function-task-defaults}).
 When probing a specific dataset parameter, e.g. subset overlap, the default will be the used for the remaining parameters.
-
-\begin{table}[H]
+\begin{table}[h]
 \caption{Default dataset parameters}
 \label{tab:simple-function-task-defaults}
 \centering
@@ -32,9 +31,7 @@ When probing a specific dataset parameter, e.g. subset overlap, the default will
 
 \subsubsection{Criterion}
 
-The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range.
-
-If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example} \todo{Do we need that equation}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error. Meaning the MSE for the fitted model, should be less than the MSE for a nearly perfect solution.
+The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example} \todo{Do we need that equation}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 0.0001$.
 
 \begin{equation}
     \mathbf{W}_1^\epsilon = \begin{bmatrix}
@@ -48,45 +45,21 @@ If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\m
 
 All experiments are evaluated multiple times with different seeds. We define the success rate as the percentage of experiments that achieves success.
 
-A sparsity error is also reported, the is defined in equation \ref{eq:sparsity-error}. This is only considered for model instances that did solve the task.
+A sparsity error is also evaluated, this is defined in equation \ref{eq:sparsity-error}. This is only considered for model instances that did solve the task, for which the mean and 95\% confidence interval is reported.
 \begin{equation}
 E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, |1 - |W_{h_{\ell-1},h_\ell}||)
 \label{eq:sparsity-error}
 \end{equation}
 
-The first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, is also reported. Again, only model instances that did solve the task are considered.
+The first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, is also reported with the 95\% confidence interval. Again, only model instances that did solve the task are considered. 
 
-For sparsity error and ``solved at'' the 95\% confidence interval is reported.
+\subsubsection{Experiment setup}
 
-\subsubsection{Model setup}
+The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$ have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model is also two layers of NALU. See explicit definitions in table \ref{tab:model-defintions}. All models are fitted with an MSE loss function.
 
-To solve the task, we compare the models defined in table \ref{tab:model-defintions} \todo{Do we need that table}. All models have by default two hidden units in the multiplication layer.
+For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}. All experiments uses Adam optimization \cite{adam-optimization} with default parameters, and are computed on an HPC cluster using \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
 
-\begin{table}[H]
-\caption{Model definitions}
-\label{tab:model-defintions}
-\centering
-\begin{tabular}{r l l}
-\toprule
- Model & Layer 1 & Layer 2 \\
- \midrule
- NMU & NAU & NMU \\
- NAU & NAU & NAU \\
- $\mathrm{NAC}_{\bullet}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet}$ \\
- $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ \\
- NALU & NALU & NALU \\
- Linear & Linear & Linear \\
- \bottomrule
-\end{tabular}
-\end{table}
-
-For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}.
-
-For all experiments Adam optimization \cite{adam-optimization} with default parameters is used and computed on an HPC cluster using \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
-
-The training dataset is continuously sampled from the interpolation range, a different seed is used for each experiment. Training is done with a mini-batch size of 128 observations.
-
-A fixed validation dataset with $10000$ observations is sampled from the interpolation range. A fixed test dataset with $10000$ observations is sample from the extrapolation range.
+The training dataset is continuously sampled from the interpolation range, a different seed is used for each experiment. Training is done with a mini-batch size of 128 observations. A fixed validation dataset with $10000$ observations is sampled from the interpolation range. A fixed test dataset with $10000$ observations is sample from the extrapolation range.
 
 Validation error, test error and sparsity error is sampled every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error among the last $100$ samples is used.
 
@@ -107,41 +80,16 @@ For multiplication, the NMU success more often and converges faster. For additio
 \input{results/function_task_static.tex}
 
 \subsubsection{Exploration of dataset parameters}
-To stress test the NMU in comparison with the  $\mathrm{NAC}_{\bullet}$ and NALU, on the multiplication task, the dataset parameters (table \ref{tab:simple-function-task-defaults}) and the size of the multiplication layer are varied. Each experiment runs for 10 different seeds, the results are visualized in in figure \ref{fig:simple-fnction-static-input-size}, \ref{fig:simple-fnction-static-overlap}, \ref{fig:simple-fnction-static-range}, and \ref{fig:simple-fnction-static-subset}. \todo{Update refs for what we keep}
+To stress test the NMU in comparison with the  $\mathrm{NAC}_{\bullet}$ and NALU, on the multiplication task, the dataset parameters (table \ref{tab:simple-function-task-defaults}) are varied. Each experiment runs for 10 different seeds, the results are visualized in in figure \ref{fig:simple-function-static-boundary}.
 
 Our results show that the NMU consistently outperform the $\mathrm{NAC}_{\bullet}$ and the NALU for all parameters.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=\linewidth]{results/simple_function_static_input_size.pdf}
-\caption{Shows the effect of the input size, on the simple function task problem.}
-\label{fig:simple-fnction-static-input-size}
-\end{figure}
-
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{results/simple_function_static_overlap.pdf}
-\caption{Shows the effect of the overlap ratio, on the simple function task problem.}
-\label{fig:simple-fnction-static-overlap}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\linewidth]{results/simple_function_static_subset.pdf}
-\caption{Shows the effect of the subset ratio, on the simple function task problem.}
-\label{fig:simple-fnction-static-subset}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\linewidth]{results/simple_function_static_hidden_size.pdf}
-\caption{Shows the effect of the hidden size, on the simple function task problem.}
-\label{fig:simple-fnction-static-subset}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\linewidth]{results/simple_function_static_range.pdf}
-\caption{Shows the effect of the interpolation range. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$.}
-\label{fig:simple-fnction-static-range}
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0},clip]{results/simple_function_static_input_size.pdf}
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0.809cm},clip]{results/simple_function_static_overlap.pdf}
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0.809cm},clip]{results/simple_function_static_subset.pdf}
+\includegraphics[width=\linewidth,trim={0 0 0 0.809cm},clip]{results/simple_function_static_range.pdf}
+\caption{Shows the effect of the dataset parameters. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$.}
+\label{fig:simple-function-static-boundary}
 \end{figure}

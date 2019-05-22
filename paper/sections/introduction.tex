@@ -5,18 +5,18 @@ However, when using neural networks try to learn simple arithmetic problems, suc
 
 In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}, which we will introduce in section \ref{sec:Nalu}. Our contribution is an alternative formulation of the weight constraint with a clipped linear activation, a regularizer that bias towards sparse solutions, and a reformulation of the multiplication unit to be partially linear. All of which significantly improves upon the existing $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units as shown through extensive testing on arithmetic constructions.% \footnote{In the interest of scientific integrity, we have made the code for all experiments, and more, available on GitHub: \censor{\url{https://github.com/AndreasMadsen/stable-nalu}}.}
 
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.8]{graphics/nmu.pdf}
-\caption{Visualization of NMU for a single output scalar $z_1$, this construction repeats for every element in the output vector $\mathbf{z}$.}
-\end{figure}
-
 The NALU is a neural network layer with two sub-units; the $\text{NAC}_{+}$ for addition/subtraction and the $\text{NAC}_{\bullet}$ for multiplication/division.
 The subunits are softly gated between using a sigmoid function. The layer parameters, which are created by a tanh-sigmoid transformation, are learned by observing arithmetic input-output pairs and using backpropagation\cite{rumelhart1986learning}.
 
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.7]{graphics/nmu.pdf}
+\caption{Visualization of NMU for a single output scalar $z_1$, this construction repeats for every element in the output vector $\mathbf{z}$.}
+\end{figure}
+
 In our work, we present the following findings on the NALU by investigating the parameter transformation, the sub-units and gating mechanism.
 We find that the mentioned components of the NALU contain analytical or emperical concerns
-\begin{itemize}
+\begin{itemize}[leftmargin=0.5cm,itemsep=0pt,topsep=0pt]
 \item The gradients from the weight matrix construction in $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ have zero expectation.
 
 \item The $\text{NAC}_{\bullet}$ has a treacherous optimization space with unwanted global minimas (as shown in figure \ref{fig:nac-mul-eps-issue}) and has exploding/vanishing gradients.

@@ -62,7 +62,7 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
   }
 
   align = c('c', 'r', 'l', 'l', 'l', 'l')
-  header.1 = c("Operation", "Model", "Success", "Solved at"=2, "Sparsity error")
+  header.1 = c("Op", "Model", "Success", "Solved at"=2, "Sparsity error")
   header.2 = c("", "", "Rate", "Median", "Mean", "Mean")
 
   if (!show.operation) {
@@ -93,7 +93,7 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
       col.names = header.2
     ) %>%
     add_header_above(header.1) %>%
-    kable_styling(latex_options=c('HOLD_position')) %>%
+    kable_styling(latex_options=c('hold_position')) %>%
     collapse_rows(columns = ifelse(show.operation, c(1), c(1,2)), latex_hline = ifelse(show.operation, "major", "none")) %>%
     write(file.out)
 }

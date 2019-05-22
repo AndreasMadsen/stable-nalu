@@ -28,14 +28,46 @@ All datasets in the simple function task experiments are generated using algorit
 
 \subsection{Arithmetic operations comparison - all models}
 
+\begin{table}[h]
+\caption{Model definitions}
+\label{tab:model-defintions}
+\centering
+\begin{tabular}{r l l}
+\toprule
+ Model & Layer 1 & Layer 2 \\
+ \midrule
+ NMU & NAU & NMU \\
+ NAU & NAU & NAU \\
+ $\mathrm{NAC}_{\bullet}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet}$ \\
+ $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ \\
+ NALU & NALU & NALU \\
+ Linear & Linear & Linear \\
+ ReLU & ReLU & ReLU \\
+ ReLU6 & ReLU6 & ReLU6 \\
+ \bottomrule
+\end{tabular}
+\end{table}
+
 Results for all models on addition, subtraction, and multiplication can be found in table \ref{tab:function-task-static-defaults-all}.
 
 \label{sec:appendix:function-task-static-all-comparision}
 \input{results/function_task_static_all.tex}
 
 \subsection{Ablation study}
+To validate our model, we perform an ablation on the multiplication problem.
+
+Our ablation study (table \ref{tab:function-task-static-ablation}) show that regularization have little effect in terms of success rate. As it is analytically known that there is no gradient outside of $w \in [0,1]$ for the NMU, the conclusion must be that the optimal weight initialization for the default dataset parameters and tested seeds, does not cause any weights to accidentally break out of $w \in [0,1]$. The sparse regularizer for multiplication have no sparsity effect, as only a sparse solution is a valid solution for multiplication. Although as seen in appendix \ref{sec:appendix:simple-function-task:regualization}, sparsity regularization can improve convergence.
 \input{results/function_task_static_ablation.tex}
 
+Not allowing a multiplicative identity ($\mathbf{z} = \mathbf{W} \odot \mathbf{x}$), works when there is only two hidden units in the multiplication layer, as no multiplicative identity is necessary. However, for larger a hidden size as seen in figure \ref{fig:simple-function-static-ablation-hidden-size} identity becomes necessary.
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{results/simple_function_static_ablation_hidden_size.pdf}
+\caption{Compares NMU with NMU without identity, with different input size (hidden layer unit size) to the multiplication layer.}
+\label{fig:simple-function-static-ablation-hidden-size}
+\end{figure}
+
+\clearpage
 \subsection{Regularization}
 \label{sec:appendix:simple-function-task:regualization}
 A high sparsity regularization constant can help the model to converge faster. However, a regularization constant too high have have the inverse effect as well, or even make it impossible for the model to converge.

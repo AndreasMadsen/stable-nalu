@@ -26,7 +26,8 @@ model.latex.to.exp = c(
                                            }], "")),
   'NALU'='NALU',
   'NAU'='NAU',
-  'NMU'='NMU'
+  'NMU'='NMU',
+  'NMU, $\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$'='NMU, z = W · x'
 )
 
 model.to.exp = function(v) {
