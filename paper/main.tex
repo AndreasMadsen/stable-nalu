@@ -4,15 +4,19 @@
 %     \PassOptionsToPackage{numbers, compress}{natbib}
 % before loading neurips_2019
 
-% ready for submission
-\usepackage{neurips_2019}
+% COMMENT for anonymous submission
+\def\nonanonymous{}
 
+\ifdefined\nonanonymous
 % to compile a preprint version, e.g., for submission to arXiv, add add the
 % [preprint] option:
-%     \usepackage[preprint]{neurips_2019}
-
+\usepackage[preprint]{neurips_2019}
 % to compile a camera-ready version, add the [final] option, e.g.:
 %     \usepackage[final]{neurips_2019}
+\else
+% ready for submission
+\usepackage{neurips_2019}
+\fi
 
 % to avoid loading the natbib package, add option nonatbib:
 %     \usepackage[nonatbib]{neurips_2019}
@@ -27,7 +31,6 @@
 \usepackage{microtype}      % microtypography
 
 % Not part of the offical NeurIPS template
-\usepackage{censor}
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{bm}
@@ -75,7 +78,6 @@ $^\ddag$Computationally Demanding
 }
 
 \begin{document}
-\StopCensoring % NOTE, remove for peer-review to ensure anonymity.
 
 \maketitle
 
@@ -96,7 +98,7 @@ The NMU can perform multiplication using an accumulative product of the input us
 The weights are optimized with stochastic gradient decent with regularization for sparsity.
 %How does it perform?
 Through analytic and empirical analysis we justify how the NAU and NMU improve over the Neural Arithmetic Logic Unit (NALU), a linear regression model and a ReLU based multi-layer perceptron (MLP).
-Our NAU and NMU have fewer parameters, converges more consistently, learns faster and have more meaningful discrete values than the NALU and its arithmetic components.
+Our NAU and NMU have fewer parameters, converges more consistently, learns faster and have more meaningful discrete values than the NALU and its arithmetic components.\ifdefined\nonanonymous\footnote{The code is available on GitHub: \url{https://github.com/AndreasMadsen/stable-nalu}.}\fi
 \end{abstract}
 
 \input{sections/introduction}
@@ -105,11 +107,12 @@ Our NAU and NMU have fewer parameters, converges more consistently, learns faste
 \input{sections/future-work}
 \input{sections/conclusion}
 
-%\subsubsection*{Acknowledgments}
-
-%\xblackout{We would like to thank Andrew Trask and the other authors of the NALU paper, for highlighting the importance and challenges of etrapolation in Neural Networks. We would also like to thank the students Raja Shan Zaker Kreen and William Frisch Moller from The Technical University of Denmark, who showed us that the NALU does not converge consistently.}
-
 \clearpage
+\ifdefined\nonanonymous
+\subsubsection*{Acknowledgments}
+We would like to thank Andrew Trask and the other authors of the NALU paper, for highlighting the importance and challenges of etrapolation in Neural Networks. We would also like to thank the students Raja Shan Zaker Kreen and William Frisch Møller from The Technical University of Denmark, who showed us that the NALU does not converge consistently.
+\fi
+
 \bibliographystyle{plainnat}
 \bibliography{bibliography}
 
