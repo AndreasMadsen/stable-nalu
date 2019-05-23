@@ -2,14 +2,18 @@
 \subsection{Dataset generation}
 \label{sec:appendix:simple-function-task:data-generation}
 
+We define the values $a$ and $b$, as the sub of subsets of $\mathbf{x}$ (see figure \ref{fig:simple-function-task-problem}). The exact dataset generation algorithm is defined in algorithm \ref{alg:dataset-sampling}.
+
+\begin{equation}
+    a = \sum_{i=a_{\mathrm{start}}}^{a_{\mathrm{end}}} x_i, \quad b = \sum_{i=b_{\mathrm{start}}}^{b_{\mathrm{end}}} x_i
+\end{equation}
+
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.8]{graphics/function_task_static_problem.pdf}
 \caption{Dataset is parameterized into ``Input Size'', ``Subset Ratio'', ``Overlap Ratio'', an Operation (here showing multiplication), ``Interpolation Range'' and ``Extrapolation Range'' from which the data set sampled.}
 \label{fig:simple-function-task-problem}
 \end{figure}
-
-All datasets in the simple function task experiments are generated using algorithm \ref{alg:dataset-sampling}. Its parameters are visualized in figure \ref{fig:simple-function-task-problem}.
 
 \begin{algorithm}[h]
   \caption{Dataset sampling algorithm}
@@ -27,7 +31,7 @@ All datasets in the simple function task experiments are generated using algorit
 \end{algorithm}
 
 \subsection{Arithmetic operations comparison - all models}
-
+\label{sec:appendix:comparison-all-models}
 \begin{table}[h]
 \caption{Model definitions}
 \label{tab:model-defintions}
@@ -54,6 +58,7 @@ Results for all models on addition, subtraction, and multiplication can be found
 \input{results/function_task_static_all.tex}
 
 \subsection{Ablation study}
+\label{sec:appendix:ablation-study}
 To validate our model, we perform an ablation on the multiplication problem.
 
 Our ablation study (table \ref{tab:function-task-static-ablation}) show that regularization have little effect in terms of success rate. As it is analytically known that there is no gradient outside of $w \in [0,1]$ for the NMU, the conclusion must be that the optimal weight initialization for the default dataset parameters and tested seeds, does not cause any weights to accidentally break out of $w \in [0,1]$. The sparse regularizer for multiplication have no sparsity effect, as only a sparse solution is a valid solution for multiplication. Although as seen in appendix \ref{sec:appendix:simple-function-task:regualization}, sparsity regularization can improve convergence.
@@ -70,7 +75,7 @@ Not allowing a multiplicative identity ($\mathbf{z} = \mathbf{W} \odot \mathbf{x
 \subsection{Regularization}
 \label{sec:appendix:simple-function-task:regualization}
 A high sparsity regularization constant can help the model to converge faster. However, a regularization constant too high have have the inverse effect as well, or even make it impossible for the model to converge.
-regularizer
+
 In these experiments, the constant $c$ in equation \ref{eq:regualizer-experiment} is varied. See results in figure \ref{fig:simple-fnction-static-regularizer-add}, \ref{fig:simple-fnction-static-regularizer-sub}, and \ref{fig:simple-fnction-static-regularizer-mul}.
 \begin{equation}
 \lambda_{\mathrm{bias}} = c \cdot (1 - \exp(-10^5 \cdot t))
