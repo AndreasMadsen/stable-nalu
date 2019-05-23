@@ -61,16 +61,6 @@ The training dataset is continuously sampled from the interpolation range where 
 
 We evaluate validation, test, and sparsity error every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error, among the last $100$ evaluations, is used for reporting test and sparsity error.
 
-\subsubsection{Learning a 10 parameter function}
-
-To empirically validate the theoretical challenges with $\mathrm{NAC}_{\bullet}$ consider the very simple problem shown earlier in figure \ref{fig:nac-mul-eps-issue}. That is, $t = (x_1 + x_2) \circ (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$.
-Effectively having to learn 10 parameters to emulate discrete behaviours for exact addition followed by multiplication.
-
-For the $\mathrm{NAC}_{\bullet}$, NALU, and NMU we conduct 100 experiments with different seeds, and stop after $2 \cdot 10^5$ iterations.
-
-The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to be underflow when $w = 0$ in the multiplication layer.
-\input{results/simple_mul.tex}
-
 \subsubsection{Arithmetic operation comparison}
 We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations. Comparison with more models can be found in appendix \ref{sec:appendix:comparison-all-models} and an ablation study of the NMU can be found in appendix \ref{sec:appendix:ablation-study}.
 
