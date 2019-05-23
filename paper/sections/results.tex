@@ -31,8 +31,7 @@ When probing a specific dataset parameter, e.g. subset overlap, the default will
 
 \subsubsection{Model evaluation}
 
-The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example} \todo{Do we need that equation}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 0.0001$.
-
+The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 0.0001$.
 \begin{equation}
     \mathbf{W}_1^\epsilon = \begin{bmatrix}
     1 - \epsilon & 1 - \epsilon & 0 + \epsilon & 0 + \epsilon \\
@@ -45,7 +44,7 @@ The goal is to achieve a solution that is acceptably close to a perfect solution
 
 All experiments are evaluated multiple times with different seeds. We define the success rate as the percentage of experiments that achieves success.
 
-A sparsity error is also evaluated, this is defined in equation \ref{eq:sparsity-error}. This is only considered for model instances that did solve the task, for which the mean and 95\% confidence interval is reported.
+A sparsity error is also evaluated, which is defined in equation \ref{eq:sparsity-error}. This is only considered for model instances that did solve the task, for which the mean and 95\% confidence interval is reported.
 \begin{equation}
 E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, |1 - |W_{h_{\ell-1},h_\ell}||)
 \label{eq:sparsity-error}
