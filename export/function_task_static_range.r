@@ -82,7 +82,7 @@ dat.last.rate = dat.last %>%
   group_by(model, operation, parameter) %>%
   summarise(
     size=n(),
-    success.rate.mean = mean(solved),
+    success.rate.mean = mean(solved) * 100,
     success.rate.upper = NA,
     success.rate.lower = NA,
 
@@ -136,8 +136,8 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parame
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
-      success.rate = "Success rate",
-      converged.at = "Solved at",
+      success.rate = "Success rate in %",
+      converged.at = "Solved at iteration step",
       sparse.error = "Sparsity error"
     )
   )) +
