@@ -1,13 +1,11 @@
 \section{Related work}
-Pure neural models that learns arithmetic tasks through backpropagation have previously been attempted.
-They either utilize convolutions, gating, differentiable memory, and/or attention architectures \cite{NeuralGPU,GridLSTM,NTM}.
+Pure neural models using convolutions, gating, differentiable memory, and/or attention architectures have attempted to learn arithmetic tasks through backpropagation \cite{NeuralGPU,GridLSTM,NTM}.
 Some of the results have close to perfect extrapolation. However, the models are constrained to work only on whole numbers and requires well defined arithmetic setups such as binary representations of numbers for input and output.
-We do not test the expressiveness of current approximate approaches, but instead develop a fundamental new unit of computation with weight constraints to learn exact arithmetic operations that works on real numbers, without any assumptions of binary representations.
+We do not extend current approximative methods, but instead develop two new units of computation that can learn exact arithmetic operations on real numbers, without any assumptions of binary representations.
 
-To handle operations on real numbers, the Neural Arithmetic Expression Calculator \cite{NAEC} propose learning the individual components needed.
-They repeatedly combine program induction with a memory-encoder-decoder architecture trained with reinforcement learning.
-While this model has the ability to dynamically handle a larger variety of expressions compared to our solution, they do not generalize much beyond interpolation length.
+The Neural Arithmetic Expression Calculator \cite{NAEC} propose learning real number arithmetic by having neural network subcomponents and repeatedly combine them through a memory-encoder-decoder architecture learned with hierarchical reinforcement learning.
+While this model has the ability to dynamically handle a larger variety of expressions compared to our solution their solution do not generalize much beyond interpolation length.
 
-We use the NAU to do a subset-selection, which is then followed by either a summation or multiplication, in order to combine information from the input vector.
-An alternative, fully differentiable version, is to use a gumbel-softmax to perform exact subset-selection \cite{DSS}.
-This, however, has the restriction of having to use a predefined size of the subset, which is a strong assumption that our units are not limited by.
+In our experiments, the NAU is used to do a subset-selection, which is then followed by either a summation or multiplication.
+An alternative, fully differentiable version, is to use a gumbel-softmax that can perform exact subset-selection \cite{DSS}.
+However, this is restricted to a predefined subset size, which is a strong assumption that our units are not limited by.

@@ -1,8 +1,8 @@
 \section{Conclusion}
-
-An recent approach to learn arithmetic operations from data using stochastic gradient decent, has analytical and empirical concerns.
-We have shown analytical how the NAU and NMU can be initialized optimally. In experiments stress-testing arithmetic operations, the NAU and NMU consistently outperforms recent approaches and neural networks.
-While the NMU can not divide, it is capable of extrapolate into the negative range for multiplication.
+We have investigated how a function based on constraint weights can extrapolate well on arithmetic operations and if it can learn the weights by stochastic gradient descent.
+Inspired by the recently proposed Neural Arithmetic Logic Unit (NALU), we propose the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU), which has more consistent convergence on a range of addition, subtraction, and multiplication tasks than the NALU.
+Beyond convergence capabilities, our modifications makes the NMU capable of extrapolating to numerically small numbers and the negative range, which has previously been impossible.
+Our analytic analysis highlights that learning division is challenging as division close to zero creates explosions.
 
 % Future work:
 % Depth, applications (convergence is still slow), gating, division, test higher precision.

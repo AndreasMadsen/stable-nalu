@@ -9,9 +9,8 @@ The goal is to sum two random subsets of a vector and perform a arithmetic opera
 t = \sum_{i = s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i \circ \sum_{i = s_{2,\mathrm{start}}}^{s_{2,\mathrm{end}}} x_i \quad \text{where } \mathbf{x} \in \mathbb{R}^n, x_i \sim \mathrm{Uniform}[r_{\mathrm{lower}}, r_{\mathrm{upper}}], \circ \in \{+, -, \times\}
 \label{eq:arithmetic-problem}
 \end{equation}
-where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size, and subset overlap are dataset parameters that we use to test the models ability to learn (see details in appendix \ref{sec:appendix:simple-function-task:data-generation}).
+where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size, and subset overlap are dataset parameters that we use to assess learning capability (see details in appendix \ref{sec:appendix:simple-function-task:data-generation}).
 We define a set of default parameters (see table \ref{tab:simple-function-task-defaults}).
-When probing a specific dataset parameter, e.g. subset overlap, the default will be the used for the remaining parameters.
 \begin{table}[h]
 \caption{Default dataset parameters}
 \label{tab:simple-function-task-defaults}
@@ -45,21 +44,21 @@ Only models that managed to solve the task are considered for which a 95\% confi
 
 We assume an approximate discrete solution with parameters close to $\{-1, 0, 1\}$ is important for inferring exact arithmetic operations.
 To measure the sparsity we introduce a sparsity error (defined in equation \ref{eq:sparsity-error}).
-Like the convergence metric we only considered model instances that did solve the task and report the 95\% confidence interval.
+Similar to the convergence metric we only considered model instances that did solve the task and report the 95\% confidence interval.
 \begin{equation}
 E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, |1 - |W_{h_{\ell-1},h_\ell}||)
 \label{eq:sparsity-error}
 \end{equation}
 
-\subsubsection{Experiment setup}
+\subsubsection{Experimental setup}
 
-The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$ have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model is also two layers of NALU. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}. All models are fitted with an mean-squared-error loss-function.
+The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$, have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model consists of two NALU layers. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}. All models are fitted with an mean-squared-error loss-function.
 
 For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}. All models are optimized with Adam optimization \cite{adam-optimization} using default parameters and trained for about four hours on an HPC cluster running \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
 
-The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed testset with $1 \cdot 10^4$ observations is sample from the extrapolation range.
+The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed testset with $1 \cdot 10^4$ observations sampled from the extrapolation range.
 
-We evaluate validation, test, and sparsity error every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error, among the last $100$ evaluations, is used for reporting test and sparsity error.
+We evaluate validation, test, and sparsity error every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error, among the last $100$ evaluations, is used for testing if the model succeeded and its sparsity error.
 
 \subsubsection{Arithmetic operation comparison}
 We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations. Comparison with more models can be found in appendix \ref{sec:appendix:comparison-all-models} and an ablation study of the NMU can be found in appendix \ref{sec:appendix:ablation-study}.
