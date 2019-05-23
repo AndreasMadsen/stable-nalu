@@ -4,12 +4,12 @@
 \subsection{Arithmetic datasets}
 
 The arithmetic dataset is a replica of the "simple function task" as shown in \cite{trask-nalu}.
-The goal is to sum two subsets of a vector and perform a arithmetic operation as defined below
+The goal is to sum two random subsets of a vector and perform a arithmetic operation as defined below
 \begin{equation}
-t = \sum_{i = a_{\mathrm{start}}}^{a_{\mathrm{end}}} \mathbf{x}_i \circ \sum_{i = b_{\mathrm{start}}}^{b_{\mathrm{end}}} \mathbf{x}_i \quad \text{where } \mathbf{x} \in \mathbb{R}^n, x_i \sim \mathrm{Uniform}[r_{\mathrm{lower}}, r_{\mathrm{upper}}], \circ \in \{+, -, \times\}
+t = \sum_{i = s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i \circ \sum_{i = s_{2,\mathrm{start}}}^{s_{2,\mathrm{end}}} x_i \quad \text{where } \mathbf{x} \in \mathbb{R}^n, x_i \sim \mathrm{Uniform}[r_{\mathrm{lower}}, r_{\mathrm{upper}}], \circ \in \{+, -, \times\}
 \label{eq:arithmetic-problem}
 \end{equation}
-where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size, and subset overlap are dataset parameters that we use to test the models ability to learn.
+where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size, and subset overlap are dataset parameters that we use to test the models ability to learn (see details in appendix \ref{sec:appendix:simple-function-task:data-generation}).
 We define a set of default parameters (see table \ref{tab:simple-function-task-defaults}).
 When probing a specific dataset parameter, e.g. subset overlap, the default will be the used for the remaining parameters.
 \begin{table}[h]
@@ -30,8 +30,7 @@ When probing a specific dataset parameter, e.g. subset overlap, the default will
 \end{table}
 
 \subsubsection{Model evaluation}
-
-The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task, the MSE is compared to a known nearly-perfect solution on the extrapolation range. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 0.0001$.
+The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task consistently we compare the MSE to a nearly-perfect solution on the extrapolation range over multiple seeds. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 0.0001$.
 \begin{equation}
     \mathbf{W}_1^\epsilon = \begin{bmatrix}
     1 - \epsilon & 1 - \epsilon & 0 + \epsilon & 0 + \epsilon \\
@@ -41,26 +40,26 @@ The goal is to achieve a solution that is acceptably close to a perfect solution
     \end{bmatrix}
     \label{eq:nearly-perfect-solution-example}
 \end{equation}
+To measure speed of convergence to a nearly-perfect solution we report the first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$.
+Only models that managed to solve the task are considered for which a 95\% confidence interval is reported.
 
-All experiments are evaluated multiple times with different seeds. We define the success rate as the percentage of experiments that achieves success.
-
-A sparsity error is also evaluated, which is defined in equation \ref{eq:sparsity-error}. This is only considered for model instances that did solve the task, for which the mean and 95\% confidence interval is reported.
+We assume an approximate discrete solution with parameters close to $\{-1, 0, 1\}$ is important for inferring exact arithmetic operations.
+To measure the sparsity we introduce a sparsity error (defined in equation \ref{eq:sparsity-error}).
+Like the convergence metric we only considered model instances that did solve the task and report the 95\% confidence interval.
 \begin{equation}
 E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, |1 - |W_{h_{\ell-1},h_\ell}||)
 \label{eq:sparsity-error}
 \end{equation}
 
-The first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, is also reported with the 95\% confidence interval. Again, only model instances that did solve the task are considered. 
-
 \subsubsection{Experiment setup}
 
-The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$ have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model is also two layers of NALU. See explicit definitions in table \ref{tab:model-defintions}. All models are fitted with an MSE loss function.
+The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$ have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model is also two layers of NALU. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}. All models are fitted with an MSE loss function.
 
-For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}. All experiments uses Adam optimization \cite{adam-optimization} with default parameters, and are computed on an HPC cluster using \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
+For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}. All models are optimized with Adam optimization \cite{adam-optimization} using default parameters and trained for about four hours on an HPC cluster running \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
 
-The training dataset is continuously sampled from the interpolation range, a different seed is used for each experiment. Training is done with a mini-batch size of 128 observations. A fixed validation dataset with $10000$ observations is sampled from the interpolation range. A fixed test dataset with $10000$ observations is sample from the extrapolation range.
+The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range and a fixed testset with $1 \cdot 10^4$ observations is sample from the extrapolation range.
 
-Validation error, test error and sparsity error is sampled every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error among the last $100$ samples is used.
+We sample validation, test and sparsity error every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error among the last $100$ evaluations is used.
 
 \subsubsection{Learning a 10 parameter function}
 
@@ -73,7 +72,7 @@ The results, in table \ref{tab:very-simple-function-results}, show that NMU has 
 \input{results/simple_mul.tex}
 
 \subsubsection{Arithmetic operation comparison}
-We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations.
+We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations. Comparison with more models can be found in appendix \ref{sec:appendix:comparison-all-models} and an ablation study can be found in appendix \ref{sec:appendix:ablation-study}.
 
 For multiplication, the NMU succeeds more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a more sparse solution.
 
@@ -90,6 +89,6 @@ Our results show that the NMU consistently outperform the $\mathrm{NAC}_{\bullet
 \includegraphics[width=\linewidth,trim={0 1.3cm 0 0.809cm},clip]{results/simple_function_static_overlap.pdf}
 \includegraphics[width=\linewidth,trim={0 1.3cm 0 0.809cm},clip]{results/simple_function_static_subset.pdf}
 \includegraphics[width=\linewidth,trim={0 0 0 0.809cm},clip]{results/simple_function_static_range.pdf}
-\caption{Shows the effect of the dataset parameters. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$.}
+\caption{Shows the effect of the dataset parameters. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$. The uniform sampling ranges are chosen to test the effect of mean, variance, and sign for optimizing.}
 \label{fig:simple-function-static-boundary}
 \end{figure}
