@@ -53,35 +53,33 @@ E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, 
 
 \subsubsection{Experiment setup}
 
-The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$ have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model is also two layers of NALU. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}. All models are fitted with an MSE loss function.
+The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$ have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model is also two layers of NALU. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}. All models are fitted with an mean-squared-error loss-function.
 
 For all experiments $\lambda_{\mathrm{oob}} = 1$ and $\lambda_{\mathrm{bias}} = 0.1 \cdot (1 - \exp(-10^5 \cdot t))$. Gradually scaling the bias regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$ is to ensure it does not interfere with early training. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}. All models are optimized with Adam optimization \cite{adam-optimization} using default parameters and trained for about four hours on an HPC cluster running \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
 
-The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range and a fixed testset with $1 \cdot 10^4$ observations is sample from the extrapolation range.
+The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed testset with $1 \cdot 10^4$ observations is sample from the extrapolation range.
 
-We sample validation, test and sparsity error every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error among the last $100$ evaluations is used.
+We evaluate validation, test, and sparsity error every $1000$ iterations. To avoid noise from exploration, the best fit in terms of the validation error, among the last $100$ evaluations, is used for reporting test and sparsity error.
 
 \subsubsection{Learning a 10 parameter function}
 
 To empirically validate the theoretical challenges with $\mathrm{NAC}_{\bullet}$ consider the very simple problem shown earlier in figure \ref{fig:nac-mul-eps-issue}. That is, $t = (x_1 + x_2) \circ (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$.
-Effectively having to learn 10 parameters to emulate discrete behaviours for exact addition and multiplication.
+Effectively having to learn 10 parameters to emulate discrete behaviours for exact addition followed by multiplication.
 
-For the $\mathrm{NAC}_{\bullet}$, NALU and NMU we conduct 100 experiments with different seeds, and stopped after $2 \cdot 10^5$ iterations.
+For the $\mathrm{NAC}_{\bullet}$, NALU, and NMU we conduct 100 experiments with different seeds, and stop after $2 \cdot 10^5$ iterations.
 
-The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to be underflow when $w = 0$ in the NMU layer.
+The results, in table \ref{tab:very-simple-function-results}, show that NMU has a higher success rate and converges faster. When inspecting the $6\%$ that did not converge, we found the issue to be underflow when $w = 0$ in the multiplication layer.
 \input{results/simple_mul.tex}
 
 \subsubsection{Arithmetic operation comparison}
-We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations. Comparison with more models can be found in appendix \ref{sec:appendix:comparison-all-models} and an ablation study can be found in appendix \ref{sec:appendix:ablation-study}.
+We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations. Comparison with more models can be found in appendix \ref{sec:appendix:comparison-all-models} and an ablation study of the NMU can be found in appendix \ref{sec:appendix:ablation-study}.
 
-For multiplication, the NMU succeeds more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a more sparse solution.
+For multiplication, the NMU succeeds more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a sparser solution.
 
 \input{results/function_task_static.tex}
 
 \subsubsection{Exploration of dataset parameters}
-To stress test the NMU in comparison with the  $\mathrm{NAC}_{\bullet}$ and NALU, on the multiplication task, the dataset parameters (table \ref{tab:simple-function-task-defaults}) are varied. Each experiment runs for 10 different seeds, the results are visualized in figure \ref{fig:simple-function-static-boundary}.
-
-Our results show that the NMU consistently outperform the $\mathrm{NAC}_{\bullet}$ and the NALU for all parameters.
+To stress test the NMU in comparison with the  $\mathrm{NAC}_{\bullet}$ and NALU, on the multiplication task, we vary the dataset parameters one at a time (table \ref{tab:simple-function-task-defaults}), and run 10 experiments with different seeds. The results, visualized in figure \ref{fig:simple-function-static-boundary}, show that the NMU consistently outperform the $\mathrm{NAC}_{\bullet}$ and the NALU for all dataset parameters.
 
 \begin{figure}[h]
 \centering
