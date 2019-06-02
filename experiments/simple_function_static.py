@@ -32,6 +32,10 @@ parser.add_argument('--regualizer-oob',
                     default=1,
                     type=float,
                     help='Specify the oob-regualization lambda to be used')
+parser.add_argument('--first-layer',
+                    action='store',
+                    default=None,
+                    help='Set the first layer to be a different type')
 
 parser.add_argument('--max-iterations',
                     action='store',
@@ -90,10 +94,12 @@ parser.add_argument('--nac-mul',
                     choices=['none', 'normal', 'safe', 'max-safe', 'mnac'],
                     type=str,
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
-parser.add_argument('--first-layer',
+parser.add_argument('--nac-oob',
                     action='store',
-                    default=None,
-                    help='Set the first layer to be a different type')
+                    default='regualized',
+                    choices=['regualized', 'clip'],
+                    type=str,
+                    help='Choose of out-of-bound should be handled by clipping or regualization.')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -160,6 +166,7 @@ print(f'  - simple: {args.simple}')
 print(f'  -')
 print(f'  - hidden_size: {args.hidden_size}')
 print(f'  - nac_mul: {args.nac_mul}')
+print(f'  - nac_oob: {args.nac_oob}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_two_gate: {args.nalu_two_gate}')
@@ -191,7 +198,8 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_o-{args.operation.lower()}'
+    f'_obb-{"c" if args.nac_oob == "clip" else "r"}'
+    f'_op-{args.operation.lower()}'
     f'_r-{args.regualizer}{"" if args.regualizer_oob == 1 else f"-{args.regualizer_oob}"}'
     f'_i-{args.interpolation_range[0]}-{args.interpolation_range[1]}'
     f'_e-{args.extrapolation_range[0]}-{args.extrapolation_range[1]}'
@@ -234,6 +242,7 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     writer=summary_writer.every(1000) if args.verbose else None,
     first_layer=args.first_layer,
     hidden_size=args.hidden_size,
+    nac_oob=args.nac_oob,
     nac_mul=args.nac_mul,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,

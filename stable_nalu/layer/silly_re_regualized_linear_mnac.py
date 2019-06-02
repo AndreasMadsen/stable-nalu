@@ -16,11 +16,12 @@ class SillyReRegualizedLinearMNACLayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, mnac_normalized=False, **kwargs):
+    def __init__(self, in_features, out_features, nac_oob='clip', mnac_normalized=False, **kwargs):
         super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
         self.mnac_normalized = mnac_normalized
+        self.nac_oob = nac_oob
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.register_parameter('bias', None)
@@ -30,10 +31,16 @@ class SillyReRegualizedLinearMNACLayer(ExtendedTorchModule):
         r = min(0.25, math.sqrt(3.0) * std)
         torch.nn.init.uniform_(self.W, 0.5 - r, 0.5 + r)
 
+    def optimize(self, loss):
+        if self.nac_oob == 'clip':
+            self.W.clamp_(0.0, 1.0)
+
     def regualizer(self):
          return super().regualizer({
             'W': torch.mean(self.W**2 * (1 - self.W)**2),
             'W-OOB': torch.mean(torch.relu(torch.abs(self.W - 0.5) - 0.5)**2)
+                if self.nac_oob == 'regualized'
+                else 0
         })
 
     def forward(self, x, reuse=False):

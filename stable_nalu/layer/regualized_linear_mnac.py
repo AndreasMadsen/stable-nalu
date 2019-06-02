@@ -27,13 +27,12 @@ class RegualizedLinearMNACLayer(ExtendedTorchModule):
 
     def reset_parameters(self):
         std = math.sqrt(0.25)
-        r = min(0.25, math.sqrt(3.0) * std)
+        r = math.sqrt(3.0) * std
         torch.nn.init.uniform_(self.W, 0.5 - r, 0.5 + r)
 
     def regualizer(self):
          return super().regualizer({
-            'W': torch.mean(self.W**2 * (1 - self.W)**2),
-            'W-OOB': torch.mean(torch.relu(torch.abs(self.W - 0.5) - 0.5)**2)
+            'W': torch.mean(self.W**2 * (1 - self.W)**2)
         })
 
     def forward(self, x, reuse=False):
