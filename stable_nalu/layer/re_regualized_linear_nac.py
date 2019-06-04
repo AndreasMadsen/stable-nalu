@@ -5,6 +5,7 @@ import torch
 import math
 
 from ..abstract import ExtendedTorchModule
+from ..functional import Regualizer
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 class ReRegualizedLinearNACLayer(ExtendedTorchModule):
@@ -15,11 +16,23 @@ class ReRegualizedLinearNACLayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, nac_oob='clip', **kwargs):
+    def __init__(self, in_features, out_features,
+                 nac_oob='regualized', regualizer_shape='squared',
+                 **kwargs):
         super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
         self.nac_oob = nac_oob
+
+        self._regualizer_bias = Regualizer(
+            support='nac', type='bias',
+            shape=regualizer_shape
+        )
+        self._regualizer_oob = Regualizer(
+            support='nac', type='oob',
+            shape=regualizer_shape,
+            zero=self.nac_oob == 'clip'
+        )
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.register_parameter('bias', None)
@@ -35,10 +48,8 @@ class ReRegualizedLinearNACLayer(ExtendedTorchModule):
 
     def regualizer(self):
          return super().regualizer({
-            'W': torch.mean(self.W**2 * (1 - torch.abs(self.W))**2),
-            'W-OOB': torch.mean(torch.relu(torch.abs(self.W) - 1)**2)
-                if self.nac_oob == 'regualized'
-                else 0
+            'W': self._regualizer_bias(self.W),
+            'W-OOB': self._regualizer_oob(self.W)
         })
 
     def forward(self, input, reuse=False):

@@ -5,7 +5,7 @@ import torch
 import math
 
 from ..abstract import ExtendedTorchModule
-from ..functional import mnac
+from ..functional import mnac, Regualizer
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
@@ -16,12 +16,26 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, nac_oob='clip', mnac_normalized=False, **kwargs):
+    def __init__(self, in_features, out_features,
+                 nac_oob='regualized', regualizer_shape='squared',
+                 mnac_epsilon=0, mnac_normalized=False,
+                 **kwargs):
         super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
         self.mnac_normalized = mnac_normalized
+        self.mnac_epsilon = mnac_epsilon
         self.nac_oob = nac_oob
+
+        self._regualizer_bias = Regualizer(
+            support='mnac', type='bias',
+            shape=regualizer_shape, zero_epsilon=mnac_epsilon
+        )
+        self._regualizer_oob = Regualizer(
+            support='mnac', type='oob',
+            shape=regualizer_shape, zero_epsilon=mnac_epsilon,
+            zero=self.nac_oob == 'clip'
+        )
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.register_parameter('bias', None)
@@ -33,20 +47,22 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
 
     def optimize(self, loss):
         if self.nac_oob == 'clip':
-            self.W.data.clamp_(0.0, 1.0)
+            self.W.data.clamp_(0.0 + self.mnac_epsilon, 1.0)
 
     def regualizer(self):
          return super().regualizer({
-            'W': torch.mean(self.W**2 * (1 - self.W)**2),
-            'W-OOB': torch.mean(torch.relu(torch.abs(self.W - 0.5) - 0.5)**2)
-                if self.nac_oob == 'regualized'
-                else 0
+            'W': self._regualizer_bias(self.W),
+            'W-OOB': self._regualizer_oob(self.W)
         })
 
     def forward(self, x, reuse=False):
-        W = torch.clamp(self.W, 0.0, 1.0)
+        W = torch.clamp(self.W, 0.0 + self.mnac_epsilon, 1.0) \
+            if self.nac_oob == 'regualized' \
+            else self.W
+
         self.writer.add_histogram('W', W)
         self.writer.add_tensor('W', W)
+        self.writer.print('W', self.W)
 
         if self.mnac_normalized:
             c = torch.std(x)

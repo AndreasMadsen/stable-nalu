@@ -16,11 +16,18 @@ class RegualizedLinearMNACLayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, mnac_normalized=False, **kwargs):
+    def __init__(self, in_features, out_features,
+                 regualizer_shape='squared',
+                 mnac_epsilon=0, mnac_normalized=False, **kwargs):
         super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
         self.mnac_normalized = mnac_normalized
+
+        self._regualizer_bias = Regualizer(
+            support='mnac', type='bias',
+            shape=regualizer_shape, zero_epsilon=mnac_epsilon
+        )
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.register_parameter('bias', None)
@@ -32,7 +39,7 @@ class RegualizedLinearMNACLayer(ExtendedTorchModule):
 
     def regualizer(self):
          return super().regualizer({
-            'W': torch.mean(self.W**2 * (1 - self.W)**2)
+            'W': self._regualizer_bias(self.W)
         })
 
     def forward(self, x, reuse=False):

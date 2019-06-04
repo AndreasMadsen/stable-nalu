@@ -100,6 +100,17 @@ parser.add_argument('--nac-oob',
                     choices=['regualized', 'clip'],
                     type=str,
                     help='Choose of out-of-bound should be handled by clipping or regualization.')
+parser.add_argument('--regualizer-shape',
+                    action='store',
+                    default='squared',
+                    choices=['squared', 'linear'],
+                    type=str,
+                    help='Use either a squared or linear shape for the bias and oob regualizer.')
+parser.add_argument('--mnac-epsilon',
+                    action='store',
+                    default=0,
+                    type=float,
+                    help='Set the idendity epsilon for MNAC.')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -167,6 +178,8 @@ print(f'  -')
 print(f'  - hidden_size: {args.hidden_size}')
 print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nac_oob: {args.nac_oob}')
+print(f'  - regualizer_shape: {args.regualizer_shape}')
+print(f'  - mnac_epsilon: {args.mnac_epsilon}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_two_gate: {args.nalu_two_gate}')
@@ -198,8 +211,10 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_obb-{"c" if args.nac_oob == "clip" else "r"}'
     f'_op-{args.operation.lower()}'
+    f'_obb-{"c" if args.nac_oob == "clip" else "r"}'
+    f'_rs-{args.regualizer_shape}'
+    f'_eps-{args.mnac_epsilon}'
     f'_r-{args.regualizer}{"" if args.regualizer_oob == 1 else f"-{args.regualizer_oob}"}'
     f'_i-{args.interpolation_range[0]}-{args.interpolation_range[1]}'
     f'_e-{args.extrapolation_range[0]}-{args.extrapolation_range[1]}'
@@ -243,6 +258,8 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     first_layer=args.first_layer,
     hidden_size=args.hidden_size,
     nac_oob=args.nac_oob,
+    regualizer_shape=args.regualizer_shape,
+    mnac_epsilon=args.mnac_epsilon,
     nac_mul=args.nac_mul,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,

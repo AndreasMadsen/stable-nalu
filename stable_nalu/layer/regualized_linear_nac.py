@@ -14,10 +14,17 @@ class RegualizedLinearNACLayer(ExtendedTorchModule):
         out_features: number of outgoing features
     """
 
-    def __init__(self, in_features, out_features, **kwargs):
+    def __init__(self, in_features, out_features,
+                 regualizer_shape='squared',
+                 **kwargs):
         super().__init__('nac', **kwargs)
         self.in_features = in_features
         self.out_features = out_features
+
+        self._regualizer_bias = Regualizer(
+            support='nac', type='bias',
+            shape=regualizer_shape
+        )
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.register_parameter('bias', None)
@@ -27,7 +34,7 @@ class RegualizedLinearNACLayer(ExtendedTorchModule):
 
     def regualizer(self):
         return super().regualizer({
-            'W': torch.mean(self.W**2 * (1 - torch.abs(self.W))**2)
+            'W': self._regualizer_bias(self.W)
         })
 
     def forward(self, input, reuse=False):
