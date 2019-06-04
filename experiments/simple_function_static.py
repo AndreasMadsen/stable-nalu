@@ -212,7 +212,7 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
     f'_op-{args.operation.lower()}'
-    f'_obb-{"c" if args.nac_oob == "clip" else "r"}'
+    f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
     f'_rs-{args.regualizer_shape}'
     f'_eps-{args.mnac_epsilon}'
     f'_r-{args.regualizer}{"" if args.regualizer_oob == 1 else f"-{args.regualizer_oob}"}'
