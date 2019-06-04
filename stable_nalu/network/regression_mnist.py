@@ -7,12 +7,18 @@ from ..layer import GeneralizedLayer, GeneralizedCell
 # reset_parameters method and changed final layer to have one output.
 
 class RegressionMnisNetwork(ExtendedTorchModule):
-    def __init__(self, **kwargs):
+    def __init__(self, softmax_transform=False, **kwargs):
         super().__init__('cnn', **kwargs)
+        self._softmax_transform = softmax_transform
+
         self.conv1 = torch.nn.Conv2d(1, 20, 5, 1)
         self.conv2 = torch.nn.Conv2d(20, 50, 5, 1)
         self.fc1 = torch.nn.Linear(4*4*50, 500)
-        self.fc2 = torch.nn.Linear(500, 1)
+        if self._softmax_transform:
+            self.fc2 = torch.nn.Linear(500, 10)
+            self.fc3 = torch.nn.Linear(10, 1)
+        else:
+            self.fc2 = torch.nn.Linear(500, 1)
 
     def reset_parameters(self):
         self.conv1.reset_parameters()
@@ -27,4 +33,10 @@ class RegressionMnisNetwork(ExtendedTorchModule):
         x = torch.nn.functional.max_pool2d(x, 2, 2)
         x = x.view(-1, 4*4*50)
         x = torch.nn.functional.relu(self.fc1(x))
-        return self.fc2(x)
+        x = self.fc2(x)
+
+        if self._softmax_transform:
+            x = torch.nn.functional.softmax(x, dim=-1)
+            x = self.fc3(x)
+
+        return x

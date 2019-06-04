@@ -27,6 +27,10 @@ parser.add_argument('--regualizer',
                     default=0.1,
                     type=float,
                     help='Specify the regualization lambda to be used')
+parser.add_argument('--remove-zero',
+                    action='store_true',
+                    default=False,
+                    help='Remove zero from the MNIST dataset')
 
 parser.add_argument('--max-epochs',
                     action='store',
@@ -55,6 +59,14 @@ parser.add_argument('--extrapolation-lengths',
                     type=ast.literal_eval,
                     help='Specify the sequence lengths used for the extrapolation dataset')
 
+parser.add_argument('--solved-accumulator',
+                    action='store_true',
+                    default=False,
+                    help='Should the accumulator be hard set to either addition or multiplication')
+parser.add_argument('--softmax-transform',
+                    action='store_true',
+                    default=False,
+                    help='Should a softmax transformation be used to control the output of the CNN model')
 parser.add_argument('--nac-mul',
                     action='store',
                     default='none',
@@ -111,6 +123,7 @@ print(f'running')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - operation: {args.operation}')
 print(f'  - regualizer: {args.regualizer}')
+print(f'  - remove_zero: {args.remove_zero}')
 print(f'  -')
 print(f'  - max_epochs: {args.max_epochs}')
 print(f'  - batch_size: {args.batch_size}')
@@ -119,6 +132,8 @@ print(f'  -')
 print(f'  - interpolation_length: {args.interpolation_length}')
 print(f'  - extrapolation_lengths: {args.extrapolation_lengths}')
 print(f'  -')
+print(f'  - solved_accumulator: {args.solved_accumulator}')
+print(f'  - softmax_transform: {args.softmax_transform}')
 print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
@@ -152,6 +167,8 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
     f'_o-{args.operation.lower()}'
+    f'_f-{"r" if args.remove_zero else "k"}'
+    f'_m-{"s" if args.softmax_transform else "d"}-{"s" if args.solved_accumulator else "d"}'
     f'_r-{args.regualizer}'
     f'_i-{args.interpolation_length}'
     f'_e-{"-".join(map(str, args.extrapolation_lengths))}'
@@ -172,7 +189,8 @@ torch.backends.cudnn.deterministic = True
 dataset = stable_nalu.dataset.SequentialMnistDataset(
     operation=args.operation,
     use_cuda=args.cuda,
-    seed=args.seed
+    seed=args.seed,
+    remove_zero=args.remove_zero
 )
 dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader(shuffle=True)
 # Seeds are from random.org
@@ -192,6 +210,8 @@ model = stable_nalu.network.SequentialMnistNetwork(
     args.layer_type,
     output_size=dataset.get_item_shape().target[-1],
     writer=summary_writer.every(100) if args.verbose else None,
+    softmax_transform=args.softmax_transform,
+    solved_accumulator=args.solved_accumulator,
     nac_mul=args.nac_mul,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,

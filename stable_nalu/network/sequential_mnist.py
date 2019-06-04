@@ -7,21 +7,25 @@ from .regression_mnist import RegressionMnisNetwork
 class SequentialMnistNetwork(ExtendedTorchModule):
     UNIT_NAMES = GeneralizedCell.UNIT_NAMES
 
-    def __init__(self, unit_name, output_size, writer=None, nac_mul='none', eps=1e-7, **kwags):
+    def __init__(self, unit_name, output_size, writer=None,
+                 solved_accumulator=False, softmax_transform=False,
+                 nac_mul='none', eps=1e-7,
+                 **kwags):
         super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
         self.output_size = output_size
         self.nac_mul = nac_mul
         self.eps = eps
+        self.solved_accumulator = solved_accumulator
 
         # TODO: maybe don't make them learnable, properly zero will surfise here
         if unit_name == 'LSTM':
-            self.zero_state_h = torch.nn.Parameter(torch.Tensor(self.output_size))
-            self.zero_state_c = torch.nn.Parameter(torch.Tensor(self.output_size))
+            self.zero_state_h = torch.Tensor(self.output_size)
+            self.zero_state_c = torch.Tensor(self.output_size)
         else:
-            self.zero_state = torch.nn.Parameter(torch.Tensor(self.output_size))
+            self.zero_state = torch.Tensor(self.output_size)
 
-        self.image2label = RegressionMnisNetwork()
+        self.image2label = RegressionMnisNetwork(softmax_transform=softmax_transform)
 
         if nac_mul == 'mnac':
             unit_name = unit_name[0:-3] + 'MNAC'
@@ -31,28 +35,31 @@ class SequentialMnistNetwork(ExtendedTorchModule):
             del kwags['nalu_two_gate']
             del kwags['nalu_mul']
             del kwags['nalu_gate']
-        self.recurent_cell = GeneralizedCell(1, self.output_size,
-                                             unit_name,
-                                             writer=self.writer,
-                                             **kwags)
+        if not self.solved_accumulator:
+            self.recurent_cell = GeneralizedCell(1, self.output_size,
+                                                unit_name,
+                                                writer=self.writer,
+                                                **kwags)
         self.reset_parameters()
+
+    def _best_init_state(self):
+        if self.nac_mul == 'normal' or self.nac_mul == 'mnac':
+            return 1
+        elif self.nac_mul == 'none':
+            return 0
 
     def reset_parameters(self):
         if self.unit_name == 'LSTM':
-            torch.nn.init.zeros_(self.zero_state_h)
-            torch.nn.init.zeros_(self.zero_state_c)
+            torch.nn.init.constant_(self.zero_state_h, self._best_init_state())
+            torch.nn.init.constant_(self.zero_state_c, self._best_init_state())
         else:
-            torch.nn.init.zeros_(self.zero_state)
+            torch.nn.init.constant_(self.zero_state, self._best_init_state())
 
         self.image2label.reset_parameters()
-        self.recurent_cell.reset_parameters()
+        if not self.solved_accumulator:
+            self.recurent_cell.reset_parameters()
 
-    def forward(self, x):
-        """Performs recurrent iterations over the input.
-
-        Arguments:
-            input: Expected to have the shape [obs, time, channels=1, width, height]
-        """
+    def _forward_trainable_accumulator(self, x):
         # Perform recurrent iterations over the input
         if self.unit_name == 'LSTM':
             h_tm1 = (
@@ -82,6 +89,32 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         z_1 = h_t[0] if self.unit_name == 'LSTM' else h_t
 
         return l_t, z_1
+
+    def _forward_solved_accumulator(self, x):
+        h_tm1 = self._best_init_state()
+
+        for t in range(x.size(1)):
+            x_t = x[:, t]
+            l_t = self.image2label(x_t)
+
+            if self.nac_mul == 'normal' or self.nac_mul == 'mnac':
+                h_t = h_tm1 * l_t
+            elif self.nac_mul == 'none':
+                h_t = h_tm1 + l_t
+            h_tm1 = h_t
+
+        return l_t, h_t
+
+    def forward(self, x):
+        """Performs recurrent iterations over the input.
+
+        Arguments:
+            input: Expected to have the shape [obs, time, channels=1, width, height]
+        """
+        if self.solved_accumulator:
+            return self._forward_solved_accumulator(x)
+        else:
+            return self._forward_trainable_accumulator(x)
 
     def extra_repr(self):
         return 'unit_name={}, output_size={}'.format(
