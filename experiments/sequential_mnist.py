@@ -16,9 +16,9 @@ parser.add_argument('--layer-type',
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')
 parser.add_argument('--operation',
                     action='store',
-                    default='sum',
+                    default='cumsum',
                     choices=[
-                        'sum', 'prod', 'count'
+                        'cumsum', 'sum', 'cumprod', 'prod', 'count'
                     ],
                     type=str,
                     help='Specify the operation to use, sum or count')
@@ -209,6 +209,7 @@ dataset_valid_extrapolations = [
 model = stable_nalu.network.SequentialMnistNetwork(
     args.layer_type,
     output_size=dataset.get_item_shape().target[-1],
+    sequental_output=dataset.get_item_shape().target[0] is None,
     writer=summary_writer.every(100) if args.verbose else None,
     softmax_transform=args.softmax_transform,
     solved_accumulator=args.solved_accumulator,

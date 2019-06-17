@@ -9,6 +9,7 @@ class SequentialMnistNetwork(ExtendedTorchModule):
 
     def __init__(self, unit_name, output_size, writer=None,
                  solved_accumulator=False, softmax_transform=False,
+                 sequental_output=False,
                  nac_mul='none', eps=1e-7,
                  **kwags):
         super().__init__('network', writer=writer, **kwags)
@@ -17,6 +18,7 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         self.nac_mul = nac_mul
         self.eps = eps
         self.solved_accumulator = solved_accumulator
+        self.sequental_output = sequental_output
 
         # TODO: maybe don't make them learnable, properly zero will surfise here
         if unit_name == 'LSTM':
@@ -60,6 +62,8 @@ class SequentialMnistNetwork(ExtendedTorchModule):
             self.recurent_cell.reset_parameters()
 
     def _forward_trainable_accumulator(self, x):
+        y_all = []
+
         # Perform recurrent iterations over the input
         if self.unit_name == 'LSTM':
             h_tm1 = (
@@ -83,16 +87,19 @@ class SequentialMnistNetwork(ExtendedTorchModule):
                     torch.log(torch.abs(l_t) + self.eps),
                     torch.log(torch.abs(h_tm1) + self.eps)
                 ))
+            y_all.append(h_t[0] if self.unit_name == 'LSTM' else h_t)
+
             h_tm1 = h_t
 
-        # Grap the final hidden output and use as the output from the recurrent layer
-        z_1 = h_t[0] if self.unit_name == 'LSTM' else h_t
-
-        return l_t, z_1
+        return (
+            (torch.unsqueeze(l_t, 1) if self.sequental_output else l_t),
+            (torch.stack(y_all).transpose(0, 1) if self.sequental_output else y_all[-1, :, :])
+        )
 
     def _forward_solved_accumulator(self, x):
-        h_tm1 = self._best_init_state()
+        y_all = []
 
+        h_tm1 = self._best_init_state()
         for t in range(x.size(1)):
             x_t = x[:, t]
             l_t = self.image2label(x_t)
@@ -101,9 +108,14 @@ class SequentialMnistNetwork(ExtendedTorchModule):
                 h_t = h_tm1 * l_t
             elif self.nac_mul == 'none':
                 h_t = h_tm1 + l_t
+            y_all.append(h_t)
+
             h_tm1 = h_t
 
-        return l_t, h_t
+        return (
+            (torch.unsqueeze(l_t, 1) if self.sequental_output else l_t),
+            (torch.stack(y_all).transpose(0, 1) if self.sequental_output else y_all[-1, :, :])
+        )
 
     def forward(self, x):
         """Performs recurrent iterations over the input.
