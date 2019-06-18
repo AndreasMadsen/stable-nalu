@@ -2,11 +2,11 @@
 sync:
 	rsync --info=progress2 -urltv --delete \
 		--exclude 'tensorboard' --exclude 'results' --exclude 'logs' --exclude 'save' \
-		-e ssh ./ dtu-data:~/workspace/stable-nalu-copy
+		-e ssh ./ dtu-data:~/workspace/stable-nalu
 
 fetch-results:
 	rsync --info=progress2 -urltv \
-		-e ssh dtu-data:~/workspace/stable-nalu-copy/results/ ./results
+		-e ssh dtu-data:~/workspace/stable-nalu/results/ ./results
 
 clean:
 	rm -rvf tensorboard/*
