@@ -7,7 +7,9 @@ from ..layer import GeneralizedLayer, GeneralizedCell
 # reset_parameters method and changed final layer to have one output.
 
 class RegressionMnisNetwork(ExtendedTorchModule):
-    def __init__(self, softmax_transform=False, **kwargs):
+    def __init__(self,
+                 mnist_digits=[0,1,2,3,4,5,6,7,8,9],
+                 softmax_transform=False, **kwargs):
         super().__init__('cnn', **kwargs)
         self._softmax_transform = softmax_transform
 
@@ -15,8 +17,8 @@ class RegressionMnisNetwork(ExtendedTorchModule):
         self.conv2 = torch.nn.Conv2d(20, 50, 5, 1)
         self.fc1 = torch.nn.Linear(4*4*50, 500)
         if self._softmax_transform:
-            self.fc2 = torch.nn.Linear(500, 10)
-            self.fc3 = torch.nn.Linear(10, 1)
+            self.fc2 = torch.nn.Linear(500, num_mnist_classes)
+            self.register_buffer('fc3', torch.tensor(mnist_digits).reshape(1, -1))
         else:
             self.fc2 = torch.nn.Linear(500, 1)
 
@@ -37,6 +39,6 @@ class RegressionMnisNetwork(ExtendedTorchModule):
 
         if self._softmax_transform:
             x = torch.nn.functional.softmax(x, dim=-1)
-            x = self.fc3(x)
+            x = x * self.fc3
 
         return x

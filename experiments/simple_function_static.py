@@ -96,13 +96,13 @@ parser.add_argument('--nac-mul',
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
 parser.add_argument('--nac-oob',
                     action='store',
-                    default='regualized',
+                    default='clip',
                     choices=['regualized', 'clip'],
                     type=str,
                     help='Choose of out-of-bound should be handled by clipping or regualization.')
 parser.add_argument('--regualizer-shape',
                     action='store',
-                    default='squared',
+                    default='linear',
                     choices=['squared', 'linear'],
                     type=str,
                     help='Use either a squared or linear shape for the bias and oob regualizer.')

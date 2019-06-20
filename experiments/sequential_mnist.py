@@ -27,10 +27,16 @@ parser.add_argument('--regualizer',
                     default=0.1,
                     type=float,
                     help='Specify the regualization lambda to be used')
-parser.add_argument('--remove-zero',
-                    action='store_true',
-                    default=False,
-                    help='Remove zero from the MNIST dataset')
+parser.add_argument('--regualizer-oob',
+                    action='store',
+                    default=1,
+                    type=float,
+                    help='Specify the oob-regualization lambda to be used')
+parser.add_argument('--mnist-digits',
+                    action='store',
+                    default=[0,1,2,3,4,5,6,7,8,9],
+                    type=lambda str: list(map(int,str)),
+                    help='MNIST digits to use')
 
 parser.add_argument('--max-epochs',
                     action='store',
@@ -73,6 +79,23 @@ parser.add_argument('--nac-mul',
                     choices=['none', 'normal', 'safe', 'max-safe', 'mnac'],
                     type=str,
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
+parser.add_argument('--nac-oob',
+                    action='store',
+                    default='clip',
+                    choices=['regualized', 'clip'],
+                    type=str,
+                    help='Choose of out-of-bound should be handled by clipping or regualization.')
+parser.add_argument('--regualizer-shape',
+                    action='store',
+                    default='linear',
+                    choices=['squared', 'linear'],
+                    type=str,
+                    help='Use either a squared or linear shape for the bias and oob regualizer.')
+parser.add_argument('--mnac-epsilon',
+                    action='store',
+                    default=0,
+                    type=float,
+                    help='Set the idendity epsilon for MNAC.')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -123,7 +146,8 @@ print(f'running')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - operation: {args.operation}')
 print(f'  - regualizer: {args.regualizer}')
-print(f'  - remove_zero: {args.remove_zero}')
+print(f'  - regualizer_oob: {args.regualizer_oob}')
+print(f'  - mnist_digits: {args.mnist_digits}')
 print(f'  -')
 print(f'  - max_epochs: {args.max_epochs}')
 print(f'  - batch_size: {args.batch_size}')
@@ -135,6 +159,9 @@ print(f'  -')
 print(f'  - solved_accumulator: {args.solved_accumulator}')
 print(f'  - softmax_transform: {args.softmax_transform}')
 print(f'  - nac_mul: {args.nac_mul}')
+print(f'  - nac_oob: {args.nac_oob}')
+print(f'  - regualizer_shape: {args.regualizer_shape}')
+print(f'  - mnac_epsilon: {args.mnac_epsilon}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_two_gate: {args.nalu_two_gate}')
@@ -166,10 +193,13 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_o-{args.operation.lower()}'
-    f'_f-{"r" if args.remove_zero else "k"}'
-    f'_m-{"s" if args.softmax_transform else "d"}-{"s" if args.solved_accumulator else "d"}'
-    f'_r-{args.regualizer}'
+    f'_d-{"".join(map(str, args.mnist_digits))}'
+    f'_op-{args.operation.lower()}'
+    f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
+    f'_rs-{args.regualizer_shape}'
+    f'_eps-{args.mnac_epsilon}'
+    f'_r-{args.regualizer}{"" if args.regualizer_oob == 1 else f"-{args.regualizer_oob}"}'
+    f'_m-{"s" if args.softmax_transform else "l"}-{"s" if args.solved_accumulator else "t"}'
     f'_i-{args.interpolation_length}'
     f'_e-{"-".join(map(str, args.extrapolation_lengths))}'
     f'_b{args.batch_size}'
@@ -190,7 +220,7 @@ dataset = stable_nalu.dataset.SequentialMnistDataset(
     operation=args.operation,
     use_cuda=args.cuda,
     seed=args.seed,
-    remove_zero=args.remove_zero
+    mnist_digits=args.mnist_digits
 )
 dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader(shuffle=True)
 # Seeds are from random.org
@@ -211,9 +241,13 @@ model = stable_nalu.network.SequentialMnistNetwork(
     output_size=dataset.get_item_shape().target[-1],
     sequental_output=dataset.get_item_shape().target[0] is None,
     writer=summary_writer.every(100) if args.verbose else None,
+    mnist_digits=args.mnist_digits,
     softmax_transform=args.softmax_transform,
     solved_accumulator=args.solved_accumulator,
     nac_mul=args.nac_mul,
+    nac_oob=args.nac_oob,
+    regualizer_shape=args.regualizer_shape,
+    mnac_epsilon=args.mnac_epsilon,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
     nalu_two_gate=args.nalu_two_gate,
@@ -274,7 +308,7 @@ for epoch_i in range(0, args.max_epochs + 1):
         regualizers = model.regualizer()
 
         loss_train_criterion = criterion(y_train, t_train)
-        loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + 1 * regualizers['z'] + 1 * regualizers['W-OOB']
+        loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + 1 * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
         loss_train = loss_train_criterion + loss_train_regualizer
 
         # Log loss

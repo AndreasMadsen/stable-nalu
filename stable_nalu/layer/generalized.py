@@ -172,19 +172,15 @@ class GeneralizedCell(ExtendedTorchModule):
             self.cell = PassThoughCell(input_size, hidden_size,
                                        **kwags)
         elif unit_name == 'GRU':
-            self.cell = torch.nn.GRUCell(input_size, hidden_size,
-                                          **kwags)
+            self.cell = torch.nn.GRUCell(input_size, hidden_size)
         elif unit_name == 'LSTM':
-            self.cell = torch.nn.LSTMCell(input_size, hidden_size,
-                                          **kwags)
+            self.cell = torch.nn.LSTMCell(input_size, hidden_size)
         elif unit_name == 'RNN-tanh':
             self.cell = torch.nn.RNNCell(input_size, hidden_size,
-                                         nonlinearity='tanh',
-                                         **kwags)
+                                         nonlinearity='tanh')
         elif unit_name == 'RNN-ReLU':
             self.cell = torch.nn.RNNCell(input_size, hidden_size,
-                                         nonlinearity='relu',
-                                         **kwags)
+                                         nonlinearity='relu')
         elif unit_name == 'RNN-linear':
             self.cell = BasicCell(input_size, hidden_size,
                                   activation='linear',

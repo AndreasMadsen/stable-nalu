@@ -42,7 +42,7 @@ DATA_DIR = path.join(THIS_DIR, 'data')
 class SequentialMnistDataset:
     def __init__(self, operation,
                  num_workers=1,
-                 remove_zero=False,
+                 mnist_digits=[0,1,2,3,4,5,6,7,8,9],
                  seed=None,
                  use_cuda=False):
         super().__init__()
@@ -51,7 +51,7 @@ class SequentialMnistDataset:
         self._num_workers = num_workers
         self._use_cuda = use_cuda
         self._rng = np.random.RandomState(seed)
-        self._remove_zero = remove_zero
+        self._mnist_digits = set(mnist_digits)
 
     def get_item_shape(self):
         if self._operation == OPERATIONS.sum:
@@ -79,7 +79,7 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
         self._operation = parent._operation
         self._num_workers = parent._num_workers
         self._use_cuda = parent._use_cuda
-        self._remove_zero = parent._remove_zero
+        self._mnist_digits = parent._mnist_digits
 
         self._subset = subset
         self._seq_length = seq_length
@@ -96,12 +96,9 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
                 torchvision.transforms.Normalize((0.1307,), (0.3081,))
             ])
         )
-        if self._remove_zero:
-            self._index_mapping = self._rng.permutation([
-                i for (i, (x, t)) in enumerate(self._dataset) if t != 0
-            ])
-        else:
-            self._index_mapping = self._rng.permutation(len(self._dataset))
+        self._index_mapping = self._rng.permutation([
+            i for (i, (x, t)) in enumerate(self._dataset) if t in self._mnist_digits
+        ])
 
     def __getitem__(self, index):
         mnist_images = []

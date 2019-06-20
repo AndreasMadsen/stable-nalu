@@ -8,6 +8,7 @@ class SequentialMnistNetwork(ExtendedTorchModule):
     UNIT_NAMES = GeneralizedCell.UNIT_NAMES
 
     def __init__(self, unit_name, output_size, writer=None,
+                 mnist_digits=[0,1,2,3,4,5,6,7,8,9],
                  solved_accumulator=False, softmax_transform=False,
                  sequental_output=False,
                  nac_mul='none', eps=1e-7,
@@ -27,16 +28,13 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         else:
             self.register_buffer('zero_state', torch.Tensor(self.output_size))
 
-        self.image2label = RegressionMnisNetwork(softmax_transform=softmax_transform)
+        self.image2label = RegressionMnisNetwork(
+            mnist_digits=mnist_digits,
+            softmax_transform=softmax_transform
+        )
 
         if nac_mul == 'mnac':
             unit_name = unit_name[0:-3] + 'MNAC'
-        if unit_name == 'LSTM':
-            del kwags['nalu_bias']
-            del kwags['nalu_two_nac']
-            del kwags['nalu_two_gate']
-            del kwags['nalu_mul']
-            del kwags['nalu_gate']
         if not self.solved_accumulator:
             self.recurent_cell = GeneralizedCell(1, self.output_size,
                                                 unit_name,
