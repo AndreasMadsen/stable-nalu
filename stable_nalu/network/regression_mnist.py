@@ -17,8 +17,8 @@ class RegressionMnisNetwork(ExtendedTorchModule):
         self.conv2 = torch.nn.Conv2d(20, 50, 5, 1)
         self.fc1 = torch.nn.Linear(4*4*50, 500)
         if self._softmax_transform:
-            self.fc2 = torch.nn.Linear(500, num_mnist_classes)
-            self.register_buffer('fc3', torch.tensor(mnist_digits).reshape(1, -1))
+            self.fc2 = torch.nn.Linear(500, len(mnist_digits))
+            self.register_buffer('fc3', torch.tensor(mnist_digits, dtype=torch.float32).reshape(1, -1))
         else:
             self.fc2 = torch.nn.Linear(500, 1)
 
@@ -39,6 +39,5 @@ class RegressionMnisNetwork(ExtendedTorchModule):
 
         if self._softmax_transform:
             x = torch.nn.functional.softmax(x, dim=-1)
-            x = x * self.fc3
-
+            x = (x * self.fc3).sum(1, keepdim=True)
         return x
