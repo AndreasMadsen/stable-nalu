@@ -1,6 +1,6 @@
 
 job_name='sequential_mnist_csv_metrics'
-experiment_names=( 'sequential_mnist_sum' 'sequential_mnist_prod' )
+experiment_names=( 'sequential_mnist_prod_debug' )
 
 for experiment_name in "${experiment_names[@]}"
 do
