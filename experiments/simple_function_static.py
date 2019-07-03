@@ -27,6 +27,11 @@ parser.add_argument('--regualizer',
                     default=0.1,
                     type=float,
                     help='Specify the regualization lambda to be used')
+parser.add_argument('--regualizer-z',
+                    action='store',
+                    default=0,
+                    type=float,
+                    help='Specify the z-regualization lambda to be used')
 parser.add_argument('--regualizer-oob',
                     action='store',
                     default=1,
@@ -162,6 +167,7 @@ print(f'  - layer_type: {args.layer_type}')
 print(f'  - first_layer: {args.first_layer}')
 print(f'  - operation: {args.operation}')
 print(f'  - regualizer: {args.regualizer}')
+print(f'  - regualizer_z: {args.regualizer_z}')
 print(f'  - regualizer_oob: {args.regualizer_oob}')
 print(f'  -')
 print(f'  - max_iterations: {args.max_iterations}')
@@ -215,7 +221,7 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
     f'_rs-{args.regualizer_shape}'
     f'_eps-{args.mnac_epsilon}'
-    f'_r-{args.regualizer}{"" if args.regualizer_oob == 1 else f"-{args.regualizer_oob}"}'
+    f'_r-{args.regualizer}-{args.regualizer_z}-{args.regualizer_oob}'
     f'_i-{args.interpolation_range[0]}-{args.interpolation_range[1]}'
     f'_e-{args.extrapolation_range[0]}-{args.extrapolation_range[1]}'
     f'_z-{"simple" if args.simple else f"{args.input_size}-{args.subset_ratio}-{args.overlap_ratio}"}'
@@ -259,6 +265,7 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     hidden_size=args.hidden_size,
     nac_oob=args.nac_oob,
     regualizer_shape=args.regualizer_shape,
+    regualizer_z=args.regualizer_z,
     mnac_epsilon=args.mnac_epsilon,
     nac_mul=args.nac_mul,
     nalu_bias=args.nalu_bias,
@@ -300,7 +307,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     regualizers = model.regualizer()
 
     loss_train_criterion = criterion(y_train, t_train)
-    loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + 1 * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
+    loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + args.regualizer_z * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
     loss_train = loss_train_criterion + loss_train_regualizer
 
     # Log loss

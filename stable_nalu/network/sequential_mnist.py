@@ -9,8 +9,8 @@ class SequentialMnistNetwork(ExtendedTorchModule):
 
     def __init__(self, unit_name, output_size, writer=None,
                  mnist_digits=[0,1,2,3,4,5,6,7,8,9],
-                 solved_accumulator=False, softmax_transform=False,
-                 sequental_output=False,
+                 softmax_transform=False,
+                 mnist_outputs=1, model_simplification='none',
                  nac_mul='none', eps=1e-7,
                  **kwags):
         super().__init__('network', writer=writer, **kwags)
@@ -18,8 +18,7 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         self.output_size = output_size
         self.nac_mul = nac_mul
         self.eps = eps
-        self.solved_accumulator = solved_accumulator
-        self.sequental_output = sequental_output
+        self.model_simplification = model_simplification
 
         # TODO: maybe don't make them learnable, properly zero will surfise here
         if unit_name == 'LSTM':
@@ -30,13 +29,14 @@ class SequentialMnistNetwork(ExtendedTorchModule):
 
         self.image2label = RegressionMnisNetwork(
             mnist_digits=mnist_digits,
+            mnist_outputs=mnist_outputs,
             softmax_transform=softmax_transform
         )
 
         if nac_mul == 'mnac':
             unit_name = unit_name[0:-3] + 'MNAC'
-        if not self.solved_accumulator:
-            self.recurent_cell = GeneralizedCell(1, self.output_size,
+        if self.model_simplification == 'none':
+            self.recurent_cell = GeneralizedCell(mnist_outputs, self.output_size,
                                                 unit_name,
                                                 writer=self.writer,
                                                 **kwags)
@@ -56,11 +56,12 @@ class SequentialMnistNetwork(ExtendedTorchModule):
             torch.nn.init.constant_(self.zero_state, self._best_init_state())
 
         self.image2label.reset_parameters()
-        if not self.solved_accumulator:
+        if self.model_simplification == 'none':
             self.recurent_cell.reset_parameters()
 
     def _forward_trainable_accumulator(self, x):
         y_all = []
+        l_all = []
 
         # Perform recurrent iterations over the input
         if self.unit_name == 'LSTM':
@@ -68,11 +69,8 @@ class SequentialMnistNetwork(ExtendedTorchModule):
                 self.zero_state_h.repeat(x.size(0), 1),
                 self.zero_state_c.repeat(x.size(0), 1)
             )
-            self.writer.add_tensor('h_tm1/h', h_tm1[0])
-            self.writer.add_tensor('h_tm1/c', h_tm1[1])
         else:
             h_tm1 = self.zero_state.repeat(x.size(0), 1)
-            self.writer.add_tensor('h_tm1', h_tm1)
 
         for t in range(x.size(1)):
             x_t = x[:, t]
@@ -85,17 +83,20 @@ class SequentialMnistNetwork(ExtendedTorchModule):
                     torch.log(torch.abs(l_t) + self.eps),
                     torch.log(torch.abs(h_tm1) + self.eps)
                 ))
+
             y_all.append(h_t[0] if self.unit_name == 'LSTM' else h_t)
+            l_all.append(l_t)
 
             h_tm1 = h_t
 
         return (
-            (torch.unsqueeze(l_t, 1) if self.sequental_output else l_t),
-            (torch.stack(y_all).transpose(0, 1) if self.sequental_output else y_all[-1, :, :])
+            torch.stack(l_all).transpose(0, 1),
+            torch.stack(y_all).transpose(0, 1)
         )
 
     def _forward_solved_accumulator(self, x):
         y_all = []
+        l_all = []
 
         h_tm1 = self._best_init_state()
         for t in range(x.size(1)):
@@ -106,13 +107,31 @@ class SequentialMnistNetwork(ExtendedTorchModule):
                 h_t = h_tm1 * l_t
             elif self.nac_mul == 'none':
                 h_t = h_tm1 + l_t
+
             y_all.append(h_t)
+            l_all.append(l_t)
 
             h_tm1 = h_t
 
         return (
-            (torch.unsqueeze(l_t, 1) if self.sequental_output else l_t),
-            (torch.stack(y_all).transpose(0, 1) if self.sequental_output else y_all[-1, :, :])
+            torch.stack(l_all).transpose(0, 1),
+            torch.stack(y_all).transpose(0, 1)
+        )
+
+    def _forward_pass_through(self, x):
+        y_all = []
+        l_all = []
+
+        for t in range(x.size(1)):
+            x_t = x[:, t]
+            l_t = self.image2label(x_t)
+
+            y_all.append(l_t)
+            l_all.append(l_t)
+
+        return (
+            torch.stack(l_all).transpose(0, 1),
+            torch.stack(y_all).transpose(0, 1)
         )
 
     def forward(self, x):
@@ -121,10 +140,14 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         Arguments:
             input: Expected to have the shape [obs, time, channels=1, width, height]
         """
-        if self.solved_accumulator:
-            return self._forward_solved_accumulator(x)
-        else:
+        if self.model_simplification == 'none':
             return self._forward_trainable_accumulator(x)
+        elif self.model_simplification == 'solved-accumulator':
+            return self._forward_solved_accumulator(x)
+        elif self.model_simplification == 'pass-through':
+            return self._forward_pass_through(x)
+        else:
+            raise ValueError('incorrect model_simplification value')
 
     def extra_repr(self):
         return 'unit_name={}, output_size={}'.format(

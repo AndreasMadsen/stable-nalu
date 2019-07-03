@@ -23,12 +23,25 @@ class SummaryWriterNamespaceNoLoggingScope:
         self._writer._logging_enabled = True
         return False
 
+class SummaryWriterNamespaceForceLoggingScope:
+    def __init__(self, writer, flag):
+        self._writer = writer
+        self._flag = flag
+
+    def __enter__(self):
+        self._writer._force_logging = self._flag
+
+    def __exit__(self, type, value, traceback):
+        self._writer._force_logging = not self._flag
+        return False
+
 class SummaryWriterNamespace:
     def __init__(self, namespace='', epoch_interval=1, root=None, parent=None):
         self._namespace = namespace
         self._epoch_interval = epoch_interval
         self._parent = parent
         self._logging_enabled = True
+        self._force_logging = False
 
         if root is None:
             self._root = self
@@ -39,7 +52,7 @@ class SummaryWriterNamespace:
         return self._root.get_iteration()
 
     def is_log_iteration(self):
-        return self._root.get_iteration() % self._epoch_interval == 0
+        return (self._root.get_iteration() % self._epoch_interval == 0) or self._root.force_logging
 
     def is_logging_enabled(self):
         writer = self
@@ -96,6 +109,9 @@ class SummaryWriterNamespace:
 
     def no_logging(self):
         return SummaryWriterNamespaceNoLoggingScope(self)
+
+    def force_logging(self, flag):
+        return SummaryWriterNamespaceForceLoggingScope(self, flag)
 
 class SummaryWriter(SummaryWriterNamespace):
     def __init__(self, name, remove_existing_data=False, **kwargs):

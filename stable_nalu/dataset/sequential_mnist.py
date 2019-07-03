@@ -15,7 +15,7 @@ class ItemShape(NamedTuple):
 class OPERATIONS:
     @staticmethod
     def sum(seq):
-        return np.sum(seq).reshape(1)
+        return OPERATIONS.sum(seq)
 
     @staticmethod
     def cumsum(seq):
@@ -23,18 +23,11 @@ class OPERATIONS:
 
     @staticmethod
     def prod(seq):
-        return np.prod(seq).reshape(1)
+        return OPERATIONS.cumprod(seq)
 
     @staticmethod
     def cumprod(seq):
         return np.cumprod(seq).reshape(-1, 1)
-
-    @staticmethod
-    def count(seq):
-        unique, counts = np.unique(seq, return_counts=True)
-        counts_all = np.zeros(10)
-        counts_all[unique] = counts
-        return counts_all.reshape(10)
 
 THIS_DIR = path.dirname(path.realpath(__file__))
 DATA_DIR = path.join(THIS_DIR, 'data')
@@ -53,17 +46,29 @@ class SequentialMnistDataset:
         self._rng = np.random.RandomState(seed)
         self._mnist_digits = set(mnist_digits)
 
+    def is_cum_task():
+        if self._operation == OPERATIONS.sum:
+            return False
+        elif self._operation == OPERATIONS.cumsum:
+            return True
+        elif self._operation == OPERATIONS.prod:
+            return False
+        elif self._operation == OPERATIONS.cumprod:
+            return True
+        else:
+            raise ValueError('bad operation')
+
     def get_item_shape(self):
         if self._operation == OPERATIONS.sum:
-            return ItemShape((None, 28, 28), (1, ))
+            return ItemShape((None, 28, 28), (None, 1))
         elif self._operation == OPERATIONS.cumsum:
             return ItemShape((None, 28, 28), (None, 1))
         elif self._operation == OPERATIONS.prod:
-            return ItemShape((None, 28, 28), (1, ))
+            return ItemShape((None, 28, 28), (None, 1))
         elif self._operation == OPERATIONS.cumprod:
             return ItemShape((None, 28, 28), (None, 1))
         else:
-            return ItemShape((None, 28, 28), (10, ))
+            raise ValueError('bad operation')
 
     def fork(self, seq_length=10, subset='train', seed=None):
         if subset not in {'train', 'test'}:

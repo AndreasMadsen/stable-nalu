@@ -5,7 +5,7 @@ import torch
 import math
 
 from ..abstract import ExtendedTorchModule
-from ..functional import mnac, Regualizer
+from ..functional import mnac, Regualizer, RegualizerNMUZ
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
@@ -18,7 +18,7 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
 
     def __init__(self, in_features, out_features,
                  nac_oob='regualized', regualizer_shape='squared',
-                 mnac_epsilon=0, mnac_normalized=False,
+                 mnac_epsilon=0, mnac_normalized=False, regualizer_z=0,
                  **kwargs):
         super().__init__('nac', **kwargs)
         self.in_features = in_features
@@ -36,6 +36,9 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
             shape=regualizer_shape, zero_epsilon=mnac_epsilon,
             zero=self.nac_oob == 'clip'
         )
+        self._regualizer_nmu_z = RegualizerNMUZ(
+            zero=regualizer_z == 0
+        )
 
         self.W = torch.nn.Parameter(torch.Tensor(out_features, in_features))
         self.register_parameter('bias', None)
@@ -45,17 +48,24 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
         r = min(0.25, math.sqrt(3.0) * std)
         torch.nn.init.uniform_(self.W, 0.5 - r, 0.5 + r)
 
+        self._regualizer_nmu_z.reset()
+
     def optimize(self, loss):
+        self._regualizer_nmu_z.reset()
+
         if self.nac_oob == 'clip':
             self.W.data.clamp_(0.0 + self.mnac_epsilon, 1.0)
 
     def regualizer(self):
-         return super().regualizer({
+        return super().regualizer({
             'W': self._regualizer_bias(self.W),
+            'z': self._regualizer_nmu_z(self.W),
             'W-OOB': self._regualizer_oob(self.W)
         })
 
     def forward(self, x, reuse=False):
+        self._regualizer_nmu_z.append_input(x)
+
         W = torch.clamp(self.W, 0.0 + self.mnac_epsilon, 1.0) \
             if self.nac_oob == 'regualized' \
             else self.W
@@ -67,9 +77,10 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
             c = torch.std(x)
             x_normalized = x / c
             z_normalized = mnac(x_normalized, W, mode='prod')
-            return z_normalized * (c ** torch.sum(W, 1))
+            out = z_normalized * (c ** torch.sum(W, 1))
         else:
-            return mnac(x, W, mode='prod')
+            out = mnac(x, W, mode='prod')
+        return out
 
     def extra_repr(self):
         return 'in_features={}, out_features={}'.format(
