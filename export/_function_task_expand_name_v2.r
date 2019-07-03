@@ -62,18 +62,9 @@ range.full.to.short = function (range) {
   }
 }
 
-regualizer.get.sparse = function (regualizer) {
+regualizer.get.part = function (regualizer, index) {
   split = strsplit(regualizer, '-')[[1]]
-  return(as.double(split[2]))
-}
-
-regualizer.get.oob = function (regualizer) {
-  split = strsplit(regualizer, '-')[[1]]
-  if (length(split) == 2) {
-    return(as.double(1))
-  } else {
-    return(as.double(split[3]))
-  }
+  return(as.double(split[index + 1]))
 }
 
 dataset.get.part = function (dataset, index, simple.value) {
@@ -98,8 +89,9 @@ expand.name = function (df) {
       regualizer.shape = substring(extract.by.split(name, 4), 4),
       epsilon.zero = as.numeric(substring(extract.by.split(name, 5), 5)),
       
-      regualizer=regualizer.get.sparse(extract.by.split(name, 6)),
-      regualizer.oob=regualizer.get.oob(extract.by.split(name, 6)),
+      regualizer=regualizer.get.part(extract.by.split(name, 6), 1),
+      regualizer.z=regualizer.get.part(extract.by.split(name, 6), 2),
+      regualizer.oob=regualizer.get.part(extract.by.split(name, 6), 3),
       
       interpolation.range=range.full.to.short(extract.by.split(name, 7)),
       extrapolation.range=range.full.to.short(extract.by.split(name, 8)),
@@ -119,5 +111,6 @@ expand.name = function (df) {
   df.expand.name$interpolation.range = as.factor(df.expand.name$interpolation.range)
   df.expand.name$extrapolation.range = as.factor(df.expand.name$extrapolation.range)
   
+  #return(df.expand.name)
   return(merge(df, df.expand.name))
 }
