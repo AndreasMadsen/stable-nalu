@@ -5,7 +5,7 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
-source('./_function_task_expand_name.r')
+source('./_function_task_expand_name_v2.r')
 source('./_function_task_table.r')
 
 best.model.step.fn = function (errors) {
@@ -40,21 +40,11 @@ t.confidence.interval = function (alpha, vec) {
 
 best.range = 100
 
-model.full.to.short = c(
-  'linear'='linear',
-  'relu6'='ReLU6',
-  'nac'='${\\mathrm{NAC}_{+}}$',
-  'nac-nac-n'='${\\mathrm{NAC}_\\bullet}$',
-  'nalu'='NALU',
-  'reregualizedlinearnac'='NAU',
-  'reregualizedlinearnac-nac-m'='NMU'
-)
-
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == TRUE & operation == 'o-mul') %>%
   mutate(
     input.size = as.integer(input.size),
-    operation = revalue(operation, operation.full.to.short),
+    operation = revalue(paste0("op", substring(operation, 2)), operation.full.to.short),
     epsilon = mse
   ) %>%
   select(operation, epsilon)
@@ -78,12 +68,16 @@ dat.last = dat %>%
     solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
     model = last(model),
     operation = last(operation),
+    oob.control = last(oob.control),
+    regualizer.shape = last(regualizer.shape),
+    epsilon.zero = last(epsilon.zero),
+    operation = last(operation),
     seed = last(seed),
     size = n()
   )
 
 dat.last.rate = dat.last %>%
-  group_by(model, operation) %>%
+  group_by(model, operation, oob.control, regualizer.shape, epsilon.zero) %>%
   summarise(
     rate.interpolation = mean(interpolation.last < epsilon),
     rate.extrapolation = mean(solved),
