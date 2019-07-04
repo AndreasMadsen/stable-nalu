@@ -51,7 +51,7 @@ class SoftmaxNACLayer(ExtendedTorchModule):
 
         # Compute the linear multiplication as usual
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W)
+        self.writer.add_tensor('W', W, verbose_only=False)
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

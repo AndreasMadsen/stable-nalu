@@ -60,7 +60,7 @@ class SillyReRegualizedLinearMNACLayer(ExtendedTorchModule):
             if self.nac_oob == 'regualized' \
             else self.W
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W)
+        self.writer.add_tensor('W', W, verbose_only=False)
 
         if self.mnac_normalized:
             c = torch.std(x)

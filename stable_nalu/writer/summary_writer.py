@@ -36,9 +36,10 @@ class SummaryWriterNamespaceForceLoggingScope:
         return False
 
 class SummaryWriterNamespace:
-    def __init__(self, namespace='', epoch_interval=1, root=None, parent=None):
+    def __init__(self, namespace='', epoch_interval=1, verbose=True, root=None, parent=None):
         self._namespace = namespace
         self._epoch_interval = epoch_interval
+        self._verbose = verbose
         self._parent = parent
         self._logging_enabled = True
         self._force_logging = False
@@ -63,31 +64,34 @@ class SummaryWriterNamespace:
                 return False
         return True
 
-    def add_scalar(self, name, value):
-        if self.is_log_iteration() and self.is_logging_enabled():
+    def is_verbose(self, verbose_only):
+        return (verbose_only is False or self._verbose)
+
+    def add_scalar(self, name, value, verbose_only=True):
+        if self.is_log_iteration() and self.is_logging_enabled() and self.is_verbose(verbose_only):
             self._root.writer.add_scalar(f'{self._namespace}/{name}', value, self.get_iteration())
 
-    def add_summary(self, name, tensor):
-        if self.is_log_iteration() and self.is_logging_enabled():
+    def add_summary(self, name, tensor, verbose_only=True):
+        if self.is_log_iteration() and self.is_logging_enabled() and self.is_verbose(verbose_only):
             self._root.writer.add_scalar(f'{self._namespace}/{name}/mean', torch.mean(tensor), self.get_iteration())
             self._root.writer.add_scalar(f'{self._namespace}/{name}/var', torch.var(tensor), self.get_iteration())
 
-    def add_tensor(self, name, matrix):
-        if self.is_log_iteration() and self.is_logging_enabled():
+    def add_tensor(self, name, matrix, verbose_only=True):
+        if self.is_log_iteration() and self.is_logging_enabled() and self.is_verbose(verbose_only):
             data = matrix.detach().cpu().numpy()
             self._root.writer.add_text(f'{self._namespace}/{name}', f'<pre>{data}</pre>', self.get_iteration())
 
-    def add_histogram(self, name, tensor):
+    def add_histogram(self, name, tensor, verbose_only=True):
         if torch.isnan(tensor).any():
             print(f'nan detected in {self._namespace}/{name}')
             tensor = torch.where(torch.isnan(tensor), torch.tensor(0, dtype=tensor.dtype), tensor)
             raise ValueError('nan detected')
 
-        if self.is_log_iteration() and self.is_logging_enabled():
+        if self.is_log_iteration() and self.is_logging_enabled() and self.is_verbose(verbose_only):
             self._root.writer.add_histogram(f'{self._namespace}/{name}', tensor, self.get_iteration())
 
-    def print(self, name, tensor):
-        if self.is_log_iteration() and self.is_logging_enabled():
+    def print(self, name, tensor, verbose_only=True):
+        if self.is_log_iteration() and self.is_logging_enabled() and self.is_verbose(verbose_only):
             print(f'{self._namespace}/{name}:')
             print(tensor)
 
@@ -95,6 +99,7 @@ class SummaryWriterNamespace:
         return SummaryWriterNamespace(
             namespace=f'{self._namespace}/{name}',
             epoch_interval=self._epoch_interval,
+            verbose=self._verbose,
             root=self._root,
             parent=self,
         )
@@ -103,6 +108,16 @@ class SummaryWriterNamespace:
         return SummaryWriterNamespace(
             namespace=self._namespace,
             epoch_interval=epoch_interval,
+            verbose=self._verbose,
+            root=self._root,
+            parent=self,
+        )
+
+    def verbose(self, verbose):
+        return SummaryWriterNamespace(
+            namespace=self._namespace,
+            epoch_interval=self._epoch_interval,
+            verbose=verbose,
             root=self._root,
             parent=self,
         )
@@ -142,25 +157,28 @@ class DummySummaryWriter():
         self._logging_enabled = False
         pass
 
-    def add_scalar(self, name, value):
+    def add_scalar(self, name, value, verbose_only=True):
         pass
 
-    def add_summary(self, name, tensor):
+    def add_summary(self, name, tensor, verbose_only=True):
         pass
 
-    def add_histogram(self, name, tensor):
+    def add_histogram(self, name, tensor, verbose_only=True):
         pass
 
-    def add_tensor(self, name, tensor):
+    def add_tensor(self, name, tensor, verbose_only=True):
         pass
 
-    def print(self, name, tensor):
+    def print(self, name, tensor, verbose_only=True):
         pass
 
     def namespace(self, name):
         return self
 
     def every(self, epoch_interval):
+        return self
+
+    def verbose(self, verbose):
         return self
 
     def no_logging(self):

@@ -258,7 +258,7 @@ dataset_test_extrapolations = [
 model = stable_nalu.network.SequentialMnistNetwork(
     args.layer_type,
     output_size=dataset.get_item_shape().target[-1],
-    writer=summary_writer.every(100) if args.verbose else None,
+    writer=summary_writer.every(100).verbose(args.verbose),
     mnist_digits=args.mnist_digits,
     mnist_outputs=args.mnist_outputs,
     model_simplification=args.model_simplification,

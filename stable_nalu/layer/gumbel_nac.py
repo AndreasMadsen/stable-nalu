@@ -63,7 +63,7 @@ class GumbelNACLayer(ExtendedTorchModule):
 
         # Compute the linear multiplication as usual
         self.writer.add_histogram('W', torch.exp(log_pi) @ self.target_weights)
-        self.writer.add_tensor('W', torch.exp(log_pi) @ self.target_weights)
+        self.writer.add_tensor('W', torch.exp(log_pi) @ self.target_weights, verbose_only=False)
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

@@ -72,7 +72,7 @@ class BasicLayer(ExtendedTorchModule):
 
     def forward(self, input, reuse=False):
         self.writer.add_histogram('W', self.W)
-        self.writer.add_tensor('W', self.W)
+        self.writer.add_tensor('W', self.W, verbose_only=False)
         return self.activation_fn(
             torch.nn.functional.linear(input, self.W, self.bias)
         )

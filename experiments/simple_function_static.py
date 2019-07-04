@@ -260,7 +260,7 @@ dataset_valid_extrapolation_data = next(iter(dataset.fork(sample_range=args.extr
 model = stable_nalu.network.SimpleFunctionStaticNetwork(
     args.layer_type,
     input_size=dataset.get_input_size(),
-    writer=summary_writer.every(1000) if args.verbose else None,
+    writer=summary_writer.every(1000).verbose(args.verbose),
     first_layer=args.first_layer,
     hidden_size=args.hidden_size,
     nac_oob=args.nac_oob,

@@ -45,7 +45,7 @@ class RegualizedLinearMNACLayer(ExtendedTorchModule):
     def forward(self, x, reuse=False):
         W = self.W
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W)
+        self.writer.add_tensor('W', W, verbose_only=False)
 
         if self.mnac_normalized:
             c = torch.std(x)
