@@ -53,7 +53,14 @@ done
 
 python3 experiments/sequential_mnist.py \
 --operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
---mnist-digits 123456789 --mnist-outputs 2 --regualizer-z 1 --regualizer 100 \
+--mnist-digits 123456789 --mnist-outputs 6 --regualizer-z 1 --regualizer 10 \
+--interpolation-length 2 --extrapolation-lengths '[1,2,3]' \
+--seed ${seed} --max-epochs 1000 --verbose \
+--name-prefix ${experiment_name} --remove-existing-data
+
+python3 experiments/sequential_mnist.py \
+--operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
+--mnist-digits 123456789 --mnist-outputs 2 --regualizer-z 1 --regualizer 10 \
 --interpolation-length 2 --extrapolation-lengths '[1,2,3]' \
 --seed ${seed} --max-epochs 1000 --verbose \
 --name-prefix ${experiment_name} --remove-existing-data

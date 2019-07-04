@@ -10,7 +10,6 @@ do
             experiments/sequential_mnist.py \
             --operation cumprod --layer-type NAC --nac-mul normal \
             --mnist-digits 123456789 --mnist-outputs 1 \
-            --regualizer-z 1 --regualizer 100 \
             --interpolation-length ${interpolation_length} --extrapolation-lengths '[1,2,3,4,5,6,7,8,9]' \
             --seed ${seed} --max-epochs 1000 --verbose \
             --name-prefix ${experiment_name} --remove-existing-data
@@ -19,7 +18,6 @@ do
             experiments/sequential_mnist.py \
             --operation cumprod --layer-type PosNAC --nac-mul normal \
             --mnist-digits 123456789 --mnist-outputs 1 \
-            --regualizer-z 1 --regualizer 100 \
             --interpolation-length 2 --extrapolation-lengths '[1,2,3,4,5,6,7,8,9]' \
             --seed ${seed} --max-epochs 1000 --verbose \
             --name-prefix ${experiment_name} --remove-existing-data
@@ -28,7 +26,6 @@ do
             experiments/sequential_mnist.py \
             --operation cumprod --layer-type NALU \
             --mnist-digits 123456789 --mnist-outputs 1 \
-            --regualizer-z 1 --regualizer 100 \
             --interpolation-length 2 --extrapolation-lengths '[1,2,3,4,5,6,7,8,9]' \
             --seed ${seed} --max-epochs 1000 --verbose \
             --name-prefix ${experiment_name} --remove-existing-data
@@ -37,7 +34,7 @@ do
             experiments/sequential_mnist.py \
             --operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
             --mnist-digits 123456789 --mnist-outputs 1 \
-            --regualizer-z 1 --regualizer 100 \
+            --regualizer-z 1 --regualizer 10 \
             --interpolation-length 2 --extrapolation-lengths '[1,2,3,4,5,6,7,8,9]' \
             --seed ${seed} --max-epochs 1000 --verbose \
             --name-prefix ${experiment_name} --remove-existing-data
@@ -46,7 +43,6 @@ do
             experiments/sequential_mnist.py \
             --operation cumprod --layer-type LSTM \
             --mnist-digits 123456789 --mnist-outputs 1 \
-            --regualizer-z 1 --regualizer 100 \
             --interpolation-length 2 --extrapolation-lengths '[1,2,3,4,5,6,7,8,9]' \
             --seed ${seed} --max-epochs 1000 --verbose \
             --name-prefix ${experiment_name} --remove-existing-data
