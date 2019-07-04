@@ -54,22 +54,29 @@ done
 python3 experiments/sequential_mnist.py \
 --operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
 --mnist-digits 123456789 --mnist-outputs 2 --regualizer-z 1 --regualizer 100 \
---interpolation-length 2 --extrapolation-lengths '[2,3]' \
+--interpolation-length 2 --extrapolation-lengths '[1,2,3]' \
 --seed ${seed} --max-epochs 1000 --verbose \
 --name-prefix ${experiment_name} --remove-existing-data
 
 python3 experiments/sequential_mnist.py \
 --operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
---mnist-digits 123456789 --mnist-outputs 2 --regualizer-z 1 \
+--mnist-digits 123456789 --mnist-outputs 1 --regualizer-z 1 --regualizer 100 \
+--interpolation-length 2 --extrapolation-lengths '[1,2,3]' \
+--seed ${seed} --max-epochs 1000 --verbose \
+--name-prefix ${experiment_name} --remove-existing-data
+
+python3 experiments/sequential_mnist.py \
+--operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
+--mnist-digits 123456789 --mnist-outputs 1 --regualizer-z 1 \
 --model-simplification pass-through \
---interpolation-length 2 --extrapolation-lengths '[2,3]' \
+--interpolation-length 1 --extrapolation-lengths '[1]' \
 --seed ${seed} --max-epochs 1000 --verbose \
 --name-prefix ${experiment_name} --remove-existing-data
 
 python3 experiments/sequential_mnist.py \
 --operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
---mnist-digits 123456789 --mnist-outputs 2 --regualizer-z 1 \
+--mnist-digits 123456789 --mnist-outputs 1 \
 --model-simplification solved-accumulator \
---interpolation-length 2 --extrapolation-lengths '[2,3]' \
+--interpolation-length 2 --extrapolation-lengths '[1,2,3]' \
 --seed ${seed} --max-epochs 1000 --verbose \
 --name-prefix ${experiment_name} --remove-existing-data
