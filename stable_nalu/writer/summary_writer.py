@@ -53,7 +53,7 @@ class SummaryWriterNamespace:
         return self._root.get_iteration()
 
     def is_log_iteration(self):
-        return (self._root.get_iteration() % self._epoch_interval == 0) or self._root.force_logging
+        return (self._root.get_iteration() % self._epoch_interval == 0) or self._root._force_logging
 
     def is_logging_enabled(self):
         writer = self
