@@ -85,6 +85,9 @@ unit_name_to_cell_class = {
     'MNAC': MNACCell,
     'NALU': NALUCell,
 
+    'PosNAC': PosNACCell,
+    'PosNALU': PosNALUCell,
+
     'GumbelNAC': GumbelNACCell,
     'GumbelMNAC': GumbelMNACCell,
     'GumbelNALU': GumbelNALUCell,
