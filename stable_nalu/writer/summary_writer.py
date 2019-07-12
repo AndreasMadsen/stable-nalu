@@ -3,6 +3,7 @@ import os
 import shutil
 import os.path as path
 import torch
+import numpy as np
 from tensorboardX import SummaryWriter as SummaryWriterRaw
 
 THIS_DIR = path.dirname(path.realpath(__file__))
@@ -32,7 +33,7 @@ class SummaryWriterNamespaceForceLoggingScope:
         self._writer._force_logging = self._flag
 
     def __exit__(self, type, value, traceback):
-        self._writer._force_logging = not self._flag
+        self._writer._force_logging = False
         return False
 
 class SummaryWriterNamespace:
@@ -79,7 +80,8 @@ class SummaryWriterNamespace:
     def add_tensor(self, name, matrix, verbose_only=True):
         if self.is_log_iteration() and self.is_logging_enabled() and self.is_verbose(verbose_only):
             data = matrix.detach().cpu().numpy()
-            self._root.writer.add_text(f'{self._namespace}/{name}', f'<pre>{data}</pre>', self.get_iteration())
+            data_str = np.array2string(data, max_line_width=60, threshold=np.inf)
+            self._root.writer.add_text(f'{self._namespace}/{name}', f'<pre>{data_str}</pre>', self.get_iteration())
 
     def add_histogram(self, name, tensor, verbose_only=True):
         if torch.isnan(tensor).any():

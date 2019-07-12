@@ -132,6 +132,12 @@ class TensorboardMetricReader:
             for data in pool.imap_unordered(self._parse_tensorboard_data, reader):
                 pbar.update()
 
+                # Fix flushing issue
+                for column_name, column_data in data.items():
+                    if len(data['step']) - len(column_data) == 1:
+                        data[column_name].append(None)
+
+                # Convert to dataframe
                 df = pandas.DataFrame(data)
 
                 # Ensure the columns are always order the same
