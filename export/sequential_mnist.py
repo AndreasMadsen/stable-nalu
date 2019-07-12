@@ -26,8 +26,7 @@ else:
 
 def matcher(tag):
     return (
-        tag in ['loss/valid/validation', 'loss/valid/mnist_classification'] or
-        tag.startswith('loss/valid/extrapolation/')
+        tag.startswith('loss/valid') or tag.startswith('loss/test')
     )
 
 reader = stable_nalu.reader.TensorboardMetricReader(

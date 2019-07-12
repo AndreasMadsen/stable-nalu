@@ -85,9 +85,9 @@ cases = rbind(cases,
 )
 
 eps = data.frame(rbind(
-  c(operation='mul', epsilon=0.0001),
-  c(operation='add', epsilon=0.0001),
-  c(operation='sub', epsilon=0.0001)
+  c(operation='mul', epsilon=0.00001),
+  c(operation='add', epsilon=0.00001),
+  c(operation='sub', epsilon=0.00001)
 ))
 
 mse = data.frame(cases) %>%
@@ -104,9 +104,9 @@ mse = data.frame(cases) %>%
   ) %>%
   rowwise() %>%
   mutate(
-    mse=simulate.mse(epsilon, 1000000, operation, simple, input.size, subset.ratio, overlap.ratio, range.a, range.b, range.mirror),
+    threshold=simulate.mse(epsilon, 1000000, operation, simple, input.size, subset.ratio, overlap.ratio, range.a, range.b, range.mirror),
     extrapolation.range=ifelse(range.mirror, paste0('U[-',range.b,',-',range.a,'] ∪ U[',range.a,',',range.b,']'), paste0('U[',range.a,',',range.b,']')),
-    operation=paste0('o-', operation)
+    operation=paste0('op-', operation)
   )
 
 write.csv(mse, file="../results/function_task_static_mse_expectation.csv", row.names=F)

@@ -20,8 +20,8 @@ best.model.step.fn = function (errors) {
   }
 }
 
-first.solved.step = function (steps, errors, epsilon) {
-  index = first(which(errors < epsilon))
+first.solved.step = function (steps, errors, threshold) {
+  index = first(which(errors < threshold))
   if (is.na(index)) {
     return(NA)
   } else {
@@ -44,11 +44,9 @@ safe.median = function (vec) {
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter == 'default') %>%
   mutate(
-    input.size = as.integer(input.size),
     operation = revalue(operation, operation.full.to.short),
-    epsilon = mse
   ) %>%
-  select(operation, epsilon)
+  select(operation, threshold)
 
 dat = expand.name(read_csv('../results/function_task_static.csv')) %>%
   merge(eps)
@@ -57,15 +55,15 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
+    threshold = last(threshold),
     best.model.step = best.model.step.fn(loss.valid.interpolation),
     interpolation.last = loss.valid.interpolation[best.model.step],
     extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     seed = last(seed),
@@ -75,7 +73,7 @@ dat.last = dat %>%
 dat.last.rate = dat.last %>%
   group_by(model, operation) %>%
   summarise(
-    rate.interpolation = mean(interpolation.last < epsilon),
+    rate.interpolation = mean(interpolation.last < threshold),
     rate.extrapolation = mean(solved),
     
     median.interpolation.solved = safe.median(interpolation.step.solved[solved]),
@@ -98,7 +96,7 @@ print(dat.last.rate)
 save.table(
   dat.last.rate %>% filter(
     (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
+    (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', '$\\mathrm{NAC}_{\\bullet, \\sigma}$', 'NALU'))
   ),
   "function-task-static-defaults",
   "Shows the success-rate for $\\mathcal{L}_{\\mathbf{W}_1, \\mathbf{W}_2} < \\mathcal{L}_{\\mathbf{W}_1^\\epsilon, \\mathbf{W}_2^*}$, at what global step the model converged at and the sparsity error for all weight matrices, with 95\\% confidence interval. Best result is highlighed without considering significance.",

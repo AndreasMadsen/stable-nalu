@@ -20,8 +20,8 @@ best.model.step.fn = function (errors) {
   }
 }
 
-first.solved.step = function (steps, errors, epsilon) {
-  index = first(which(errors < epsilon))
+first.solved.step = function (steps, errors, threshold) {
+  index = first(which(errors < threshold))
   if (is.na(index)) {
     return(NA)
   } else {
@@ -47,9 +47,8 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   mutate(
     input.size = as.integer(input.size),
     operation = revalue(operation, operation.full.to.short),
-    epsilon = mse
   ) %>%
-  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, epsilon)
+  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
 dat = expand.name(read_csv(name.file)) %>%
   merge(eps) %>%
@@ -62,15 +61,15 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
+    threshold = last(threshold),
     best.model.step = best.model.step.fn(loss.valid.interpolation),
     interpolation.last = loss.valid.interpolation[best.model.step],
     extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     parameter = last(parameter),

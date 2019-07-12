@@ -5,7 +5,7 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
-source('./_function_task_expand_name_v2.r')
+source('./_function_task_expand_name.r')
 source('./_function_task_table.r')
 
 best.model.step.fn = function (errors) {
@@ -41,13 +41,11 @@ t.confidence.interval = function (alpha, vec) {
 best.range = 100
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == TRUE & operation == 'o-mul') %>%
+  filter(simple == TRUE & operation == 'op-mul') %>%
   mutate(
-    input.size = as.integer(input.size),
-    operation = revalue(paste0("op", substring(operation, 2)), operation.full.to.short),
-    epsilon = mse
+    operation=revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, epsilon)
+  select(operation, threshold)
 
 
 dat = expand.name(read_csv('../results/simple_mul.csv')) %>%
@@ -57,15 +55,15 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
+    threshold = last(threshold),
     best.model.step = best.model.step.fn(loss.valid.interpolation),
     interpolation.last = loss.valid.interpolation[best.model.step],
     extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     oob.control = last(oob.control),
@@ -79,7 +77,7 @@ dat.last = dat %>%
 dat.last.rate = dat.last %>%
   group_by(model, operation, oob.control, regualizer.shape, epsilon.zero) %>%
   summarise(
-    rate.interpolation = mean(interpolation.last < epsilon),
+    rate.interpolation = mean(interpolation.last < threshold),
     rate.extrapolation = mean(solved),
     
     median.interpolation.solved = safe.median(interpolation.step.solved[solved]),
