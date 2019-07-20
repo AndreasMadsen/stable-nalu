@@ -24,7 +24,7 @@ parser.add_argument('--operation',
                     help='Specify the operation to use, sum or count')
 parser.add_argument('--regualizer',
                     action='store',
-                    default=0.1,
+                    default=10,
                     type=float,
                     help='Specify the regualization lambda to be used')
 parser.add_argument('--regualizer-z',
@@ -99,6 +99,22 @@ parser.add_argument('--nac-oob',
                     choices=['regualized', 'clip'],
                     type=str,
                     help='Choose of out-of-bound should be handled by clipping or regualization.')
+parser.add_argument('--regualizer-scaling',
+                    action='store',
+                    default='linear',
+                    choices=['exp', 'linear'],
+                    type=str,
+                    help='Use an expoentational scaling from 0 to 1, or a linear scaling.')
+parser.add_argument('--regualizer-scaling-start',
+                    action='store',
+                    default=10000,
+                    type=int,
+                    help='Start linear scaling at this global step.')
+parser.add_argument('--regualizer-scaling-end',
+                    action='store',
+                    default=100000,
+                    type=int,
+                    help='Stop linear scaling at this global step.')
 parser.add_argument('--regualizer-shape',
                     action='store',
                     default='linear',
@@ -176,6 +192,9 @@ print(f'  -')
 print(f'  - softmax_transform: {args.softmax_transform}')
 print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nac_oob: {args.nac_oob}')
+print(f'  - regualizer_scaling: {args.regualizer_scaling}')
+print(f'  - regualizer_scaling_start: {args.regualizer_scaling_start}')
+print(f'  - regualizer_scaling_end: {args.regualizer_scaling_end}')
 print(f'  - regualizer_shape: {args.regualizer_shape}')
 print(f'  - mnac_epsilon: {args.mnac_epsilon}')
 print(f'  - nalu_bias: {args.nalu_bias}')
@@ -213,8 +232,9 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'_h-{args.mnist_outputs}'
     f'_op-{args.operation.lower()}'
     f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
-    f'_rs-{args.regualizer_shape}'
+    f'_rs-{args.regualizer_scaling}-{args.regualizer_shape}'
     f'_eps-{args.mnac_epsilon}'
+    f'_rl-{args.regualizer_scaling_start}-{args.regualizer_scaling_end}'
     f'_r-{args.regualizer}-{args.regualizer_z}-{args.regualizer_oob}'
     f'_m-{"s" if args.softmax_transform else "l"}-{args.model_simplification[0]}'
     f'_i-{args.interpolation_length}'
@@ -295,10 +315,10 @@ def test_mnist(dataloader):
             mse_loss += min(criterion(l[:,0,i], t[:,0,0]).item() for i in range(l.size(-1))) * len(t)
             acc_last += max(accuracy(l[:,0,i], t[:,0,0]).item() for i in range(l.size(-1))) * len(t)
 
-        return [
+        return (
             mse_loss / len(dataloader.dataset),
             acc_last / len(dataloader.dataset)
-        ]
+        )
 
 def test_model(dataloader):
     with torch.no_grad(), model.no_internal_logging(), model.no_random():
@@ -312,11 +332,11 @@ def test_model(dataloader):
             acc_all += accuracy(y[:,seq_index,:], t[:,seq_index,:]).item() * len(t)
             acc_last += accuracy(y[:,-1,:], t[:,-1,:]).item() * len(t)
 
-        return [
+        return (
             mse_loss / len(dataloader.dataset),
             acc_all / len(dataloader.dataset),
             acc_last / len(dataloader.dataset)
-        ]
+        )
 
 # Train model
 global_step = 0
@@ -359,8 +379,16 @@ for epoch_i in range(0, args.max_epochs + 1):
             mnist_y_train, y_train = model(x_train)
         regualizers = model.regualizer()
 
+        if (args.regualizer_scaling == 'linear'):
+            r_w_scale = max(0, min(1, (
+                (global_step - args.regualizer_scaling_start) /
+                (args.regualizer_scaling_end - args.regualizer_scaling_start)
+            )))
+        elif (args.regualizer_scaling == 'exp'):
+            r_w_scale = 1 - math.exp(-1e-5 * global_step)
+
         loss_train_criterion = criterion(y_train[:,seq_index,:], t_train[:,seq_index,:])
-        loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * global_step)) * (regualizers['W'] + regualizers['g']) + args.regualizer_z * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
+        loss_train_regualizer = args.regualizer * r_w_scale * regualizers['W'] + regualizers['g'] + args.regualizer_z * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
         loss_train = loss_train_criterion + loss_train_regualizer
 
         # Log loss
