@@ -78,6 +78,7 @@ unit_name_to_layer_class = {
 
     'SillyReRegualizedLinearNAC': None,
     'SillyReRegualizedLinearMNAC': SillyReRegualizedLinearMNACLayer,
+    'SillyReRegualizedLinearNALU': None
 }
 
 unit_name_to_cell_class = {

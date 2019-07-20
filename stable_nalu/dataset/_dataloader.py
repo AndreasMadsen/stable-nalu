@@ -23,7 +23,7 @@ class FastDataLoader:
         for i in range(len(self)):
             values = self.dataset[i * self.batch_size: min(len(self.dataset), (1 + i)*self.batch_size)]
             if self.use_cuda:
-                yield (value.cuda() for value in values)
+                yield tuple(value.cuda() for value in values)
             else:
                 yield values
 
