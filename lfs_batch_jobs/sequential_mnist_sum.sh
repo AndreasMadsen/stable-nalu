@@ -1,4 +1,5 @@
 #!/bin/bash
+export LSB_JOB_REPORT_MAIL=N
 experiment_name='sequential_mnist_sum'
 
 for seed in {0..4}

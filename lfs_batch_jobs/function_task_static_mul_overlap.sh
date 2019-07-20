@@ -1,4 +1,5 @@
 #!/bin/bash
+export LSB_JOB_REPORT_MAIL=N
 experiment_name='function_task_static_mul_overlap'
 operation=mul
 overlap_ratios=( 0.0 0.1 0.25 0.5 0.75 1.0 )

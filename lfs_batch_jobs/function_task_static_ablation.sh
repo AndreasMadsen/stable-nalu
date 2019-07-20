@@ -1,4 +1,5 @@
 #!/bin/bash
+export LSB_JOB_REPORT_MAIL=N
 experiment_name='function_task_static_ablation'
 verbose_flag=''
 for seed in {0..9}

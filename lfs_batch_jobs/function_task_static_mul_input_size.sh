@@ -1,10 +1,11 @@
 #!/bin/bash
+export LSB_JOB_REPORT_MAIL=N
 experiment_name='function_task_static_mul_input_size'
 operation=mul
 #input_sizes=( 4 10 25 50 75 100 125 150 175 200 225 250 275 300 )
 #wall_times=( 10 10 10 15 15 15 30 30 45 45 60 60 72 72 )
-input_sizes=( 4 10 25 50 75 100 125 150 175 200 225 250 )
-wall_times=( 10 10 10 15 15 15 30 30 45 45 60 60 )
+input_sizes=( 4 10 25 50 75 100 125 150 175 200 225 250 275 300 )
+wall_times=( 10 10 10 15 15 15 30 30 45 45 60 60 75 75 )
 verbose_flag=''
 for seed in {0..9}
 do

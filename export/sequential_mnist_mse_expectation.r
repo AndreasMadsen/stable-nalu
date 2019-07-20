@@ -4,41 +4,36 @@ setwd(dirname(parent.frame(2)$ofile))
 library(plyr)
 library(dplyr)
 
-rowProds = function (X) {
-  return(apply(X, 1, prod))
+apply.rowwise = function (X, fn) {
+  return(t(apply(X, 1, fn)))
 }
 
-simulate.mse = function (epsilon, sigma, samples, operation, digits, extrapolation.lengths) {
+simulate.mse = function (epsilon, sigma.2, samples, operation, digits, extrapolation.lengths) {
   max.length = max(extrapolation.lengths)
   X = matrix(sample(digits, samples*max.length, replace=T), samples, max.length)
-  X.noise = X + matrix(rnorm(samples*max.length, 0, sigma), samples, max.length)
+  X.noise = X + matrix(rnorm(samples*max.length, 0, sqrt(sigma.2)), samples, max.length)
   
-  # Add an initialization column (either 0 or 1),  this is learned and can also have an error
-  if (operation == 'cumsum') {
-    Z = cbind(0 + epsilon, X.noise)
-  } else if (operation == 'cumprod') {
-    Z = cbind(1 - epsilon, X.noise)
-  }
-  
-  # Run Z though the weight dependent transformation 
-  Z = (1 - epsilon) * Z
-  if (operation == 'cumprod') {
-    Z = Z + epsilon
-  }
+  # Should a epsilon transformation be done here?
+  Z = X.noise
   
   error.for.length = function (seq.length) {
+    X.slice = X[,1:seq.length, drop=FALSE]
+    Z.slice = Z[,1:seq.length, drop=FALSE]
+    
     if (operation == 'cumsum') {
-      target = rowSums(X[,1:seq.length, drop=FALSE])
-      pred = rowSums(Z[,1:(seq.length+1), drop=FALSE])
+      target = apply.rowwise(X.slice, cumsum)
+      pred = apply.rowwise(Z.slice, cumsum)
     } else if (operation == 'cumprod') {
-      target = rowProds(X[,1:seq.length, drop=FALSE])
-      pred = rowProds(Z[,1:(seq.length+1), drop=FALSE])
-    } 
+      target = apply.rowwise(X.slice, cumprod)
+      pred = apply.rowwise(Z.slice, cumprod)
+    }
+
     errors = mean((pred - target)**2)
   }
   
   df = data.frame(
-      operation=operation, extrapolation.length=extrapolation.lengths
+      operation=operation,
+      extrapolation.length=extrapolation.lengths
   ) %>%
     rowwise() %>%
     mutate(
@@ -47,10 +42,9 @@ simulate.mse = function (epsilon, sigma, samples, operation, digits, extrapolati
   return(df)
 }
 
-# TODO: make cummucative
 mse = rbind(
-  simulate.mse(0.0001, 0.01, 100000, 'cumsum', 0:9, c(1, 10, 100, 1000)),
-  simulate.mse(0.0001, 0.01, 100000, 'cumprod', 1:9, seq(1,9))
+ simulate.mse(NA, 0.25, 100000, 'cumsum', 0:9, c(1, 10, 100, 1000)), #0.25
+ simulate.mse(NA, 0.25, 100000, 'cumprod', 1:9, seq(1,9)) # 0.25
 )
 print(mse)
 write.csv(mse, file="../results/sequential_mnist_mse_expectation.csv", row.names=F)

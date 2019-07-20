@@ -9,7 +9,7 @@ library(readr)
 library(xtable)
 source('./_function_task_expand_name.r')
 
-best.range = 100
+best.range = 5000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -43,12 +43,11 @@ name.file = '../results/function_task_static_mul_range.csv'
 name.output = '../paper/results/simple_function_static_range.pdf'
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter != 'default') %>%
+  filter(simple == FALSE & parameter == 'extrapolation.range') %>%
   mutate(
-    input.size = as.integer(input.size),
-    operation = revalue(operation, operation.full.to.short),
+    operation = revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
+  select(operation, extrapolation.range, threshold)
 
 dat = expand.name(read_csv(name.file)) %>%
   merge(eps) %>%

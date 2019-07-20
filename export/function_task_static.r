@@ -9,7 +9,7 @@ library(kableExtra)
 source('./_function_task_expand_name.r')
 source('./_function_task_table.r')
 
-best.range = 100
+best.range = 5000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -96,7 +96,7 @@ print(dat.last.rate)
 save.table(
   dat.last.rate %>% filter(
     (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', '$\\mathrm{NAC}_{\\bullet, \\sigma}$', 'NALU'))
+    (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', '$\\mathrm{NAC}_{\\bullet,\\sigma}$', 'NALU'))
   ),
   "function-task-static-defaults",
   "Shows the success-rate for $\\mathcal{L}_{\\mathbf{W}_1, \\mathbf{W}_2} < \\mathcal{L}_{\\mathbf{W}_1^\\epsilon, \\mathbf{W}_2^*}$, at what global step the model converged at and the sparsity error for all weight matrices, with 95\\% confidence interval. Best result is highlighed without considering significance.",

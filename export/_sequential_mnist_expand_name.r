@@ -3,7 +3,7 @@ model.full.to.short = c(
   'lstm'='LSTM',
   'nac'='$\\mathrm{NAC}_{+}$',
   'nac-nac-n'='$\\mathrm{NAC}_{\\bullet}$',
-  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet, \\sigma}$',
+  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\sigma}$',
   'nalu'='NALU',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU'
@@ -18,6 +18,10 @@ model.latex.to.exp = c(
                                            phantom()[{
                                              paste("", symbol("\xb7"))
                                            }], "")),
+  '$\\mathrm{NAC}_{\\bullet,\\sigma}$'=expression(paste("", "", plain(paste("NAC")), 
+                                                        phantom()[{
+                                                          paste("", symbol("\xb7"), ",", sigma)
+                                                        }], "")),
   'LSTM'='LSTM',
   'NALU'='NALU',
   'NAU'='NAU',
@@ -55,6 +59,16 @@ range.full.to.short = function (range) {
 regualizer.get.part = function (regualizer, index) {
   split = strsplit(regualizer, '-')[[1]]
   return(as.double(split[index + 1]))
+}
+
+regualizer.get.type = function (regualizer, index) {
+  split = strsplit(regualizer, '-')[[1]]
+  return(split[index + 1])
+}
+
+regualizer.scaling.get = function (regualizer, index) {
+  split = strsplit(regualizer, '-')[[1]]
+  return(as.numeric(split[index + 1]))
 }
 
 dataset.get.part = function (dataset, index, simple.value) {
@@ -102,28 +116,30 @@ expand.name = function (df) {
       operation=revalue(extract.by.split(name, 4), operation.full.to.short, warn_missing=FALSE),
       
       oob.control = ifelse(substring(extract.by.split(name, 5), 5) == "r", "regualized", "clip"),
-      regualizer.shape = substring(extract.by.split(name, 6), 4),
+      regualizer.scaling = regualizer.get.type(extract.by.split(name, 6), 1), # rs[1]
+      regualizer.shape = regualizer.get.type(extract.by.split(name, 6), 2), # rs[2]
       epsilon.zero = as.numeric(substring(extract.by.split(name, 7), 5)),
       
-      regualizer=regualizer.get.part(extract.by.split(name, 8), 1),
-      regualizer.z=regualizer.get.part(extract.by.split(name, 8), 2),
-      regualizer.oob=regualizer.get.part(extract.by.split(name, 8), 3),
+      regualizer.scaling.start=regualizer.scaling.get(extract.by.split(name, 8), 1),
+      regualizer.scaling.end=regualizer.scaling.get(extract.by.split(name, 8), 2),
       
-      model.mnist = model.get.mnist.setup(extract.by.split(name, 9)),
-      model.final = model.get.simplification.setup(extract.by.split(name, 9)),
+      regualizer=regualizer.get.part(extract.by.split(name, 9), 1),
+      regualizer.z=regualizer.get.part(extract.by.split(name, 9), 2),
+      regualizer.oob=regualizer.get.part(extract.by.split(name, 9), 3),
       
-      interpolation.range=as.integer(substring(extract.by.split(name, 10), 3)),
-      extrapolation.range=substring(extract.by.split(name, 11), 3),
+      model.mnist = model.get.mnist.setup(extract.by.split(name, 10)),
+      model.final = model.get.simplification.setup(extract.by.split(name, 10)),
       
-      batch.size=as.integer(substring(extract.by.split(name, 12), 2)),
-      seed=as.integer(substring(extract.by.split(name, 13), 2))
+      interpolation.length=as.integer(substring(extract.by.split(name, 11), 3)),
+      extrapolation.length=substring(extract.by.split(name, 12), 3),
+      
+      batch.size=as.integer(substring(extract.by.split(name, 13), 2)),
+      seed=as.integer(substring(extract.by.split(name, 14), 2))
     )
   
   df.expand.name$name = as.factor(df.expand.name$name)
   df.expand.name$operation = factor(df.expand.name$operation, c('cumsum', 'cumprod'))
   df.expand.name$model = as.factor(df.expand.name$model)
-  df.expand.name$interpolation.range = as.factor(df.expand.name$interpolation.range)
-  df.expand.name$extrapolation.range = as.factor(df.expand.name$extrapolation.range)
 
   return(merge(df, df.expand.name))
 }

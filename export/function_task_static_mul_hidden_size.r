@@ -8,7 +8,7 @@ library(tidyr)
 library(readr)
 source('./_function_task_expand_name.r')
 
-best.range = 100
+best.range = 5000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -37,9 +37,8 @@ safe.interval = function (alpha, vec) {
 }
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter != 'default') %>%
+  filter(simple == FALSE & parameter == 'default') %>%
   mutate(
-    input.size = as.integer(input.size),
     operation = revalue(operation, operation.full.to.short)
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
@@ -55,8 +54,6 @@ dat = expand.name(
   mutate(
     parameter = !!as.name(name.parameter)
   )
-
-dat$model = as.factor(paste0(dat$model, ' (R=', dat$regualizer, ')'))
 
 dat.last = dat %>%
   group_by(name) %>%
@@ -135,6 +132,7 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
   xlab(name.label) +
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+  scale_x_continuous(name = element_blank(), breaks=unique(dat.gather$parameter)) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
       success.rate = "Success rate in %",

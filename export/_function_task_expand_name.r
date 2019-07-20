@@ -7,7 +7,7 @@ model.full.to.short = c(
   'relu6'='ReLU6',
   'nac'='$\\mathrm{NAC}_{+}$',
   'nac-nac-n'='$\\mathrm{NAC}_{\\bullet}$',
-  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet, \\sigma}$',
+  'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\sigma}$',
   'nalu'='NALU',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU',
@@ -24,6 +24,10 @@ model.latex.to.exp = c(
                                            phantom()[{
                                              paste("", symbol("\xb7"))
                                            }], "")),
+  '$\\mathrm{NAC}_{\\bullet,\\sigma}$'=expression(paste("", "", plain(paste("NAC")), 
+                                                phantom()[{
+                                                  paste("", symbol("\xb7"), ",", sigma)
+                                                }], "")),
   'NALU'='NALU',
   'NAU'='NAU',
   'NMU'='NMU',
@@ -56,9 +60,9 @@ range.full.to.short = function (range) {
   range = substring(range, 3)
   
   if (substring(range, 0, 1) == '[') {
-    return(paste0('U', gsub('\\]-\\[', '] ∪ U[', gsub(' ', '', range))))
+    return(gsub('\\[(-?[0-9.]+), (-?[0-9.]+)\\]-\\[(-?[0-9.]+), (-?[0-9.]+)\\]', 'U[\\1,\\2] ∪ U[\\3,\\4]', range))
   } else {
-    return(paste0('U[', gsub('^,', '-', gsub('-', ',', range)), ']'))
+    return(gsub('(-?[0-9.]+)-(-?[0-9.]+)', 'U[\\1,\\2]', range))
   }
 }
 
@@ -76,6 +80,16 @@ dataset.get.part = function (dataset, index, simple.value) {
   }
 }
 
+regualizer.get.type = function (regualizer, index) {
+  split = strsplit(regualizer, '-')[[1]]
+  return(split[index + 1])
+}
+
+regualizer.scaling.get = function (regualizer, index) {
+  split = strsplit(regualizer, '-')[[1]]
+  return(as.numeric(split[index + 1]))
+}
+
 expand.name = function (df) {
   names = data.frame(name=unique(df$name))
   
@@ -83,26 +97,30 @@ expand.name = function (df) {
     rowwise() %>%
     mutate(
       model=revalue(extract.by.split(name, 1), model.full.to.short, warn_missing=FALSE),
-      operation=revalue(extract.by.split(name, 2), operation.full.to.short, warn_missing=FALSE),
+      operation=revalue(extract.by.split(name, 2), operation.full.to.short, warn_missing=FALSE), # op
       
-      oob.control = ifelse(substring(extract.by.split(name, 3), 5) == "r", "regualized", "clip"),
-      regualizer.shape = substring(extract.by.split(name, 4), 4),
+      oob.control = ifelse(substring(extract.by.split(name, 3), 5) == "r", "regualized", "clip"), # oob
+      regualizer.scaling = regualizer.get.type(extract.by.split(name, 4), 1), # rs[1]
+      regualizer.shape = regualizer.get.type(extract.by.split(name, 4), 2), # rs[2]
       epsilon.zero = as.numeric(substring(extract.by.split(name, 5), 5)),
       
-      regualizer=regualizer.get.part(extract.by.split(name, 6), 1),
-      regualizer.z=regualizer.get.part(extract.by.split(name, 6), 2),
-      regualizer.oob=regualizer.get.part(extract.by.split(name, 6), 3),
+      regualizer.scaling.start=regualizer.scaling.get(extract.by.split(name, 6), 1),
+      regualizer.scaling.end=regualizer.scaling.get(extract.by.split(name, 6), 2),
       
-      interpolation.range=range.full.to.short(extract.by.split(name, 7)),
-      extrapolation.range=range.full.to.short(extract.by.split(name, 8)),
+      regualizer=regualizer.get.part(extract.by.split(name, 7), 1),
+      regualizer.z=regualizer.get.part(extract.by.split(name, 7), 2),
+      regualizer.oob=regualizer.get.part(extract.by.split(name, 7), 3),
+      
+      interpolation.range=range.full.to.short(extract.by.split(name, 8)),
+      extrapolation.range=range.full.to.short(extract.by.split(name, 9)),
 
-      input.size=dataset.get.part(extract.by.split(name, 9), 1, 4),
-      subset.ratio=dataset.get.part(extract.by.split(name, 9), 2, NA),
-      overlap.ratio=dataset.get.part(extract.by.split(name, 9), 3, NA),
+      input.size=dataset.get.part(extract.by.split(name, 10), 1, 4),
+      subset.ratio=dataset.get.part(extract.by.split(name, 10), 2, NA),
+      overlap.ratio=dataset.get.part(extract.by.split(name, 10), 3, NA),
 
-      batch.size=as.integer(substring(extract.by.split(name, 10), 2)),
-      seed=as.integer(substring(extract.by.split(name, 11), 2)),
-      hidden.size=as.integer(substring(extract.by.split(name, 12, 'h2'), 2)),
+      batch.size=as.integer(substring(extract.by.split(name, 11), 2)),
+      seed=as.integer(substring(extract.by.split(name, 12), 2)),
+      hidden.size=as.integer(substring(extract.by.split(name, 13, 'h2'), 2)),
     )
   
   df.expand.name$name = as.factor(df.expand.name$name)

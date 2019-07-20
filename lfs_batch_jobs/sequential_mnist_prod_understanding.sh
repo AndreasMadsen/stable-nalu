@@ -1,4 +1,5 @@
 #!/bin/bash
+export LSB_JOB_REPORT_MAIL=N
 experiment_name='sequential_mnist_prod_debug'
 
 for seed in {0..1}
@@ -50,6 +51,14 @@ do
     #     --seed ${seed} --max-epochs 10000 --verbose \
     #     --name-prefix ${experiment_name} --remove-existing-data
 done
+
+
+python3 experiments/sequential_mnist.py \
+--operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \
+--mnist-digits 123456789 --mnist-outputs 1 --model-simplification pass-through \
+--interpolation-length 1 --extrapolation-lengths '[1]' \
+--seed ${seed} --max-epochs 1000 --verbose \
+--name-prefix ${experiment_name} --remove-existing-data
 
 python3 experiments/sequential_mnist.py \
 --operation cumprod --layer-type ReRegualizedLinearNAC --nac-mul mnac \

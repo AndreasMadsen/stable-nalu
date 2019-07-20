@@ -1,7 +1,7 @@
 #!/bin/bash
+export LSB_JOB_REPORT_MAIL=N
 experiment_name='function_task_static_regualization'
-regualizations=( 0 0.01 0.1 1 10 )
-#operations=( add sub mul div squared root )
+regualizations=( 0 0.01 0.1 1 10 100 )
 verbose_flag=''
 for seed in {0..9}
 do

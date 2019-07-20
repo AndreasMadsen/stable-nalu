@@ -1,4 +1,5 @@
 #!/bin/bash
+export LSB_JOB_REPORT_MAIL=N
 experiment_name='function_task_static_mul_subset'
 operation=mul
 subset_ratios=( 0.05 0.10 0.25 0.50 )
