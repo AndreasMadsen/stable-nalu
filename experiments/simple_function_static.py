@@ -22,6 +22,11 @@ parser.add_argument('--operation',
                     ],
                     type=str,
                     help='Specify the operation to use, e.g. add, mul, squared')
+parser.add_argument('--num-subsets',
+                    action='store',
+                    default=2,
+                    type=int,
+                    help='Specify the number of subsets to use')
 parser.add_argument('--regualizer',
                     action='store',
                     default=10,
@@ -182,6 +187,7 @@ print(f'running')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - first_layer: {args.first_layer}')
 print(f'  - operation: {args.operation}')
+print(f'  - num_subsets: {args.num_subsets}')
 print(f'  - regualizer: {args.regualizer}')
 print(f'  - regualizer_z: {args.regualizer_z}')
 print(f'  - regualizer_oob: {args.regualizer_oob}')
@@ -247,7 +253,8 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'_z-{"simple" if args.simple else f"{args.input_size}-{args.subset_ratio}-{args.overlap_ratio}"}'
     f'_b{args.batch_size}'
     f'_s{args.seed}'
-    f'_h{args.hidden_size}',
+    f'_h{args.hidden_size}'
+    f'_z{args.num_subsets}',
     remove_existing_data=args.remove_existing_data
 )
 
@@ -265,6 +272,7 @@ dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     input_size=args.input_size,
     subset_ratio=args.subset_ratio,
     overlap_ratio=args.overlap_ratio,
+    num_subsets=args.num_subsets,
     simple=args.simple,
     use_cuda=args.cuda,
     seed=args.seed,
