@@ -1,6 +1,6 @@
 #!/bin/bash
 export LSB_JOB_REPORT_MAIL=N
-experiment_name='function_task_static_mul_subsets'
+experiment_name='function_task_static_mul_num_subsets'
 operation=mul
 num_subsets=( 2 3 4 5 2 3 4 5 )
 hidden_size=( 2 3 4 5 4 6 8 10 )
