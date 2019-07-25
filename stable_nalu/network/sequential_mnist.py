@@ -7,63 +7,70 @@ from .regression_mnist import RegressionMnisNetwork
 class SequentialMnistNetwork(ExtendedTorchModule):
     UNIT_NAMES = GeneralizedCell.UNIT_NAMES
 
-    def __init__(self, unit_name, output_size, writer=None, nac_mul='none', eps=1e-7, **kwags):
+    def __init__(self, unit_name, output_size, writer=None,
+                 mnist_digits=[0,1,2,3,4,5,6,7,8,9],
+                 softmax_transform=False,
+                 mnist_outputs=1, model_simplification='none',
+                 nac_mul='none', eps=1e-7,
+                 **kwags):
         super().__init__('network', writer=writer, **kwags)
         self.unit_name = unit_name
         self.output_size = output_size
         self.nac_mul = nac_mul
         self.eps = eps
+        self.model_simplification = model_simplification
 
         # TODO: maybe don't make them learnable, properly zero will surfise here
         if unit_name == 'LSTM':
-            self.zero_state_h = torch.nn.Parameter(torch.Tensor(self.output_size))
-            self.zero_state_c = torch.nn.Parameter(torch.Tensor(self.output_size))
+            self.register_buffer('zero_state_h', torch.Tensor(self.output_size))
+            self.register_buffer('zero_state_c', torch.Tensor(self.output_size))
         else:
-            self.zero_state = torch.nn.Parameter(torch.Tensor(self.output_size))
+            self.register_buffer('zero_state', torch.Tensor(self.output_size))
 
-        self.image2label = RegressionMnisNetwork()
+        self.image2label = RegressionMnisNetwork(
+            mnist_digits=mnist_digits,
+            mnist_outputs=mnist_outputs,
+            softmax_transform=softmax_transform
+        )
 
         if nac_mul == 'mnac':
             unit_name = unit_name[0:-3] + 'MNAC'
-        if unit_name == 'LSTM':
-            del kwags['nalu_bias']
-            del kwags['nalu_two_nac']
-            del kwags['nalu_two_gate']
-            del kwags['nalu_mul']
-            del kwags['nalu_gate']
-        self.recurent_cell = GeneralizedCell(1, self.output_size,
-                                             unit_name,
-                                             writer=self.writer,
-                                             **kwags)
+        if self.model_simplification == 'none':
+            self.recurent_cell = GeneralizedCell(mnist_outputs, self.output_size,
+                                                unit_name,
+                                                writer=self.writer,
+                                                **kwags)
         self.reset_parameters()
+
+    def _best_init_state(self):
+        if self.nac_mul == 'normal' or self.nac_mul == 'mnac':
+            return 1
+        elif self.nac_mul == 'none':
+            return 0
 
     def reset_parameters(self):
         if self.unit_name == 'LSTM':
-            torch.nn.init.zeros_(self.zero_state_h)
-            torch.nn.init.zeros_(self.zero_state_c)
+            torch.nn.init.constant_(self.zero_state_h, self._best_init_state())
+            torch.nn.init.constant_(self.zero_state_c, self._best_init_state())
         else:
-            torch.nn.init.zeros_(self.zero_state)
+            torch.nn.init.constant_(self.zero_state, self._best_init_state())
 
         self.image2label.reset_parameters()
-        self.recurent_cell.reset_parameters()
+        if self.model_simplification == 'none':
+            self.recurent_cell.reset_parameters()
 
-    def forward(self, x):
-        """Performs recurrent iterations over the input.
+    def _forward_trainable_accumulator(self, x):
+        y_all = []
+        l_all = []
 
-        Arguments:
-            input: Expected to have the shape [obs, time, channels=1, width, height]
-        """
         # Perform recurrent iterations over the input
         if self.unit_name == 'LSTM':
             h_tm1 = (
                 self.zero_state_h.repeat(x.size(0), 1),
                 self.zero_state_c.repeat(x.size(0), 1)
             )
-            self.writer.add_tensor('h_tm1/h', h_tm1[0])
-            self.writer.add_tensor('h_tm1/c', h_tm1[1])
         else:
             h_tm1 = self.zero_state.repeat(x.size(0), 1)
-            self.writer.add_tensor('h_tm1', h_tm1)
 
         for t in range(x.size(1)):
             x_t = x[:, t]
@@ -76,12 +83,71 @@ class SequentialMnistNetwork(ExtendedTorchModule):
                     torch.log(torch.abs(l_t) + self.eps),
                     torch.log(torch.abs(h_tm1) + self.eps)
                 ))
+
+            y_all.append(h_t[0] if self.unit_name == 'LSTM' else h_t)
+            l_all.append(l_t)
+
             h_tm1 = h_t
 
-        # Grap the final hidden output and use as the output from the recurrent layer
-        z_1 = h_t[0] if self.unit_name == 'LSTM' else h_t
+        return (
+            torch.stack(l_all).transpose(0, 1),
+            torch.stack(y_all).transpose(0, 1)
+        )
 
-        return l_t, z_1
+    def _forward_solved_accumulator(self, x):
+        y_all = []
+        l_all = []
+
+        h_tm1 = self._best_init_state()
+        for t in range(x.size(1)):
+            x_t = x[:, t]
+            l_t = self.image2label(x_t)
+
+            if self.nac_mul == 'normal' or self.nac_mul == 'mnac':
+                h_t = h_tm1 * l_t
+            elif self.nac_mul == 'none':
+                h_t = h_tm1 + l_t
+
+            y_all.append(h_t)
+            l_all.append(l_t)
+
+            h_tm1 = h_t
+
+        return (
+            torch.stack(l_all).transpose(0, 1),
+            torch.stack(y_all).transpose(0, 1)
+        )
+
+    def _forward_pass_through(self, x):
+        y_all = []
+        l_all = []
+
+        for t in range(x.size(1)):
+            x_t = x[:, t]
+            l_t = self.image2label(x_t)
+
+            y_all.append(l_t)
+            l_all.append(l_t)
+
+        return (
+            torch.stack(l_all).transpose(0, 1),
+            torch.stack(y_all).transpose(0, 1)
+        )
+
+    def forward(self, x):
+        """Performs recurrent iterations over the input.
+
+        Arguments:
+            input: Expected to have the shape [obs, time, channels=1, width, height]
+        """
+        if self.model_simplification == 'none':
+            return self._forward_trainable_accumulator(x)
+        elif self.model_simplification == 'solved-accumulator':
+            return self._forward_solved_accumulator(x)
+        elif self.model_simplification == 'pass-through':
+            return self._forward_pass_through(x)
+        else:
+            raise ValueError('incorrect model_simplification value')
 
     def extra_repr(self):
         return 'unit_name={}, output_size={}'.format(

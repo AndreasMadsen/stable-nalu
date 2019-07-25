@@ -63,7 +63,7 @@ cases = rbind(
   c(parameter='default', operation='sub', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F)
 )
 
-for (input.size in c(4,10,25,50,75,100,125,150,175,200)) {
+for (input.size in c(4,10,25,50,75,100,125,150,175,200,225,250,275,300)) {
   cases = rbind(cases, c(parameter='input.size', operation='mul', simple=F, input.size=input.size, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F))
 }
 
@@ -76,6 +76,7 @@ for (overlap.ratio in c(0.0, 0.1, 0.25, 0.5, 0.75, 1.0)) {
 }
 
 cases = rbind(cases,
+  c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=-6, range.b=-2, range.mirror=F),
   c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=T),
   c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=1, range.b=5, range.mirror=F),
   c(parameter='extrapolation.range', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=0.2, range.b=2, range.mirror=F),
@@ -85,9 +86,9 @@ cases = rbind(cases,
 )
 
 eps = data.frame(rbind(
-  c(operation='mul', epsilon=0.0001),
-  c(operation='add', epsilon=0.0001),
-  c(operation='sub', epsilon=0.0001)
+  c(operation='mul', epsilon=0.00001),
+  c(operation='add', epsilon=0.00001),
+  c(operation='sub', epsilon=0.00001)
 ))
 
 mse = data.frame(cases) %>%
@@ -104,9 +105,9 @@ mse = data.frame(cases) %>%
   ) %>%
   rowwise() %>%
   mutate(
-    mse=simulate.mse(epsilon, 1000000, operation, simple, input.size, subset.ratio, overlap.ratio, range.a, range.b, range.mirror),
+    threshold=simulate.mse(epsilon, 1000000, operation, simple, input.size, subset.ratio, overlap.ratio, range.a, range.b, range.mirror),
     extrapolation.range=ifelse(range.mirror, paste0('U[-',range.b,',-',range.a,'] ∪ U[',range.a,',',range.b,']'), paste0('U[',range.a,',',range.b,']')),
-    operation=paste0('o-', operation)
+    operation=paste0('op-', operation)
   )
 
 write.csv(mse, file="../results/function_task_static_mse_expectation.csv", row.names=F)

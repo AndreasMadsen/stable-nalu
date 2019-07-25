@@ -32,7 +32,7 @@ class MNACLayer(ExtendedTorchModule):
     def forward(self, x, reuse=False):
         W = torch.sigmoid(self.W_hat)
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W)
+        self.writer.add_tensor('W', W, verbose_only=False)
 
         return mnac(x, W)
 

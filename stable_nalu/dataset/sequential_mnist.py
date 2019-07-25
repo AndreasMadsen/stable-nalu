@@ -15,18 +15,19 @@ class ItemShape(NamedTuple):
 class OPERATIONS:
     @staticmethod
     def sum(seq):
-        return np.sum(seq).reshape(1)
+        return OPERATIONS.sum(seq)
+
+    @staticmethod
+    def cumsum(seq):
+        return np.cumsum(seq).reshape(-1, 1)
 
     @staticmethod
     def prod(seq):
-        return np.prod(seq).reshape(1)
+        return OPERATIONS.cumprod(seq)
 
     @staticmethod
-    def count(seq):
-        unique, counts = np.unique(seq, return_counts=True)
-        counts_all = np.zeros(10)
-        counts_all[unique] = counts
-        return counts_all
+    def cumprod(seq):
+        return np.cumprod(seq).reshape(-1, 1)
 
 THIS_DIR = path.dirname(path.realpath(__file__))
 DATA_DIR = path.join(THIS_DIR, 'data')
@@ -34,6 +35,7 @@ DATA_DIR = path.join(THIS_DIR, 'data')
 class SequentialMnistDataset:
     def __init__(self, operation,
                  num_workers=1,
+                 mnist_digits=[0,1,2,3,4,5,6,7,8,9],
                  seed=None,
                  use_cuda=False):
         super().__init__()
@@ -42,14 +44,31 @@ class SequentialMnistDataset:
         self._num_workers = num_workers
         self._use_cuda = use_cuda
         self._rng = np.random.RandomState(seed)
+        self._mnist_digits = set(mnist_digits)
+
+    def is_cum_task():
+        if self._operation == OPERATIONS.sum:
+            return False
+        elif self._operation == OPERATIONS.cumsum:
+            return True
+        elif self._operation == OPERATIONS.prod:
+            return False
+        elif self._operation == OPERATIONS.cumprod:
+            return True
+        else:
+            raise ValueError('bad operation')
 
     def get_item_shape(self):
         if self._operation == OPERATIONS.sum:
-            return ItemShape((None, 28, 28), (1, ))
+            return ItemShape((None, 28, 28), (None, 1))
+        elif self._operation == OPERATIONS.cumsum:
+            return ItemShape((None, 28, 28), (None, 1))
         elif self._operation == OPERATIONS.prod:
-            return ItemShape((None, 28, 28), (1, ))
+            return ItemShape((None, 28, 28), (None, 1))
+        elif self._operation == OPERATIONS.cumprod:
+            return ItemShape((None, 28, 28), (None, 1))
         else:
-            return ItemShape((None, 28, 28), (10, ))
+            raise ValueError('bad operation')
 
     def fork(self, seq_length=10, subset='train', seed=None):
         if subset not in {'train', 'test'}:
@@ -65,6 +84,7 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
         self._operation = parent._operation
         self._num_workers = parent._num_workers
         self._use_cuda = parent._use_cuda
+        self._mnist_digits = parent._mnist_digits
 
         self._subset = subset
         self._seq_length = seq_length
@@ -81,7 +101,9 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
                 torchvision.transforms.Normalize((0.1307,), (0.3081,))
             ])
         )
-        self._index_mapping = self._rng.permutation(len(self._dataset))
+        self._index_mapping = self._rng.permutation([
+            i for (i, (x, t)) in enumerate(self._dataset) if t in self._mnist_digits
+        ])
 
     def __getitem__(self, index):
         mnist_images = []
@@ -100,7 +122,7 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
         )
 
     def __len__(self):
-        return len(self._dataset) // self._seq_length
+        return len(self._index_mapping) // self._seq_length
 
     def dataloader(self, batch_size=64, shuffle=True):
         batcher = torch.utils.data.DataLoader(

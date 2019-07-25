@@ -27,7 +27,7 @@ class LinearNACLayer(ExtendedTorchModule):
 
     def forward(self, input, reuse=False):
         self.writer.add_histogram('W', self.W)
-        self.writer.add_tensor('W', self.W)
+        self.writer.add_tensor('W', self.W, verbose_only=False)
         return torch.nn.functional.linear(input, self.W, self.bias)
 
     def extra_repr(self):

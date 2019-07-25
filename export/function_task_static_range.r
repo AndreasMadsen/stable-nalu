@@ -9,7 +9,7 @@ library(readr)
 library(xtable)
 source('./_function_task_expand_name.r')
 
-best.range = 100
+best.range = 5000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -20,8 +20,8 @@ best.model.step.fn = function (errors) {
   }
 }
 
-first.solved.step = function (steps, errors, epsilon) {
-  index = first(which(errors < epsilon))
+first.solved.step = function (steps, errors, threshold) {
+  index = first(which(errors < threshold))
   if (is.na(index)) {
     return(NA)
   } else {
@@ -43,13 +43,11 @@ name.file = '../results/function_task_static_mul_range.csv'
 name.output = '../paper/results/simple_function_static_range.pdf'
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter != 'default') %>%
+  filter(simple == FALSE & parameter == 'extrapolation.range') %>%
   mutate(
-    input.size = as.integer(input.size),
-    operation = revalue(operation, operation.full.to.short),
-    epsilon = mse
+    operation = revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, epsilon)
+  select(operation, extrapolation.range, threshold)
 
 dat = expand.name(read_csv(name.file)) %>%
   merge(eps) %>%
@@ -62,15 +60,15 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
+    threshold = last(threshold),
     best.model.step = best.model.step.fn(loss.valid.interpolation),
     interpolation.last = loss.valid.interpolation[best.model.step],
     extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     parameter = last(parameter),
@@ -99,7 +97,7 @@ dat.gather.mean = dat.last.rate %>%
   mutate(
     success.rate = success.rate.mean,
     converged.at = converged.at.mean,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.mean)
+    sparse.error = sparse.error.mean
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'mean.value', success.rate, converged.at, sparse.error)
@@ -108,7 +106,7 @@ dat.gather.upper = dat.last.rate %>%
   mutate(
     success.rate = success.rate.upper,
     converged.at = converged.at.upper,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.upper)
+    sparse.error = sparse.error.upper
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'upper.value', success.rate, converged.at, sparse.error)
@@ -117,7 +115,7 @@ dat.gather.lower = dat.last.rate %>%
   mutate(
     success.rate = success.rate.lower,
     converged.at = converged.at.lower,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.lower)
+    sparse.error = sparse.error.lower
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'lower.value', success.rate, converged.at, sparse.error)

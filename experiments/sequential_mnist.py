@@ -16,17 +16,45 @@ parser.add_argument('--layer-type',
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')
 parser.add_argument('--operation',
                     action='store',
-                    default='sum',
+                    default='cumsum',
                     choices=[
-                        'sum', 'prod', 'count'
+                        'cumsum', 'sum', 'cumprod', 'prod'
                     ],
                     type=str,
                     help='Specify the operation to use, sum or count')
 parser.add_argument('--regualizer',
                     action='store',
-                    default=0.1,
+                    default=10,
                     type=float,
                     help='Specify the regualization lambda to be used')
+parser.add_argument('--regualizer-z',
+                    action='store',
+                    default=0,
+                    type=float,
+                    help='Specify the z-regualization lambda to be used')
+parser.add_argument('--regualizer-oob',
+                    action='store',
+                    default=1,
+                    type=float,
+                    help='Specify the oob-regualization lambda to be used')
+parser.add_argument('--mnist-digits',
+                    action='store',
+                    default=[0,1,2,3,4,5,6,7,8,9],
+                    type=lambda str: list(map(int,str)),
+                    help='MNIST digits to use')
+parser.add_argument('--mnist-outputs',
+                    action='store',
+                    default=1,
+                    type=int,
+                    help='number of MNIST to use, more than 1 adds redundant values')
+parser.add_argument('--model-simplification',
+                    action='store',
+                    default='none',
+                    choices=[
+                        'none', 'solved-accumulator', 'pass-through'
+                    ],
+                    type=str,
+                    help='Simplifiations applied to the model')
 
 parser.add_argument('--max-epochs',
                     action='store',
@@ -55,12 +83,49 @@ parser.add_argument('--extrapolation-lengths',
                     type=ast.literal_eval,
                     help='Specify the sequence lengths used for the extrapolation dataset')
 
+parser.add_argument('--softmax-transform',
+                    action='store_true',
+                    default=False,
+                    help='Should a softmax transformation be used to control the output of the CNN model')
 parser.add_argument('--nac-mul',
                     action='store',
                     default='none',
                     choices=['none', 'normal', 'safe', 'max-safe', 'mnac'],
                     type=str,
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
+parser.add_argument('--nac-oob',
+                    action='store',
+                    default='clip',
+                    choices=['regualized', 'clip'],
+                    type=str,
+                    help='Choose of out-of-bound should be handled by clipping or regualization.')
+parser.add_argument('--regualizer-scaling',
+                    action='store',
+                    default='linear',
+                    choices=['exp', 'linear'],
+                    type=str,
+                    help='Use an expoentational scaling from 0 to 1, or a linear scaling.')
+parser.add_argument('--regualizer-scaling-start',
+                    action='store',
+                    default=10000,
+                    type=int,
+                    help='Start linear scaling at this global step.')
+parser.add_argument('--regualizer-scaling-end',
+                    action='store',
+                    default=100000,
+                    type=int,
+                    help='Stop linear scaling at this global step.')
+parser.add_argument('--regualizer-shape',
+                    action='store',
+                    default='linear',
+                    choices=['squared', 'linear'],
+                    type=str,
+                    help='Use either a squared or linear shape for the bias and oob regualizer.')
+parser.add_argument('--mnac-epsilon',
+                    action='store',
+                    default=0,
+                    type=float,
+                    help='Set the idendity epsilon for MNAC.')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -111,6 +176,11 @@ print(f'running')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - operation: {args.operation}')
 print(f'  - regualizer: {args.regualizer}')
+print(f'  - regualizer_z: {args.regualizer_z}')
+print(f'  - regualizer_oob: {args.regualizer_oob}')
+print(f'  - mnist_digits: {args.mnist_digits}')
+print(f'  - mnist_outputs: {args.mnist_outputs}')
+print(f'  - model_simplification: {args.model_simplification}')
 print(f'  -')
 print(f'  - max_epochs: {args.max_epochs}')
 print(f'  - batch_size: {args.batch_size}')
@@ -119,7 +189,14 @@ print(f'  -')
 print(f'  - interpolation_length: {args.interpolation_length}')
 print(f'  - extrapolation_lengths: {args.extrapolation_lengths}')
 print(f'  -')
+print(f'  - softmax_transform: {args.softmax_transform}')
 print(f'  - nac_mul: {args.nac_mul}')
+print(f'  - nac_oob: {args.nac_oob}')
+print(f'  - regualizer_scaling: {args.regualizer_scaling}')
+print(f'  - regualizer_scaling_start: {args.regualizer_scaling_start}')
+print(f'  - regualizer_scaling_end: {args.regualizer_scaling_end}')
+print(f'  - regualizer_shape: {args.regualizer_shape}')
+print(f'  - mnac_epsilon: {args.mnac_epsilon}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_two_gate: {args.nalu_two_gate}')
@@ -151,8 +228,15 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_o-{args.operation.lower()}'
-    f'_r-{args.regualizer}'
+    f'_d-{"".join(map(str, args.mnist_digits))}'
+    f'_h-{args.mnist_outputs}'
+    f'_op-{args.operation.lower()}'
+    f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
+    f'_rs-{args.regualizer_scaling}-{args.regualizer_shape}'
+    f'_eps-{args.mnac_epsilon}'
+    f'_rl-{args.regualizer_scaling_start}-{args.regualizer_scaling_end}'
+    f'_r-{args.regualizer}-{args.regualizer_z}-{args.regualizer_oob}'
+    f'_m-{"s" if args.softmax_transform else "l"}-{args.model_simplification[0]}'
     f'_i-{args.interpolation_length}'
     f'_e-{"-".join(map(str, args.extrapolation_lengths))}'
     f'_b{args.batch_size}'
@@ -172,15 +256,18 @@ torch.backends.cudnn.deterministic = True
 dataset = stable_nalu.dataset.SequentialMnistDataset(
     operation=args.operation,
     use_cuda=args.cuda,
-    seed=args.seed
+    seed=args.seed,
+    mnist_digits=args.mnist_digits
 )
 dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader(shuffle=True)
 # Seeds are from random.org
-dataset_valid_validation = dataset.fork(seq_length=args.interpolation_length, subset='train',
+dataset_train_validation = dataset.fork(seq_length=args.interpolation_length, subset='train',
                                         seed=62379872).dataloader(shuffle=False)
-dataset_valid_classification = dataset.fork(seq_length=1, subset='test',
-                                            seed=47430696).dataloader(shuffle=False)
-dataset_valid_extrapolations = [
+dataset_train_classification = dataset.fork(seq_length=1, subset='train',
+                                           seed=3383872).dataloader(shuffle=False)
+dataset_test_classification = dataset.fork(seq_length=1, subset='test',
+                                           seed=47430696).dataloader(shuffle=False)
+dataset_test_extrapolations = [
     ( seq_length,
       dataset.fork(seq_length=seq_length, subset='test',
                    seed=88253339).dataloader(shuffle=False)
@@ -191,8 +278,16 @@ dataset_valid_extrapolations = [
 model = stable_nalu.network.SequentialMnistNetwork(
     args.layer_type,
     output_size=dataset.get_item_shape().target[-1],
-    writer=summary_writer.every(100) if args.verbose else None,
+    writer=summary_writer.every(100).verbose(args.verbose),
+    mnist_digits=args.mnist_digits,
+    mnist_outputs=args.mnist_outputs,
+    model_simplification=args.model_simplification,
+    softmax_transform=args.softmax_transform,
     nac_mul=args.nac_mul,
+    nac_oob=args.nac_oob,
+    regualizer_shape=args.regualizer_shape,
+    regualizer_z=args.regualizer_z,
+    mnac_epsilon=args.mnac_epsilon,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
     nalu_two_gate=args.nalu_two_gate,
@@ -205,26 +300,43 @@ if args.cuda:
 criterion = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters())
 
+seq_index = slice(None) if dataset.get_item_shape().target[0] is None else -1
+
+def accuracy(y, t):
+    return torch.mean((torch.round(y) == t).float())
 
 def test_mnist(dataloader):
     with torch.no_grad(), model.no_internal_logging(), model.no_random():
-        acc_loss = 0
+        mse_loss = 0
+        acc_last = 0
         for x, t in dataloader:
             # forward
             l, _ = model(x)
-            acc_loss += criterion(l, t).item() * len(t)
+            mse_loss += min(criterion(l[:,0,i], t[:,0,0]).item() for i in range(l.size(-1))) * len(t)
+            acc_last += max(accuracy(l[:,0,i], t[:,0,0]).item() for i in range(l.size(-1))) * len(t)
 
-        return acc_loss / len(dataloader.dataset)
+        return (
+            mse_loss / len(dataloader.dataset),
+            acc_last / len(dataloader.dataset)
+        )
 
 def test_model(dataloader):
     with torch.no_grad(), model.no_internal_logging(), model.no_random():
-        acc_loss = 0
+        mse_loss = 0
+        acc_all = 0
+        acc_last = 0
         for x, t in dataloader:
             # forward
             _, y = model(x)
-            acc_loss += criterion(y, t).item() * len(t)
+            mse_loss += criterion(y[:,seq_index,:], t[:,seq_index,:]).item() * len(t)
+            acc_all += accuracy(y[:,seq_index,:], t[:,seq_index,:]).item() * len(t)
+            acc_last += accuracy(y[:,-1,:], t[:,-1,:]).item() * len(t)
 
-        return acc_loss / len(dataloader.dataset)
+        return (
+            mse_loss / len(dataloader.dataset),
+            acc_all / len(dataloader.dataset),
+            acc_last / len(dataloader.dataset)
+        )
 
 # Train model
 global_step = 0
@@ -239,29 +351,60 @@ for epoch_i in range(0, args.max_epochs + 1):
         optimizer.zero_grad()
 
         # Log validation
-        if epoch_i % 100 == 0 and i_train == 0:
-            validation_error = test_model(dataset_valid_validation)
-            mnist_classification_error = test_mnist(dataset_valid_classification)
-            summary_writer.add_scalar('loss/valid/validation', validation_error)
-            summary_writer.add_scalar('loss/valid/mnist_classification', mnist_classification_error)
+        if epoch_i % 5 == 0 and i_train == 0:
+            (model_train_validation_mse,
+             model_train_validation_acc_all,
+             model_train_validation_acc_last) = test_model(dataset_train_validation)
+            mnist_train_classification_mse, mnist_train_classification_acc = test_mnist(dataset_train_classification)
+            mnist_test_classification_mse, mnist_test_classification_acc = test_mnist(dataset_test_classification)
 
-            for seq_length, dataloader in dataset_valid_extrapolations:
-                summary_writer.add_scalar(f'loss/valid/extrapolation/{seq_length}', test_model(dataloader))
+            summary_writer.add_scalar('loss/valid/validation/mse', model_train_validation_mse)
+            summary_writer.add_scalar('loss/valid/validation/acc/all', model_train_validation_acc_all)
+            summary_writer.add_scalar('loss/valid/validation/acc/last', model_train_validation_acc_last)
+            summary_writer.add_scalar('loss/valid/mnist/mse', mnist_train_classification_mse)
+            summary_writer.add_scalar('loss/valid/mnist/acc', mnist_train_classification_acc)
+            summary_writer.add_scalar('loss/test/mnist/mse', mnist_test_classification_mse)
+            summary_writer.add_scalar('loss/test/mnist/acc', mnist_test_classification_acc)
+
+            for seq_length, dataloader in dataset_test_extrapolations:
+                (model_test_extrapolation_mse,
+                 model_test_extrapolation_acc_all,
+                 model_test_extrapolation_acc_last) = test_model(dataloader)
+                summary_writer.add_scalar(f'loss/test/extrapolation/{seq_length}/mse', model_test_extrapolation_mse)
+                summary_writer.add_scalar(f'loss/test/extrapolation/{seq_length}/acc/all', model_test_extrapolation_acc_all)
+                summary_writer.add_scalar(f'loss/test/extrapolation/{seq_length}/acc/last', model_test_extrapolation_acc_last)
 
         # forward
-        _, y_train = model(x_train)
+        with summary_writer.force_logging(epoch_i % 5 == 0 and i_train == 0):
+            mnist_y_train, y_train = model(x_train)
         regualizers = model.regualizer()
 
-        loss_train_criterion = criterion(y_train, t_train)
-        loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + 1 * regualizers['z'] + 1 * regualizers['W-OOB']
+        if (args.regualizer_scaling == 'linear'):
+            r_w_scale = max(0, min(1, (
+                (global_step - args.regualizer_scaling_start) /
+                (args.regualizer_scaling_end - args.regualizer_scaling_start)
+            )))
+        elif (args.regualizer_scaling == 'exp'):
+            r_w_scale = 1 - math.exp(-1e-5 * global_step)
+
+        loss_train_criterion = criterion(y_train[:,seq_index,:], t_train[:,seq_index,:])
+        loss_train_regualizer = args.regualizer * r_w_scale * regualizers['W'] + regualizers['g'] + args.regualizer_z * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
         loss_train = loss_train_criterion + loss_train_regualizer
 
         # Log loss
+        summary_writer.add_scalar('loss/train/accuracy/all', accuracy(y_train[:,seq_index,:], t_train[:,seq_index,:]))
+        summary_writer.add_scalar('loss/train/accuracy/last', accuracy(y_train[:,-1,:], t_train[:,-1,:]))
         summary_writer.add_scalar('loss/train/critation', loss_train_criterion)
         summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
         summary_writer.add_scalar('loss/train/total', loss_train)
-        if epoch_i % 100 == 0 and i_train == 0:
-            print('train %d: %.5f, valid: %.5f, mnist: %.5f' % (epoch_i, loss_train_criterion, validation_error, mnist_classification_error))
+        if epoch_i % 5 == 0 and i_train == 0:
+            summary_writer.add_tensor('MNIST/train',
+                                      torch.cat([mnist_y_train[:,0,:], t_train[:,0,:]], dim=1))
+            print('train %d: %.5f, valid: %.5f, %.3f (acc[last]), mnist: %.5f, %.3f (acc)' % (
+                epoch_i, loss_train_criterion,
+                model_train_validation_mse, model_train_validation_acc_last,
+                mnist_test_classification_mse, mnist_test_classification_acc
+            ))
 
         # Optimize model
         if loss_train.requires_grad:
@@ -270,7 +413,7 @@ for epoch_i in range(0, args.max_epochs + 1):
         model.optimize(loss_train_criterion)
 
         # Log gradients if in verbose mode
-        if args.verbose:
+        with summary_writer.force_logging(epoch_i % 5 == 0 and i_train == 0):
             model.log_gradients()
 
 # Write results for this training

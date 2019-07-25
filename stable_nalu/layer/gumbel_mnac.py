@@ -50,7 +50,7 @@ class GumbelMNACLayer(ExtendedTorchModule):
         # Compute the linear multiplication as usual
         expected_W = torch.sigmoid(self.W_hat)
         self.writer.add_histogram('W', expected_W)
-        self.writer.add_tensor('W', expected_W)
+        self.writer.add_tensor('W', expected_W, verbose_only=False)
 
         return mnac(x, W)
 

@@ -17,8 +17,8 @@ best.model.step.fn = function (errors) {
   }
 }
 
-first.solved.step = function (steps, errors, epsilon) {
-  index = first(which(errors < epsilon))
+first.solved.step = function (steps, errors, threshold) {
+  index = first(which(errors < threshold))
   if (is.na(index)) {
     return(NA)
   } else {
@@ -38,26 +38,14 @@ t.confidence.interval = function (alpha, vec) {
   return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
 }
 
-best.range = 100
-
-model.full.to.short = c(
-  'linear'='linear',
-  'relu6'='ReLU6',
-  'nac'='${\\mathrm{NAC}_{+}}$',
-  'nac-nac-n'='${\\mathrm{NAC}_\\bullet}$',
-  'nalu'='NALU',
-  'reregualizedlinearnac'='NAU',
-  'reregualizedlinearnac-nac-m'='NMU'
-)
+best.range = 5000
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == TRUE & operation == 'o-mul') %>%
+  filter(simple == TRUE & operation == 'op-mul') %>%
   mutate(
-    input.size = as.integer(input.size),
-    operation = revalue(operation, operation.full.to.short),
-    epsilon = mse
+    operation=revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, epsilon)
+  select(operation, threshold)
 
 
 dat = expand.name(read_csv('../results/simple_mul.csv')) %>%
@@ -67,15 +55,15 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
+    threshold = last(threshold),
     best.model.step = best.model.step.fn(loss.valid.interpolation),
     interpolation.last = loss.valid.interpolation[best.model.step],
     extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     seed = last(seed),
@@ -85,12 +73,12 @@ dat.last = dat %>%
 dat.last.rate = dat.last %>%
   group_by(model, operation) %>%
   summarise(
-    rate.interpolation = mean(interpolation.last < epsilon),
+    rate.interpolation = mean(interpolation.last < threshold),
     rate.extrapolation = mean(solved),
     
     median.interpolation.solved = safe.median(interpolation.step.solved[solved]),
     mean.interpolation.solved = mean(interpolation.step.solved[solved]),
-
+    
     median.extrapolation.solved = safe.median(extrapolation.step.solved[solved]),
     mean.extrapolation.solved = mean(extrapolation.step.solved[solved]),
     ci.extrapolation.solved = t.confidence.interval(0.95, extrapolation.step.solved[solved]),
@@ -100,7 +88,7 @@ dat.last.rate = dat.last %>%
     ci.sparse.error.max = t.confidence.interval(0.95, sparse.error.max[solved]),
     
     mean.sparse.error.mean = mean(sparse.error.mean[solved]),
-    size = n()
+    size = n() 
   )
 
 print(dat.last.rate)

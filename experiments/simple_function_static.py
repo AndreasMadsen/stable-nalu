@@ -22,16 +22,30 @@ parser.add_argument('--operation',
                     ],
                     type=str,
                     help='Specify the operation to use, e.g. add, mul, squared')
+parser.add_argument('--num-subsets',
+                    action='store',
+                    default=2,
+                    type=int,
+                    help='Specify the number of subsets to use')
 parser.add_argument('--regualizer',
                     action='store',
-                    default=0.1,
+                    default=10,
                     type=float,
                     help='Specify the regualization lambda to be used')
+parser.add_argument('--regualizer-z',
+                    action='store',
+                    default=0,
+                    type=float,
+                    help='Specify the z-regualization lambda to be used')
 parser.add_argument('--regualizer-oob',
                     action='store',
                     default=1,
                     type=float,
                     help='Specify the oob-regualization lambda to be used')
+parser.add_argument('--first-layer',
+                    action='store',
+                    default=None,
+                    help='Set the first layer to be a different type')
 
 parser.add_argument('--max-iterations',
                     action='store',
@@ -90,10 +104,39 @@ parser.add_argument('--nac-mul',
                     choices=['none', 'normal', 'safe', 'max-safe', 'mnac'],
                     type=str,
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
-parser.add_argument('--first-layer',
+parser.add_argument('--nac-oob',
                     action='store',
-                    default=None,
-                    help='Set the first layer to be a different type')
+                    default='clip',
+                    choices=['regualized', 'clip'],
+                    type=str,
+                    help='Choose of out-of-bound should be handled by clipping or regualization.')
+parser.add_argument('--regualizer-scaling',
+                    action='store',
+                    default='linear',
+                    choices=['exp', 'linear'],
+                    type=str,
+                    help='Use an expoentational scaling from 0 to 1, or a linear scaling.')
+parser.add_argument('--regualizer-scaling-start',
+                    action='store',
+                    default=1000000,
+                    type=int,
+                    help='Start linear scaling at this global step.')
+parser.add_argument('--regualizer-scaling-end',
+                    action='store',
+                    default=2000000,
+                    type=int,
+                    help='Stop linear scaling at this global step.')
+parser.add_argument('--regualizer-shape',
+                    action='store',
+                    default='linear',
+                    choices=['squared', 'linear'],
+                    type=str,
+                    help='Use either a squared or linear shape for the bias and oob regualizer.')
+parser.add_argument('--mnac-epsilon',
+                    action='store',
+                    default=0,
+                    type=float,
+                    help='Set the idendity epsilon for MNAC.')
 parser.add_argument('--nalu-bias',
                     action='store_true',
                     default=False,
@@ -144,7 +187,9 @@ print(f'running')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - first_layer: {args.first_layer}')
 print(f'  - operation: {args.operation}')
+print(f'  - num_subsets: {args.num_subsets}')
 print(f'  - regualizer: {args.regualizer}')
+print(f'  - regualizer_z: {args.regualizer_z}')
 print(f'  - regualizer_oob: {args.regualizer_oob}')
 print(f'  -')
 print(f'  - max_iterations: {args.max_iterations}')
@@ -160,6 +205,12 @@ print(f'  - simple: {args.simple}')
 print(f'  -')
 print(f'  - hidden_size: {args.hidden_size}')
 print(f'  - nac_mul: {args.nac_mul}')
+print(f'  - nac_oob: {args.nac_oob}')
+print(f'  - regualizer_scaling: {args.regualizer_scaling}')
+print(f'  - regualizer_scaling_start: {args.regualizer_scaling_start}')
+print(f'  - regualizer_scaling_end: {args.regualizer_scaling_end}')
+print(f'  - regualizer_shape: {args.regualizer_shape}')
+print(f'  - mnac_epsilon: {args.mnac_epsilon}')
 print(f'  - nalu_bias: {args.nalu_bias}')
 print(f'  - nalu_two_nac: {args.nalu_two_nac}')
 print(f'  - nalu_two_gate: {args.nalu_two_gate}')
@@ -191,14 +242,19 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_o-{args.operation.lower()}'
-    f'_r-{args.regualizer}{"" if args.regualizer_oob == 1 else f"-{args.regualizer_oob}"}'
+    f'_op-{args.operation.lower()}'
+    f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
+    f'_rs-{args.regualizer_scaling}-{args.regualizer_shape}'
+    f'_eps-{args.mnac_epsilon}'
+    f'_rl-{args.regualizer_scaling_start}-{args.regualizer_scaling_end}'
+    f'_r-{args.regualizer}-{args.regualizer_z}-{args.regualizer_oob}'
     f'_i-{args.interpolation_range[0]}-{args.interpolation_range[1]}'
     f'_e-{args.extrapolation_range[0]}-{args.extrapolation_range[1]}'
     f'_z-{"simple" if args.simple else f"{args.input_size}-{args.subset_ratio}-{args.overlap_ratio}"}'
     f'_b{args.batch_size}'
     f'_s{args.seed}'
-    f'_h{args.hidden_size}',
+    f'_h{args.hidden_size}'
+    f'_z{args.num_subsets}',
     remove_existing_data=args.remove_existing_data
 )
 
@@ -216,6 +272,7 @@ dataset = stable_nalu.dataset.SimpleFunctionStaticDataset(
     input_size=args.input_size,
     subset_ratio=args.subset_ratio,
     overlap_ratio=args.overlap_ratio,
+    num_subsets=args.num_subsets,
     simple=args.simple,
     use_cuda=args.cuda,
     seed=args.seed,
@@ -231,9 +288,13 @@ dataset_valid_extrapolation_data = next(iter(dataset.fork(sample_range=args.extr
 model = stable_nalu.network.SimpleFunctionStaticNetwork(
     args.layer_type,
     input_size=dataset.get_input_size(),
-    writer=summary_writer.every(1000) if args.verbose else None,
+    writer=summary_writer.every(1000).verbose(args.verbose),
     first_layer=args.first_layer,
     hidden_size=args.hidden_size,
+    nac_oob=args.nac_oob,
+    regualizer_shape=args.regualizer_shape,
+    regualizer_z=args.regualizer_z,
+    mnac_epsilon=args.mnac_epsilon,
     nac_mul=args.nac_mul,
     nalu_bias=args.nalu_bias,
     nalu_two_nac=args.nalu_two_nac,
@@ -273,8 +334,16 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     y_train = model(x_train)
     regualizers = model.regualizer()
 
+    if (args.regualizer_scaling == 'linear'):
+        r_w_scale = max(0, min(1, (
+            (epoch_i - args.regualizer_scaling_start) /
+            (args.regualizer_scaling_end - args.regualizer_scaling_start)
+        )))
+    elif (args.regualizer_scaling == 'exp'):
+        r_w_scale = 1 - math.exp(-1e-5 * epoch_i)
+
     loss_train_criterion = criterion(y_train, t_train)
-    loss_train_regualizer = args.regualizer * (1 - math.exp(-1e-5 * epoch_i)) * (regualizers['W'] + regualizers['g']) + 1 * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
+    loss_train_regualizer = args.regualizer * r_w_scale * regualizers['W'] + regualizers['g'] + args.regualizer_z * regualizers['z'] + args.regualizer_oob * regualizers['W-OOB']
     loss_train = loss_train_criterion + loss_train_regualizer
 
     # Log loss

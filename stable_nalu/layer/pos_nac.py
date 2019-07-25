@@ -29,7 +29,7 @@ class PosNACLayer(ExtendedTorchModule):
     def forward(self, input, reuse=False):
         W = torch.sigmoid(self.W_hat)
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W)
+        self.writer.add_tensor('W', W, verbose_only=False)
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):
@@ -45,4 +45,4 @@ class PosNACCell(AbstractRecurrentCell):
         hidden_size: number of outgoing features
     """
     def __init__(self, input_size, hidden_size, **kwargs):
-        super().__init__(NACLayer, input_size, hidden_size, **kwargs)
+        super().__init__(PosNACLayer, input_size, hidden_size, **kwargs)
