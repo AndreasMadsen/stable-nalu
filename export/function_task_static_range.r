@@ -97,7 +97,7 @@ dat.gather.mean = dat.last.rate %>%
   mutate(
     success.rate = success.rate.mean,
     converged.at = converged.at.mean,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.mean)
+    sparse.error = sparse.error.mean
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'mean.value', success.rate, converged.at, sparse.error)
@@ -106,7 +106,7 @@ dat.gather.upper = dat.last.rate %>%
   mutate(
     success.rate = success.rate.upper,
     converged.at = converged.at.upper,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.upper)
+    sparse.error = sparse.error.upper
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'upper.value', success.rate, converged.at, sparse.error)
@@ -115,7 +115,7 @@ dat.gather.lower = dat.last.rate %>%
   mutate(
     success.rate = success.rate.lower,
     converged.at = converged.at.lower,
-    sparse.error = ifelse(sparse.error.mean > 0.1, NA, sparse.error.lower)
+    sparse.error = sparse.error.lower
   ) %>%
   select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
   gather('key', 'lower.value', success.rate, converged.at, sparse.error)

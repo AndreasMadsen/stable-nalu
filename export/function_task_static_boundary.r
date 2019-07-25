@@ -145,5 +145,5 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
 plot.parameter('input.size', 'Size of the input vector', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf')
 #plot.parameter('subset.ratio', 'Relative size of subsets compared to input size', '../results/function_task_static_mul_subset.csv', '../paper/results/simple_function_static_subset.pdf')
 #plot.parameter('overlap.ratio', 'The ratio of which subsets overlap with each other', '../results/function_task_static_mul_overlap.csv', '../paper/results/simple_function_static_overlap.pdf')
-plot.parameter('hidden.size', 'Hidden size', '../results/function_task_static_mul_hidden_size.csv', '../paper/results/simple_function_static_hidden_size.pdf')
+#plot.parameter('hidden.size', 'Hidden size', '../results/function_task_static_mul_hidden_size.csv', '../paper/results/simple_function_static_hidden_size.pdf')
 

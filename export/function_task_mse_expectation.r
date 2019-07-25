@@ -63,7 +63,7 @@ cases = rbind(
   c(parameter='default', operation='sub', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F)
 )
 
-for (input.size in c(4,10,25,50,75,100,125,150,175,200)) {
+for (input.size in c(4,10,25,50,75,100,125,150,175,200,225,250,275,300)) {
   cases = rbind(cases, c(parameter='input.size', operation='mul', simple=F, input.size=input.size, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F))
 }
 
@@ -88,7 +88,7 @@ cases = rbind(cases,
 eps = data.frame(rbind(
   c(operation='mul', epsilon=0.00001),
   c(operation='add', epsilon=0.00001),
-  c(operation='sub', epsilon=0.0001)
+  c(operation='sub', epsilon=0.00001)
 ))
 
 mse = data.frame(cases) %>%

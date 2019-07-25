@@ -20,8 +20,8 @@ best.model.step.fn = function (errors) {
   }
 }
 
-first.solved.step = function (steps, errors, epsilon) {
-  index = first(which(errors < epsilon))
+first.solved.step = function (steps, errors, threshold) {
+  index = first(which(errors < threshold))
   if (is.na(index)) {
     return(NA)
   } else {
@@ -40,11 +40,9 @@ safe.interval = function (alpha, vec) {
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter == 'default') %>%
   mutate(
-    input.size = as.integer(input.size),
-    operation = revalue(operation, operation.full.to.short),
-    epsilon = mse
+    operation = revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, epsilon)
+  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
 name.parameter = 'regualizer'
 name.label = 'Sparse regualizer'
@@ -52,6 +50,7 @@ name.file = '../results/function_task_static_regualization.csv'
 name.output = '../paper/results/simple_function_static_regualization.pdf'
 
 dat = expand.name(read_csv(name.file)) %>%
+  filter(model == 'NMU' | (model == 'NAU' & regualizer.scaling.start == 5e+03)) %>%
   merge(eps) %>%
   mutate(
     parameter = !!as.name(name.parameter)
@@ -61,15 +60,15 @@ dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
+    threshold = last(threshold),
     best.model.step = best.model.step.fn(loss.valid.interpolation),
     interpolation.last = loss.valid.interpolation[best.model.step],
     extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
     parameter = last(parameter),
     model = last(model),
     operation = last(operation),

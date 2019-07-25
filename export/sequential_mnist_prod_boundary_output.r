@@ -147,7 +147,7 @@ p = ggplot(dat.gather, aes(x = hidden.size, colour=model)) +
   geom_line(aes(y = mean.value)) +
   geom_errorbar(aes(ymin = lower.value, ymax = upper.value), width = 0.5) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  scale_x_continuous(name = 'Hidden size') +
+  scale_x_continuous(name = 'Hidden size', breaks=unique(dat.gather$hidden.size)) +
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
   facet_wrap(~ key + test.extrapolation.length, scales='free', labeller = labeller(
     key = c(

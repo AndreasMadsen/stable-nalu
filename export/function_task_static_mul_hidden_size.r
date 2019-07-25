@@ -132,7 +132,7 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
   xlab(name.label) +
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
-  scale_x_continuous(name = element_blank(), breaks=unique(dat.gather$parameter)) +
+  scale_x_continuous(name = name.label, breaks=unique(dat.gather$parameter)) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
       success.rate = "Success rate in %",
