@@ -32,8 +32,9 @@ def matcher(tag):
 reader = stable_nalu.reader.TensorboardMetricReader(
     args.tensorboard_dir,
     metric_matcher=matcher,
+    recursive_weight=True,
     step_start=1,
-    processes=2
+    processes=allowed_processes
 )
 
 with open(args.csv_out, 'w') as csv_fp:

@@ -36,11 +36,13 @@ class TensorboardMetricReader:
     def __init__(self, dirname,
                  metric_matcher=_everything_default_matcher,
                  step_start=0,
+                 recursive_weight=False,
                  processes=None,
                  progress_bar=True):
         self.dirname = dirname
         self.metric_matcher = metric_matcher
         self.step_start = step_start
+        self.recursive_weight = recursive_weight
 
         self.processes = processes
         self.progress_bar = progress_bar
@@ -60,6 +62,7 @@ class TensorboardMetricReader:
         sparse_error_max = 0
         sparse_error_sum = 0
         sparse_error_count = 0
+        recursive_weight = np.nan
 
         for e in tf.train.summary_iterator(filename):
             step = e.step - self.step_start
@@ -69,6 +72,8 @@ class TensorboardMetricReader:
                     columns['sparse.error.max'].append(sparse_error_max)
                     columns['sparse.error.sum'].append(sparse_error_sum)
                     columns['sparse.error.count'].append(sparse_error_count)
+                    if self.recursive_weight:
+                        columns['recursive.weight'].append(recursive_weight)
                     missing_sparse_error = False
                     sparse_errors_inserted += 1
 
@@ -104,6 +109,7 @@ class TensorboardMetricReader:
                         sparse_error_max = np.max(W_error)
                         sparse_error_sum = np.sum(W_error)
                         sparse_error_count = W_error.size
+                        recursive_weight = W[0, -1]
                     else:
                         sparse_error_max = max(sparse_error_max, np.max(W_error))
                         sparse_error_sum += np.sum(W_error)
@@ -116,10 +122,14 @@ class TensorboardMetricReader:
             columns['sparse.error.max'] = [None] * len(columns['step'])
             columns['sparse.error.sum'] = [None] * len(columns['step'])
             columns['sparse.error.count'] = [None] * len(columns['step'])
+            if self.recursive_weight:
+                columns['recursive.weight'] = [None] * len(columns['step'])
         elif missing_sparse_error:
             columns['sparse.error.max'].append(sparse_error_max)
             columns['sparse.error.sum'].append(sparse_error_sum)
             columns['sparse.error.count'].append(sparse_error_count)
+            if self.recursive_weight:
+                columns['recursive.weight'].append(recursive_weight)
 
         return columns
 
