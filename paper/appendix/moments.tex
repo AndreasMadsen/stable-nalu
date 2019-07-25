@@ -27,7 +27,7 @@ Using second order multivariate Taylor approximation and some assumptions of unc
 \begin{aligned}
 f(c_1, c_2) &= \left(1 + c_1 \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{c_2\ H_{\ell-1}} \\
 E[z_{h_\ell}] &\approx f\left(1, 1\right) \\
-Var[z_{h_2}] &\approx f\left(4, 1\right) - f\left(1, 2\right) \\
+Var[z_{h_\ell}] &\approx f\left(4, 1\right) - f\left(1, 2\right) \\
 E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &= 0 \\
 Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell}}}\right] H_{\ell}\ f\left(4, 1\right)\ Var[W_{h_{\ell}, h_{\ell-1}}] \\
 &\cdot \left(\frac{1}{\left(|E[z_{h_{\ell-1}}]| + \epsilon\right)^2} + \frac{3}{\left(|E[z_{h_{\ell-1}}]| + \epsilon\right)^4} Var[z_{h_{\ell-1}}]\right)

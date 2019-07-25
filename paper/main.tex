@@ -5,7 +5,7 @@
 % before loading neurips_2019
 
 % COMMENT for anonymous submission
-%\def\nonanonymous{}
+\def\nonanonymous{}
 
 \ifdefined\nonanonymous
 % to compile a preprint version, e.g., for submission to arXiv, add add the
@@ -82,25 +82,7 @@ $^\ddag$Computationally Demanding
 \maketitle
 
 \begin{abstract}
-%What’s the domain?
-Exact addition, subtraction, multiplication, and division of real numbers present a unique learning challenge for machine learning models.
-%What’s the issue?
-Neural networks can approximate complex functions by learning from labeled data.
-However, when extrapolating to out-of-distribution samples on arithmetic operations neural networks often fail. Learning the underlying logic, as opposed to an approximation, is crucial for applications such as comparing, counting, and inferring physical models.
-%What’s your contribution?
-Our proposed Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU) can learn the underlying rules of real number addition, subtraction, and multiplication by merely observing arithmetic examples and using backpropagation.
-%rely on constrained weights to learn rules using  and extrapolate well beyond the training distribution on addition, subtraction and multiplication.
-%We propose a plug-and-play differentiable neural unit that can be trained using stochastic gradient descent to learn addition, subtraction and multiplication between units of a hidden layer.
-%Why is it novel?
-%What’s interesting about it?
-The core novelty of NAU and NMU is their ability to efficiently learn sparse weights, which allows the unit to perform exact arithmetic operations.
-%The NAU can perform addition and subtraction using a linear layer of constrained weights.
-%The NMU can perform multiplication using an accumulative product of the input using gating with an identity function to mask out unwanted elements.
-%The weights are optimized with stochastic gradient decent with regularization for sparsity.
-%How does it perform?
-The NAU and NMU are inspired by the underlying arithmetic components of the Neural Arithmetic Logic Unit (NALU).
-Through analytic and empirical analysis we justify how the NAU and NMU improve over the Neural Arithmetic Logic Unit (NALU), a linear regression model and a ReLU based multi-layer perceptron (MLP).
-Our NAU and NMU have fewer parameters, converges more consistently, learn faster, and have more meaningful discrete values than the NALU and its arithmetic components.\ifdefined\nonanonymous\footnote{Implementation is available on GitHub: \url{https://github.com/AndreasMadsen/stable-nalu}.}\fi
+Exact addition, subtraction, multiplication, and division of real numbers present a unique learning challenge for machine learning models. Neural networks can approximate complex functions by learning from labeled data. However, when extrapolating to out-of-distribution samples on arithmetic operations neural networks often fail. Learning the underlying logic, as opposed to an approximation, is crucial for applications such as comparing, counting, and inferring physical models. Our proposed Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU) can learn the underlying rules of real number addition, subtraction, and multiplication by merely observing arithmetic examples and using backpropagation. The core novelty of NAU and NMU is their ability to efficiently learn sparse weights, which allows the unit to perform exact arithmetic operations. The NAU and NMU are inspired by the underlying arithmetic components of the Neural Arithmetic Logic Unit (NALU). Through analytic and empirical analysis we justify how the NAU and NMU improve over the NALU, a linear regression model and a ReLU based multi-layer perceptron. Our NAU and NMU have fewer parameters, converges more consistently, learn faster, and have more meaningful discrete values than the NALU and its arithmetic components.\ifdefined\nonanonymous\footnote{Implementation is available on GitHub: \url{https://github.com/AndreasMadsen/stable-nalu}.}\fi
 \end{abstract}
 
 \input{sections/introduction}
