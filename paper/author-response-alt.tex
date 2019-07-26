@@ -13,8 +13,6 @@
 \usepackage{todonotes}
 \usepackage{caption}
 
-\usepackage{lipsum}
-
 \begin{document}
 
 %#3comparison of performance with the original models on a set of arithmetic tasks (significance: medium to low)
@@ -33,14 +31,14 @@ Maybe, it is true that our NMU model, unlike $\mathrm{NAC}_{\bullet}$, does not 
 \centering
 \begin{minipage}{.48\textwidth}
   \centering
-  \includegraphics[width=\linewidth,trim={0 0 0 0},clip]{results/simple_function_static_mul_hidden_size.pdf}
+  \includegraphics[width=\linewidth,trim={0 0 0 0},clip]{results-author-response/simple_function_static_mul_hidden_size.pdf}
   \vspace{-0.65cm}
   \captionof{figure}{Shows effect of increasing hidden size, thus adding redundant hidden units. Sparsity error excluded due to space constraints.}
   \label{fig:sft-hidden-size}
 \end{minipage} \hspace{0.4cm}
 \begin{minipage}{.48\textwidth}
   \centering
-  \includegraphics[width=\linewidth,trim={0 0 0 0},clip]{results/sequential_mnist_prod_hidden_size_small_l9.pdf}
+  \includegraphics[width=\linewidth,trim={0 0 0 0},clip]{results-author-response/sequential_mnist_prod_hidden_size_small_l9.pdf}
   \vspace{-0.65cm}
   \captionof{figure}{Shows effect of the number of mnist hidden outputs, at sequence length 9, trained on sequence length 2. Sparsity error excluded due to space constraints.}
   \label{fig:test2}
