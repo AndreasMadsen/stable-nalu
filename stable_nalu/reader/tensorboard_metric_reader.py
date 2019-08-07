@@ -60,8 +60,6 @@ class TensorboardMetricReader:
         sparse_error_first_collected = True
         sparse_error_collected_at = None
         sparse_error_max = 0
-        sparse_error_sum = 0
-        sparse_error_count = 0
         recursive_weight = np.nan
 
         for e in tf.train.summary_iterator(filename):
@@ -70,8 +68,6 @@ class TensorboardMetricReader:
             for v in e.summary.value:
                 if missing_sparse_error and step != sparse_error_collected_at and not sparse_error_first_collected:
                     columns['sparse.error.max'].append(sparse_error_max)
-                    columns['sparse.error.sum'].append(sparse_error_sum)
-                    columns['sparse.error.count'].append(sparse_error_count)
                     if self.recursive_weight:
                         columns['recursive.weight'].append(recursive_weight)
                     missing_sparse_error = False
@@ -101,33 +97,26 @@ class TensorboardMetricReader:
                         missing_sparse_error = True
 
                 elif v.tag.endswith('W/text_summary'):
-                    W = _parse_numpy_str(v.tensor.string_val[0][5:-6].decode('ascii'))
-                    W_error = np.minimum(np.abs(W), np.abs(1 - np.abs(W)))
+                    if self.recursive_weight:
+                        W = _parse_numpy_str(v.tensor.string_val[0][5:-6].decode('ascii'))
+                        recursive_weight = W[0, -1]
 
+                elif v.tag.endswith('W/sparsity_error'):
                     # Step changed, update sparse error
                     if step != sparse_error_collected_at:
-                        sparse_error_max = np.max(W_error)
-                        sparse_error_sum = np.sum(W_error)
-                        sparse_error_count = W_error.size
-                        recursive_weight = W[0, -1]
+                        sparse_error_max = v.simple_value
                     else:
-                        sparse_error_max = max(sparse_error_max, np.max(W_error))
-                        sparse_error_sum += np.sum(W_error)
-                        sparse_error_count += W_error.size
+                        sparse_error_max = max(sparse_error_max, v.simple_value)
 
                     sparse_error_collected_at = step
                     sparse_error_first_collected = False
 
         if sparse_errors_inserted == 0:
             columns['sparse.error.max'] = [None] * len(columns['step'])
-            columns['sparse.error.sum'] = [None] * len(columns['step'])
-            columns['sparse.error.count'] = [None] * len(columns['step'])
             if self.recursive_weight:
                 columns['recursive.weight'] = [None] * len(columns['step'])
         elif missing_sparse_error:
             columns['sparse.error.max'].append(sparse_error_max)
-            columns['sparse.error.sum'].append(sparse_error_sum)
-            columns['sparse.error.count'].append(sparse_error_count)
             if self.recursive_weight:
                 columns['recursive.weight'].append(recursive_weight)
 

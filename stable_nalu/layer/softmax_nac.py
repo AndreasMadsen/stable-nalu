@@ -3,6 +3,7 @@ import math
 import torch
 
 from ..abstract import ExtendedTorchModule
+from ..functional import sparsity_error
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 class SoftmaxNACLayer(ExtendedTorchModule):
@@ -51,7 +52,9 @@ class SoftmaxNACLayer(ExtendedTorchModule):
 
         # Compute the linear multiplication as usual
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W, verbose_only=False)
+        self.writer.add_tensor('W', W)
+        self.writer.add_scalar('W/sparsity_error', sparsity_error(W), verbose_only=False)
+
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

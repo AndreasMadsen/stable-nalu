@@ -5,7 +5,7 @@ import torch
 import math
 
 from ..abstract import ExtendedTorchModule
-from ..functional import Regualizer
+from ..functional import Regualizer, sparsity_error
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 class ReRegualizedLinearNACLayer(ExtendedTorchModule):
@@ -55,7 +55,9 @@ class ReRegualizedLinearNACLayer(ExtendedTorchModule):
     def forward(self, input, reuse=False):
         W = torch.clamp(self.W, -1.0, 1.0)
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W, verbose_only=False)
+        self.writer.add_tensor('W', W)
+        self.writer.add_scalar('W/sparsity_error', sparsity_error(W), verbose_only=False)
+
         return torch.nn.functional.linear(input, W, self.bias)
 
     def extra_repr(self):

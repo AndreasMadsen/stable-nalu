@@ -5,7 +5,7 @@ import torch
 import math
 
 from ..abstract import ExtendedTorchModule
-from ..functional import mnac, Regualizer, RegualizerNMUZ
+from ..functional import mnac, Regualizer, sparsity_error, RegualizerNMUZ
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
 class ReRegualizedLinearPosNACLayer(ExtendedTorchModule):
@@ -72,7 +72,9 @@ class ReRegualizedLinearPosNACLayer(ExtendedTorchModule):
             else self.W
 
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W, verbose_only=False)
+        self.writer.add_tensor('W', W)
+        self.writer.add_scalar('W/sparsity_error', sparsity_error(W), verbose_only=False)
+
 
         return torch.nn.functional.linear(x, W, self.bias)
 

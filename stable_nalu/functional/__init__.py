@@ -6,3 +6,4 @@ from .batch_linear import batch_linear
 from .mnac import mnac
 from .regualizer import Regualizer
 from .regualizer_nmu_z import RegualizerNMUZ
+from .sparsity_error import sparsity_error

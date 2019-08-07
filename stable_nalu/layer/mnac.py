@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import scipy.optimize
 
-from ..functional import mnac
+from ..functional import mnac, sparsity_error
 from ..abstract import ExtendedTorchModule
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
@@ -32,7 +32,9 @@ class MNACLayer(ExtendedTorchModule):
     def forward(self, x, reuse=False):
         W = torch.sigmoid(self.W_hat)
         self.writer.add_histogram('W', W)
-        self.writer.add_tensor('W', W, verbose_only=False)
+        self.writer.add_tensor('W', W)
+        self.writer.add_scalar('W/sparsity_error', sparsity_error(W), verbose_only=False)
+
 
         return mnac(x, W)
 
