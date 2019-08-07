@@ -7,6 +7,7 @@ import torchvision
 from typing import Tuple, NamedTuple, Union
 
 from ._dataloader import DataLoaderCudaWrapper
+from ._partial_dataset import PartialDataset
 
 class ItemShape(NamedTuple):
     input: Tuple[Union[None, int], ...]
@@ -71,7 +72,7 @@ class SequentialMnistDataset:
             raise ValueError('bad operation')
 
     def fork(self, seq_length=10, subset='train', seed=None):
-        if subset not in {'train', 'test'}:
+        if subset not in {'train', 'valid', 'test'}:
             raise ValueError(f'subset must be either train or test, it is {subset}')
 
         rng = np.random.RandomState(self._rng.randint(0, 2**32 - 1) if seed is None else seed)
@@ -90,9 +91,9 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
         self._seq_length = seq_length
         self._rng = rng
 
-        self._dataset = torchvision.datasets.MNIST(
+        full_dataset = torchvision.datasets.MNIST(
             root=DATA_DIR,
-            train=subset == 'train',
+            train=subset in ['train', 'valid'],
             download=True,
             # Transform is from https://github.com/pytorch/examples/blob/master/mnist/main.py
             # which is what is also used in the NALU paper
@@ -101,6 +102,13 @@ class SequentialMnistDatasetFork(torch.utils.data.Dataset):
                 torchvision.transforms.Normalize((0.1307,), (0.3081,))
             ])
         )
+        if subset == 'train':
+            self._dataset = PartialDataset(full_dataset, 0, 55000)
+        elif subset == 'valid':
+            self._dataset = PartialDataset(full_dataset, 55000, 5000)
+        elif subset == 'test':
+            self._dataset = full_dataset
+
         self._index_mapping = self._rng.permutation([
             i for (i, (x, t)) in enumerate(self._dataset) if t in self._mnist_digits
         ])

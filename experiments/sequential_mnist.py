@@ -261,12 +261,10 @@ dataset = stable_nalu.dataset.SequentialMnistDataset(
 )
 dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader(shuffle=True)
 # Seeds are from random.org
-dataset_train_validation = dataset.fork(seq_length=args.interpolation_length, subset='train',
-                                        seed=62379872).dataloader(shuffle=False)
-dataset_train_classification = dataset.fork(seq_length=1, subset='train',
-                                           seed=3383872).dataloader(shuffle=False)
-dataset_test_classification = dataset.fork(seq_length=1, subset='test',
-                                           seed=47430696).dataloader(shuffle=False)
+dataset_train_full = dataset.fork(seq_length=args.interpolation_length, subset='train',
+                                  seed=62379872).dataloader(shuffle=False)
+dataset_valid = dataset.fork(seq_length=args.interpolation_length, subset='valid',
+                                  seed=47430696).dataloader(shuffle=False)
 dataset_test_extrapolations = [
     ( seq_length,
       dataset.fork(seq_length=seq_length, subset='test',
@@ -305,21 +303,6 @@ seq_index = slice(None) if dataset.get_item_shape().target[0] is None else -1
 def accuracy(y, t):
     return torch.mean((torch.round(y) == t).float())
 
-def test_mnist(dataloader):
-    with torch.no_grad(), model.no_internal_logging(), model.no_random():
-        mse_loss = 0
-        acc_last = 0
-        for x, t in dataloader:
-            # forward
-            l, _ = model(x)
-            mse_loss += min(criterion(l[:,0,i], t[:,0,0]).item() for i in range(l.size(-1))) * len(t)
-            acc_last += max(accuracy(l[:,0,i], t[:,0,0]).item() for i in range(l.size(-1))) * len(t)
-
-        return (
-            mse_loss / len(dataloader.dataset),
-            acc_last / len(dataloader.dataset)
-        )
-
 def test_model(dataloader):
     with torch.no_grad(), model.no_internal_logging(), model.no_random():
         mse_loss = 0
@@ -352,27 +335,27 @@ for epoch_i in range(0, args.max_epochs + 1):
 
         # Log validation
         if epoch_i % 5 == 0 and i_train == 0:
-            (model_train_validation_mse,
-             model_train_validation_acc_all,
-             model_train_validation_acc_last) = test_model(dataset_train_validation)
-            mnist_train_classification_mse, mnist_train_classification_acc = test_mnist(dataset_train_classification)
-            mnist_test_classification_mse, mnist_test_classification_acc = test_mnist(dataset_test_classification)
+            (train_full_mse,
+             train_full_acc_all,
+             train_full_acc_last) = test_model(dataset_train_full)
+            summary_writer.add_scalar('metric/train/mse', train_full_mse)
+            summary_writer.add_scalar('metric/train/acc/all', train_full_acc_all)
+            summary_writer.add_scalar('metric/train/acc/last', train_full_acc_last)
 
-            summary_writer.add_scalar('loss/valid/validation/mse', model_train_validation_mse)
-            summary_writer.add_scalar('loss/valid/validation/acc/all', model_train_validation_acc_all)
-            summary_writer.add_scalar('loss/valid/validation/acc/last', model_train_validation_acc_last)
-            summary_writer.add_scalar('loss/valid/mnist/mse', mnist_train_classification_mse)
-            summary_writer.add_scalar('loss/valid/mnist/acc', mnist_train_classification_acc)
-            summary_writer.add_scalar('loss/test/mnist/mse', mnist_test_classification_mse)
-            summary_writer.add_scalar('loss/test/mnist/acc', mnist_test_classification_acc)
+            (valid_mse,
+             valid_acc_all,
+             valid_acc_last) = test_model(dataset_valid)
+            summary_writer.add_scalar('metric/valid/mse', valid_mse)
+            summary_writer.add_scalar('metric/valid/acc/all', valid_acc_all)
+            summary_writer.add_scalar('metric/valid/acc/last', valid_acc_last)
 
             for seq_length, dataloader in dataset_test_extrapolations:
-                (model_test_extrapolation_mse,
-                 model_test_extrapolation_acc_all,
-                 model_test_extrapolation_acc_last) = test_model(dataloader)
-                summary_writer.add_scalar(f'loss/test/extrapolation/{seq_length}/mse', model_test_extrapolation_mse)
-                summary_writer.add_scalar(f'loss/test/extrapolation/{seq_length}/acc/all', model_test_extrapolation_acc_all)
-                summary_writer.add_scalar(f'loss/test/extrapolation/{seq_length}/acc/last', model_test_extrapolation_acc_last)
+                (test_extrapolation_mse,
+                 test_extrapolation_acc_all,
+                 test_extrapolation_acc_last) = test_model(dataloader)
+                summary_writer.add_scalar(f'metric/test/extrapolation/{seq_length}/mse', test_extrapolation_mse)
+                summary_writer.add_scalar(f'metric/test/extrapolation/{seq_length}/acc/all', test_extrapolation_acc_all)
+                summary_writer.add_scalar(f'metric/test/extrapolation/{seq_length}/acc/last', test_extrapolation_acc_last)
 
         # forward
         with summary_writer.force_logging(epoch_i % 5 == 0 and i_train == 0):
@@ -400,10 +383,8 @@ for epoch_i in range(0, args.max_epochs + 1):
         if epoch_i % 5 == 0 and i_train == 0:
             summary_writer.add_tensor('MNIST/train',
                                       torch.cat([mnist_y_train[:,0,:], t_train[:,0,:]], dim=1))
-            print('train %d: %.5f, valid: %.5f, %.3f (acc[last]), mnist: %.5f, %.3f (acc)' % (
-                epoch_i, loss_train_criterion,
-                model_train_validation_mse, model_train_validation_acc_last,
-                mnist_test_classification_mse, mnist_test_classification_acc
+            print('train %d: %.5f, full: %.5f, %.3f (acc[last]), valid: %.5f, %.3f (acc[last])' % (
+                epoch_i, loss_train_criterion, train_full_mse, train_full_acc_last, valid_mse, valid_acc_last
             ))
 
         # Optimize model

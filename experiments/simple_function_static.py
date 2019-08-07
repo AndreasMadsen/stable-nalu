@@ -282,7 +282,7 @@ print(f'  - dataset: {dataset.print_operation()}')
 # Interpolation and extrapolation seeds are from random.org
 dataset_train = iter(dataset.fork(sample_range=args.interpolation_range).dataloader(batch_size=args.batch_size))
 dataset_valid_interpolation_data = next(iter(dataset.fork(sample_range=args.interpolation_range, seed=43953907).dataloader(batch_size=10000)))
-dataset_valid_extrapolation_data = next(iter(dataset.fork(sample_range=args.extrapolation_range, seed=8689336).dataloader(batch_size=10000)))
+dataset_test_extrapolation_data = next(iter(dataset.fork(sample_range=args.extrapolation_range, seed=8689336).dataloader(batch_size=10000)))
 
 # setup model
 model = stable_nalu.network.SimpleFunctionStaticNetwork(
@@ -327,8 +327,8 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
         interpolation_error = test_model(dataset_valid_interpolation_data)
         extrapolation_error = test_model(dataset_valid_extrapolation_data)
 
-        summary_writer.add_scalar('loss/valid/interpolation', interpolation_error)
-        summary_writer.add_scalar('loss/valid/extrapolation', extrapolation_error)
+        summary_writer.add_scalar('metric/valid/interpolation', interpolation_error)
+        summary_writer.add_scalar('metric/test/extrapolation', extrapolation_error)
 
     # forward
     y_train = model(x_train)
