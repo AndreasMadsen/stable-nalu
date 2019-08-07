@@ -8,7 +8,7 @@ from ..abstract import ExtendedTorchModule
 from ..functional import mnac, Regualizer, RegualizerNMUZ
 from ._abstract_recurrent_cell import AbstractRecurrentCell
 
-class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
+class ReRegualizedLinearPosNACLayer(ExtendedTorchModule):
     """Implements the NAC (Neural Accumulator)
 
     Arguments:
@@ -74,21 +74,14 @@ class ReRegualizedLinearMNACLayer(ExtendedTorchModule):
         self.writer.add_histogram('W', W)
         self.writer.add_tensor('W', W, verbose_only=False)
 
-        if self.mnac_normalized:
-            c = torch.std(x)
-            x_normalized = x / c
-            z_normalized = mnac(x_normalized, W, mode='prod')
-            out = z_normalized * (c ** torch.sum(W, 1))
-        else:
-            out = mnac(x, W, mode='prod')
-        return out
+        return torch.nn.functional.linear(x, W, self.bias)
 
     def extra_repr(self):
         return 'in_features={}, out_features={}'.format(
             self.in_features, self.out_features
         )
 
-class ReRegualizedLinearMNACCell(AbstractRecurrentCell):
+class ReRegualizedLinearPosNACCell(AbstractRecurrentCell):
     """Implements the NAC (Neural Accumulator) as a recurrent cell
 
     Arguments:
@@ -96,4 +89,4 @@ class ReRegualizedLinearMNACCell(AbstractRecurrentCell):
         hidden_size: number of outgoing features
     """
     def __init__(self, input_size, hidden_size, **kwargs):
-        super().__init__(ReRegualizedLinearMNACLayer, input_size, hidden_size, **kwargs)
+        super().__init__(ReRegualizedLinearPosNACLayer, input_size, hidden_size, **kwargs)

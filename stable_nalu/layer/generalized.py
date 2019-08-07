@@ -37,6 +37,8 @@ from .re_regualized_linear_nac import ReRegualizedLinearNACLayer, ReRegualizedLi
 from .re_regualized_linear_mnac import ReRegualizedLinearMNACLayer, ReRegualizedLinearMNACCell
 from .re_regualized_linear_nalu import ReRegualizedLinearNALULayer, ReRegualizedLinearNALUCell
 
+from .re_regualized_linear_pos_nac import ReRegualizedLinearPosNACLayer, ReRegualizedLinearPosNACCell
+
 from .silly_re_regualized_linear_mnac import SillyReRegualizedLinearMNACLayer, SillyReRegualizedLinearMNACCell
 
 from ..abstract import ExtendedTorchModule
@@ -76,9 +78,11 @@ unit_name_to_layer_class = {
     'ReRegualizedLinearMNAC': ReRegualizedLinearMNACLayer,
     'ReRegualizedLinearNALU': ReRegualizedLinearNALULayer,
 
+    'ReRegualizedLinearPosNAC': ReRegualizedLinearPosNACLayer,
+
     'SillyReRegualizedLinearNAC': None,
     'SillyReRegualizedLinearMNAC': SillyReRegualizedLinearMNACLayer,
-    'SillyReRegualizedLinearNALU': None
+    'SillyReRegualizedLinearNALU': None,
 }
 
 unit_name_to_cell_class = {
@@ -111,6 +115,8 @@ unit_name_to_cell_class = {
     'ReRegualizedLinearNAC': ReRegualizedLinearNACCell,
     'ReRegualizedLinearMNAC': ReRegualizedLinearMNACCell,
     'ReRegualizedLinearNALU': ReRegualizedLinearNALUCell,
+
+    'ReRegualizedLinearPosNAC': ReRegualizedLinearPosNACCell,
 }
 
 class GeneralizedLayer(ExtendedTorchModule):
