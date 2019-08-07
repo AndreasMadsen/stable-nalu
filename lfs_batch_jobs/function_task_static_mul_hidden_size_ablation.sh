@@ -2,7 +2,7 @@
 export LSB_JOB_REPORT_MAIL=N
 experiment_name='function_task_static_mul_hidden_size_ablation'
 operation=mul
-hidden_sizes=( 2 3 4 5 6 )
+hidden_sizes=( 2 3 4 5 6 7 8 9 10 )
 verbose_flag=''
 for seed in {0..24}
 do
