@@ -45,7 +45,7 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-plot.parameter = function(name.parameter, name.label, name.file, name.output) {
+plot.parameter = function(name.parameter, name.label, name.file, name.output, x.axis.breaks) {
   dat = expand.name(read_csv(name.file)) %>%
     merge(eps) %>%
     mutate(
@@ -127,7 +127,7 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
     geom_line(aes(y = mean.value)) +
     geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
     scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-    xlab(name.label) +
+    scale_x_continuous(name = name.label, breaks=x.axis.breaks) +
     scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
@@ -142,8 +142,8 @@ plot.parameter = function(name.parameter, name.label, name.file, name.output) {
   ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
 }
 
-plot.parameter('input.size', 'Size of the input vector', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf')
+plot.parameter('input.size', 'Size of the input vector', '../results/function_task_static_mul_input_size.csv', '../paper/results/simple_function_static_input_size.pdf', c(0, 100, 200, 300))
 #plot.parameter('subset.ratio', 'Relative size of subsets compared to input size', '../results/function_task_static_mul_subset.csv', '../paper/results/simple_function_static_subset.pdf')
 #plot.parameter('overlap.ratio', 'The ratio of which subsets overlap with each other', '../results/function_task_static_mul_overlap.csv', '../paper/results/simple_function_static_overlap.pdf')
-#plot.parameter('hidden.size', 'Hidden size', '../results/function_task_static_mul_hidden_size.csv', '../paper/results/simple_function_static_hidden_size.pdf')
+#plot.parameter('hidden.size', 'Hidden size', '../results/function_task_static_mul_hidden_size.csv', '../paper/results/simple_function_static_hidden_size.pdf', c(2, 4, 6, 8, 10))
 

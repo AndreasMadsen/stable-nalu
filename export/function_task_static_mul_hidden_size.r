@@ -125,14 +125,17 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
-p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
+p = ggplot(
+    dat.gather %>%
+      filter(key %in% c("success.rate", "converged.at")),
+    aes(x = parameter, colour=model)
+  ) +
   geom_point(aes(y = mean.value)) +
   geom_line(aes(y = mean.value)) +
   geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
-  scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  xlab(name.label) +
+  scale_color_discrete(name = element_blank(), labels = model.to.exp(levels(dat.gather$model))) +
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
-  scale_x_continuous(name = name.label, breaks=unique(dat.gather$parameter)) +
+  scale_x_continuous(name = element_blank(), breaks=c(2, 4, 6, 8, 10)) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
       success.rate = "Success rate in %",
@@ -141,5 +144,10 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
     )
   )) +
   theme(legend.position="bottom") +
-  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
+  theme(
+    plot.margin=unit(c(5.5, 5.5, 5.5, 5.5), "points"),
+    axis.title = element_blank(),
+    legend.margin=unit(c(0, 0, 5.5, 0), "points")
+  )
 print(p)
+ggsave(name.output, p, device="pdf", width = 8, height = 4, scale=1.4, units = "cm")

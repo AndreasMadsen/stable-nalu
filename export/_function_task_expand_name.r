@@ -11,6 +11,7 @@ model.full.to.short = c(
   'nalu'='NALU',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU',
+  'reregualizedlinearposnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$',
   'regualizedlinearnac-nac-m'='NMU, $\\mathbf{W} = \\mathbf{\\hat{W}}$',
   'sillyreregualizedlinearnac-nac-m'='NMU, $\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$'
 )
@@ -28,6 +29,10 @@ model.latex.to.exp = c(
                                                 phantom()[{
                                                   paste("", symbol("\xb7"), ",", sigma)
                                                 }], "")),
+  '$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$'=expression(paste("", "", plain(paste("NAC")), 
+                                                      phantom()[{
+                                                        paste("", symbol("\xb7"), ",", plain(paste("NMU")))
+                                                      }], "")),
   'NALU'='NALU',
   'NAU'='NAU',
   'NMU'='NMU',

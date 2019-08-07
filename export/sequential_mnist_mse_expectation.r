@@ -43,8 +43,8 @@ simulate.mse = function (epsilon, sigma.2, samples, operation, digits, extrapola
 }
 
 mse = rbind(
- simulate.mse(NA, 0.25, 100000, 'cumsum', 0:9, c(1, 10, 100, 1000)), #0.25
- simulate.mse(NA, 0.25, 100000, 'cumprod', 1:9, seq(1,9)) # 0.25
+ #simulate.mse(NA, 0.25, 100000, 'cumsum', 0:9, c(1, 10, 100, 1000)), #0.25
+ simulate.mse(NA, 0.125, 100000, 'cumprod', 1:9, seq(1,9)) # 0.25
 )
 print(mse)
 write.csv(mse, file="../results/sequential_mnist_mse_expectation.csv", row.names=F)

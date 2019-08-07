@@ -4,6 +4,7 @@ model.full.to.short = c(
   'nac'='$\\mathrm{NAC}_{+}$',
   'nac-nac-n'='$\\mathrm{NAC}_{\\bullet}$',
   'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\sigma}$',
+  'reregualizedlinearposnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$',
   'nalu'='NALU',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU'
@@ -22,6 +23,10 @@ model.latex.to.exp = c(
                                                         phantom()[{
                                                           paste("", symbol("\xb7"), ",", sigma)
                                                         }], "")),
+  '$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$'=expression(paste("", "", plain(paste("NAC")), 
+                                                              phantom()[{
+                                                                paste("", symbol("\xb7"), ",", plain(paste("NMU")))
+                                                              }], "")),
   'LSTM'='LSTM',
   'NALU'='NALU',
   'NAU'='NAU',
@@ -102,6 +107,11 @@ model.get.simplification.setup = function (model) {
   } else {
     return(NA)
   }
+}
+
+extrapolation.loss.name.to.integer = function (loss.name) {
+  split = strsplit(loss.name, '\\.')[[1]]
+  return(as.integer(split[4]))
 }
 
 expand.name = function (df) {
