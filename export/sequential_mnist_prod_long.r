@@ -38,21 +38,21 @@ safe.interval = function (alpha, vec) {
   return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
 }
 
-alpha = 0.001
+alpha = 0.01
 
-eps = expand.name(read_csv('../results/mnist-reference-solved.csv')) %>%
+eps = expand.name(read_csv('../results/sequential_mnist_prod_reference.csv')) %>%
   gather(
     key="test.extrapolation.length", value="test.extrapolation.mse",
-    loss.test.extrapolation.1.mse, loss.test.extrapolation.2.mse,
-    loss.test.extrapolation.3.mse, loss.test.extrapolation.4.mse,
-    loss.test.extrapolation.5.mse, loss.test.extrapolation.6.mse,
-    loss.test.extrapolation.7.mse, loss.test.extrapolation.8.mse,
-    loss.test.extrapolation.9.mse, loss.test.extrapolation.10.mse,
-    loss.test.extrapolation.11.mse, loss.test.extrapolation.12.mse,
-    loss.test.extrapolation.13.mse, loss.test.extrapolation.14.mse,
-    loss.test.extrapolation.15.mse, loss.test.extrapolation.16.mse,
-    loss.test.extrapolation.17.mse, loss.test.extrapolation.18.mse,
-    loss.test.extrapolation.19.mse, loss.test.extrapolation.20.mse
+    metric.test.extrapolation.1.mse, metric.test.extrapolation.2.mse,
+    metric.test.extrapolation.3.mse, metric.test.extrapolation.4.mse,
+    metric.test.extrapolation.5.mse, metric.test.extrapolation.6.mse,
+    metric.test.extrapolation.7.mse, metric.test.extrapolation.8.mse,
+    metric.test.extrapolation.9.mse, metric.test.extrapolation.10.mse,
+    metric.test.extrapolation.11.mse, metric.test.extrapolation.12.mse,
+    metric.test.extrapolation.13.mse, metric.test.extrapolation.14.mse,
+    metric.test.extrapolation.15.mse, metric.test.extrapolation.16.mse,
+    metric.test.extrapolation.17.mse, metric.test.extrapolation.18.mse,
+    metric.test.extrapolation.19.mse, metric.test.extrapolation.20.mse
   ) %>%
   rowwise() %>%
   mutate(
@@ -60,10 +60,10 @@ eps = expand.name(read_csv('../results/mnist-reference-solved.csv')) %>%
   ) %>%
   group_by(seed, test.extrapolation.length) %>%
   summarise(
-    best.model.step = best.model.step.fn(loss.valid.validation.mse),
+    best.model.step = best.model.step.fn(metric.valid.mse),
     threshold = test.extrapolation.mse[best.model.step],
   ) %>%
-  filter(seed %in% c(0,1,2,4,5,6,7,9)) %>% # seed 3 and 8 did not solve it
+  filter(seed %in% c(0,2,4,5,6,7,9)) %>% # seed 1, 3, and 8 did not solve it
   group_by(test.extrapolation.length) %>%
   summarise(
     threshold = mean(threshold) + qt(1 - alpha, 8) * sd(threshold)
@@ -71,42 +71,25 @@ eps = expand.name(read_csv('../results/mnist-reference-solved.csv')) %>%
 
 max.epoch = 250
 
-dat = rbind(
-    expand.name(read_csv('../results/sequential_mnist_prod_long.csv')) %>%
-      filter(model %in% c(
-        '$\\mathrm{NAC}_{\\bullet,\\sigma}$', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'
-      ) & epoch < 1000),
-    expand.name(read_csv('../results/sequential_mnist_prod_long_fix.csv')) %>%
-      filter(model %in% c(
-        'NMU'
-      ) & epoch < max.epoch & regualizer.z == 0),
-    expand.name(read_csv('../results/sequential_mnist_prod_long_fix.csv')) %>%
-      filter(model %in% c(
-        '$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$'
-      ) & epoch < max.epoch & regualizer.z == 0)
-  ) %>%
+dat = expand.name(read_csv('../results/sequential_mnist_prod_long.csv')) %>%
   gather(
     key="test.extrapolation.length", value="test.extrapolation.mse",
-    loss.test.extrapolation.1.mse, loss.test.extrapolation.2.mse,
-    loss.test.extrapolation.3.mse, loss.test.extrapolation.4.mse,
-    loss.test.extrapolation.5.mse, loss.test.extrapolation.6.mse,
-    loss.test.extrapolation.7.mse, loss.test.extrapolation.8.mse,
-    loss.test.extrapolation.9.mse, loss.test.extrapolation.10.mse,
-    loss.test.extrapolation.11.mse, loss.test.extrapolation.12.mse,
-    loss.test.extrapolation.13.mse, loss.test.extrapolation.14.mse,
-    loss.test.extrapolation.15.mse, loss.test.extrapolation.16.mse,
-    loss.test.extrapolation.17.mse, loss.test.extrapolation.18.mse,
-    loss.test.extrapolation.19.mse, loss.test.extrapolation.20.mse
+    metric.test.extrapolation.1.mse, metric.test.extrapolation.2.mse,
+    metric.test.extrapolation.3.mse, metric.test.extrapolation.4.mse,
+    metric.test.extrapolation.5.mse, metric.test.extrapolation.6.mse,
+    metric.test.extrapolation.7.mse, metric.test.extrapolation.8.mse,
+    metric.test.extrapolation.9.mse, metric.test.extrapolation.10.mse,
+    metric.test.extrapolation.11.mse, metric.test.extrapolation.12.mse,
+    metric.test.extrapolation.13.mse, metric.test.extrapolation.14.mse,
+    metric.test.extrapolation.15.mse, metric.test.extrapolation.16.mse,
+    metric.test.extrapolation.17.mse, metric.test.extrapolation.18.mse,
+    metric.test.extrapolation.19.mse, metric.test.extrapolation.20.mse
   ) %>%
   mutate(
-    valid.mse=loss.valid.validation.mse,
-    valid.acc.all=loss.valid.validation.acc.all,
-    valid.acc.last=loss.valid.validation.acc.last,
-    valid.mnist.acc=loss.valid.mnist.acc,
-    test.mnist.acc=loss.test.mnist.acc,
+    valid.interpolation.mse=metric.valid.mse,
+    train.interpolation.mse=metric.train.mse
   ) %>%
-  select(-starts_with("loss.test")) %>%
-  select(-starts_with("loss.valid")) %>%
+  select(-metric.valid.mse, -metric.train.mse) %>%
   rowwise() %>%
   mutate(
     test.extrapolation.length = extrapolation.loss.name.to.integer(test.extrapolation.length)
@@ -117,18 +100,15 @@ dat.last = dat %>%
   group_by(name, test.extrapolation.length) %>%
   summarise(
     threshold = last(threshold),
-    best.model.step = best.model.step.fn(valid.mse),
+    best.model.step = best.model.step.fn(valid.interpolation.mse),
 
-    valid.mse.last = valid.mse[best.model.step],
-    test.mnist.acc.last = test.mnist.acc[best.model.step],
-    test.extrapolation.mse.last = test.extrapolation.mse[best.model.step],
-
+    valid.interpolation.mse.best = valid.interpolation.mse[best.model.step],
+    test.extrapolation.mse.best = test.extrapolation.mse[best.model.step],
     extrapolation.epoch.solved = first.solved.step(epoch, test.extrapolation.mse, threshold),
 
     sparse.error.max = sparse.error.max[best.model.step],
-    sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-
     solved = replace_na(test.extrapolation.mse[best.model.step] < threshold, FALSE),
+    
     model = last(model),
     operation = last(operation),
     regualizer.z = last(regualizer.z),
@@ -165,8 +145,8 @@ dat.gather.mean = dat.last.rate %>%
 dat.gather.upper = dat.last.rate %>%
   mutate(
     success.rate = success.rate.upper,
-    converged.at = ifelse(converged.at.upper > 1000, NA, converged.at.upper),
-    sparse.error = ifelse(sparse.error.upper > 1, NA, sparse.error.upper)
+    converged.at = converged.at.upper,
+    sparse.error = sparse.error.upper
   ) %>%
   select(model, operation, test.extrapolation.length, regualizer.z, success.rate, converged.at, sparse.error) %>%
   gather('key', 'upper.value', success.rate, converged.at, sparse.error)
@@ -174,8 +154,8 @@ dat.gather.upper = dat.last.rate %>%
 dat.gather.lower = dat.last.rate %>%
   mutate(
     success.rate = success.rate.lower,
-    converged.at = ifelse(converged.at.lower < 0, NA, converged.at.lower),
-    sparse.error = ifelse(sparse.error.lower < 0, NA, sparse.error.lower)
+    converged.at = converged.at.lower,
+    sparse.error = sparse.error.lower
   ) %>%
   select(model, operation, test.extrapolation.length, regualizer.z, success.rate, converged.at, sparse.error) %>%
   gather('key', 'lower.value', success.rate, converged.at, sparse.error)
@@ -189,55 +169,39 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
-p = ggplot(dat.gather, aes(x = test.extrapolation.length, colour=model)) +
-  geom_point(aes(y = mean.value)) +
-  geom_line(aes(y = mean.value)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), width = 0.5) +
-  scale_color_discrete(name=element_blank(), labels = model.to.exp(levels(dat.gather$model))) +
-  scale_x_continuous(
-    name = paste0("Extrapolation length (alpha = ", (alpha * 100), "%)"),
-    breaks=c(1,seq(2,20,2))
-  ) +
-  scale_y_continuous(name = element_blank()) +
-  facet_wrap(~ key, scales='free_y', labeller = labeller(
-    key = c(
-      success.rate = "Success rate in %",
-      converged.at = "Solved at epoch",
-      sparse.error = "Sparsity error"
-    )
-  )) +
-  theme(legend.position="bottom") +
-  theme(
-    plot.margin=unit(c(5.5, 5.5, 5.5, 5.5), "points")#,
-    #legend.margin=unit(c(0, 0, 5.5, 0), "points")
+plot.by.regualizer.z = function (regualizer.z.show) {
+  dat.plot = dat.gather %>% filter(
+    (regualizer.z == regualizer.z.show & model %in% c('$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$', 'NMU')) |
+    model %in% c('$\\mathrm{NAC}_{\\bullet}$', '$\\mathrm{NAC}_{\\bullet,\\sigma}$', 'LSTM', 'NALU')
   )
-print(p)
+  
+  p = ggplot(dat.plot, aes(x = test.extrapolation.length, colour=model)) +
+    geom_point(aes(y = mean.value)) +
+    geom_line(aes(y = mean.value)) +
+    geom_errorbar(aes(ymin = lower.value, ymax = upper.value), width = 0.5) +
+    scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
+    scale_x_continuous(
+      name = paste0("Extrapolation length (alpha = ", (alpha * 100), "%)"),
+      breaks=c(1,seq(2,20,2))
+    ) +
+    scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+    facet_wrap(~ key, scales='free_y', labeller = labeller(
+      key = c(
+        success.rate = "Success rate in %",
+        converged.at = "Solved at epoch",
+        sparse.error = "Sparsity error"
+      )
+    )) +
+    theme(legend.position="bottom") +
+    theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points")) +
+    guides(colour = guide_legend(nrow = 1))
+  return(p)
+}
 
-p = ggplot(
-    dat.gather %>% filter(key %in% c("success.rate", "converged.at")),
-    aes(x = test.extrapolation.length, colour=model)
-  ) +
-  geom_point(aes(y = mean.value)) +
-  geom_line(aes(y = mean.value)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), width = 0.5) +
-  scale_color_discrete(name=element_blank(), labels = model.to.exp(levels(dat.gather$model))) +
-  scale_x_continuous(
-    name = element_blank(),
-    breaks=c(1,seq(2,20,2))
-  ) +
-  scale_y_continuous(name = element_blank()) +
-  facet_wrap(~ key, scales='free_y', labeller = labeller(
-    key = c(
-      success.rate = "Success rate in %",
-      converged.at = "Solved at epoch",
-      sparse.error = "Sparsity error"
-    )
-  )) +
-  theme(legend.position="bottom") +
-  theme(
-    plot.margin=unit(c(5.5, 5.5, 5.5, 5.5), "points"),
-    axis.title = element_blank(),
-    legend.margin=unit(c(0, 0, 5.5, 0), "points")
-  )
-print(p)
-ggsave('../paper/results/sequential_mnist_prod_long.pdf', p, device="pdf", width = 8, height = 4, scale=1.4, units = "cm")
+p.with.R.z = plot.by.regualizer.z(1)
+print(p.with.R.z)
+ggsave('../paper/results/sequential_mnist_prod_long.pdf', p.with.R.z, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
+
+p.without.R.z = plot.by.regualizer.z(0)
+print(p.without.R.z)
+ggsave('../paper/results/sequential_mnist_prod_long_ablation.pdf', p.without.R.z, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")

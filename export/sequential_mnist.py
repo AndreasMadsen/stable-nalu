@@ -26,7 +26,11 @@ else:
 
 def matcher(tag):
     return (
-        tag.startswith('loss/valid') or tag.startswith('loss/test')
+        (
+            tag.startswith('metric/train') or
+            tag.startswith('metric/valid') or
+            tag.startswith('metric/test/extrapolation/')
+        ) and tag.endswith('/mse')
     )
 
 reader = stable_nalu.reader.TensorboardMetricReader(

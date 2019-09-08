@@ -25,7 +25,7 @@ else:
     allowed_processes = None
 
 def matcher(tag):
-    return tag in ['loss/valid/interpolation', 'loss/valid/extrapolation']
+    return tag in ['metric/valid/interpolation', 'metric/test/extrapolation']
 
 reader = stable_nalu.reader.TensorboardMetricReader(
     args.tensorboard_dir,

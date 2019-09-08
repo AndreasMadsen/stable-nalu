@@ -37,17 +37,17 @@ safe.interval = function (alpha, vec) {
 }
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter == 'default') %>%
+  filter(simple == FALSE & parameter == 'input.size') %>%
   mutate(
     operation = revalue(operation, operation.full.to.short)
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-name.parameter = 'hidden.size'
-plot.label = 'Hidden size'
-plot.x.breaks = c(2, 4, 6, 8, 10)
-name.input = '../results/function_task_static_mul_hidden_size.csv'
-name.output = '../paper/results/simple_function_static_mul_hidden_size.pdf'
+name.parameter = 'input.size'
+plot.label = 'Size of the input vector'
+plot.x.breaks = c(0, 100, 200, 300)
+name.input = '../results/function_task_static_mul_input_size.csv'
+name.output = '../paper/results/simple_function_static_mul_input_size.pdf'
 
 dat = expand.name(read_csv(name.input)) %>%
   merge(eps) %>%
@@ -142,3 +142,4 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
   theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
 print(p)
 ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
+

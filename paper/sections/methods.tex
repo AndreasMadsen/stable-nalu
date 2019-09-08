@@ -3,7 +3,7 @@
 We define our problem as learning a set of static arithmetic operations between the elements of a vector. E.g. for a vector $\mathbf{x}$ learn the function ${x_5 + x_1 \cdot x_7}$.
 This is formalized as
 \begin{equation}
-x_1\circ_1 x_2 \circ_2 \cdots x_{k-1} \circ_{k-1} x_{k}\ |\ x_1, x_2, \dots, x_k \in \mathbf{x}, \mathbf{x} \in \mathbb{R}^n, \circ_i \in \{+, -, \times, \div \}.
+z_{h_\ell} = z_1 \circ_{\ell-1} z_{2} \circ_{\ell-1} \cdots z_{k-1} \circ_{\ell-1} z_{{k}}\ |\ z_1, z_2, \cdots, z_k \in \mathbf{z}_{\ell-1}, \circ_{\ell-1} \in \{+, -, \times, \div \}.
 \label{eq:goal}
 \end{equation}
 The Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu} attempts to solve problem \ref{eq:goal} by introducing two sub-units; the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ that exclusively represent either the $\{+, -\}$ or the $\{\times, \div \}$ operations.
@@ -15,13 +15,13 @@ W_{h_\ell, h_{\ell-1}} &= \tanh(\hat{W}_{h_\ell, h_{\ell-1}}) \sigma(\hat{M}_{h_
 \textrm{NAC}_+:\ z_{h_\ell} &= \sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}} \label{eq:naca}\\
 \textrm{NAC}_\bullet:\ z_{h_\ell} &= \exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \label{eq:nacm}\log(|z_{h_{\ell-1}}| + \epsilon) \right)
 \end{align}
-where $\hat{\mathbf{W}}, \hat{\mathbf{M}} \in \mathbb{R}^{H_{\ell} \times H_{\ell-1}}$ are trainable weight matrices, $z_{h_{\ell-1}}$ is the input of size $H_{\ell-1}$, and $H_{\ell}$ is the output size. The matrices are combined using tanh and sigmoid transformation to bias the parameters towards a $\{-1,0,1\}$ solution. Having $\{-1,0,1\}$ allows a linear layer to exactly emulate the binary $\{+, -\}$ operation between elements of a vector as used when computing the $\text{NAC}_{+}$.
-The $\text{NAC}_{\bullet}$ extends the $\text{NAC}_{+}$ by using an exponential log transformation, which, with $\{-1,0,1\}$ weight values, becomes the $\{\times, \div \}$ operations (within $\epsilon$ precision).
+where $\hat{\mathbf{W}}, \hat{\mathbf{M}} \in \mathbb{R}^{H_{\ell} \times H_{\ell-1}}$ are trainable weight matrices, $z_{h_{\ell-1}}$ is the input of size $H_{\ell-1}$, and $H_{\ell}$ is the output size. The matrices are combined using a tanh-sigmoid transformation to bias the parameters towards a $\{-1,0,1\}$ solution. Having $\{-1,0,1\}$ allows a linear layer to exactly emulate the binary $\{+, -\}$ operation between elements of a vector as used when computing the $\text{NAC}_{+}$.
+The $\text{NAC}_{\bullet}$ extends the $\text{NAC}_{+}$ by using an exponential-log transformation, which, with $\{-1,0,1\}$ weight values, becomes the $\{\times, \div \}$ operations (within $\epsilon$ precision).
 
 The NALU combines these units with a gating mechanism $\mathbf{z} = \mathbf{g} \odot \text{NAC}_{+} + (1 - \mathbf{g}) \odot \text{NAC}_{\bullet}$ given $\mathbf{g} = \sigma(\mathbf{G} \mathbf{x})$. The idea is that the NALU should be a plug-and-play component in a neural network that has the ability to, with stochastic gradient descent and backpropagation, learn the functionality in problem \ref{eq:goal}.
 
 \subsection{Challenges of the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$}
-To simplify the problem we have chosen to leave out the gating mechanism and focus on the sub-units, assuming "oracle gating". The gating mechanism of the NALU is difficult to converge, as shown in table \ref{tab:function-task-static-defaults}. This is likely due to the vastly different gradients, causing addition to be learned much faster than multiplication.
+To simplify the problem we have chosen to leave out the gating mechanism and focus on the sub-units, assuming "oracle gating". The gating mechanism of the NALU is difficult to converge, as shown in table \ref{tab:function-task-static-defaults}. This is likely due to the vastly different convergence properties. The independence in addition is a lot easier to learn than the heavily dependent multiplication operations, even for problems where addition is not the desired operation. Because addition converges faster, it becomes the best estimator early on and the gate will then choose addition. This causes the multiplication unit to be completely ignored, making it impossible for it to converge even if it is the desired operation.
 
 %In section \ref{sssec:weight} we analyse the gradients of equation \ref{eq:weight} and propose a cliped linear alternative, with a regularizer that biases towards $\{-1, 0, 1\}$. This results in an alternative addition unit called NAU.
 
@@ -47,28 +47,39 @@ However, for this initialization the gradient of the loss with respect to  $\hat
 
 Secondly, in our empirical analysis (see table \ref{tab:function-task-static-defaults}) we find that equation \ref{eq:weight} does not create the desired bias for $\{-1, 0, 1\}$ for the addition and subtraction problem.
 
-To create the desired bias of $\{-1, 0, 1\}$ we add a biasing regularizer $\mathcal{R}_{\ell,\mathrm{bias}}$. To prevent the gradient challenges when $E[\hat{W}_{h_{\ell-1},h_\ell}] = 0$ we propose a simple clamped linear construction with an out-of-bound regularizer $\mathcal{R}_{\ell,\mathrm{oob}}$ to force $\hat{W}$ to be within $[-1, 1]$ and ensure that the gradient is always present. These regularizers are added to the loss function, $\mathcal{L} = \hat{\mathcal{L}} + \lambda_{\mathrm{bias}} \mathcal{R}_{\ell,\mathrm{bias}} + \lambda_{\mathrm{oob}} \mathcal{R}_{\ell,\mathrm{oob}}$.
+To create the desired bias of $\{-1, 0, 1\}$ we add a biasing regularizer to the loss function, $\mathcal{L} = \hat{\mathcal{L}} + \lambda_{\mathrm{sparse}} \mathcal{R}_{\ell,\mathrm{sparse}}$. To prevent the gradient challenges when $E[\hat{W}_{h_{\ell-1},h_\ell}] = 0$ we propose a simple clamped linear construction, where $\hat{W}_{h_{\ell-1},h_\ell}$ is clamped to $[-1, 1]$ in each iteration.
 \begin{align}
-W_{h_{\ell-1},h_\ell} &= \min(\max(\hat{W}_{h_{\ell-1},h_\ell}, -1), 1), \\
-\mathcal{R}_{\ell,\mathrm{bias}} &= \frac{1}{H_\ell \cdot H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \hat{W}_{h_{\ell-1},h_\ell}^2 (1 - |\hat{W}_{h_{\ell-1},h_\ell}|)^2 \\
-\mathcal{R}_{\ell,\mathrm{oob}} &= \frac{1}{H_\ell \cdot H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \max(|\hat{W}_{h_{\ell-1},h_\ell}| - 1, 0)^2 \\
+W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, -1), 1), \\
+\mathcal{R}_{\ell,\mathrm{sparse}} &= \frac{1}{H_\ell \cdot H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \min\left(|W_{h_{\ell-1},h_\ell}|, 1 - \left|W_{h_{\ell-1},h_\ell}\right|\right) \\
 \textrm{NAU}:\ z_{h_\ell} &= \sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}}
 \end{align}
 
 \subsubsection{Challenges of division} \label{sssec:nac-mul}
 
-The $\text{NAC}_{\bullet}$, as formulated in equation \ref{eq:nacm}, has the ability to learn exact multiplication and division of elements from a vector if the weights of $W_{h_{\ell-1},h_\ell} \in \{-1, 0, 1\}$.
+The $\text{NAC}_{\bullet}$, as formulated in equation \ref{eq:nacm}, has the ability to perform exact division, or more precisely multiplication of the inverse of elements from a vector, when a weight in $W_{h_{\ell-1},h_\ell}$ is $-1$.
 
-However, backpropagation through the $\text{NAC}_{\bullet}$ unit (equation \ref{eq:dz}, derivation in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nac-mul}) reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative and $\epsilon$ is small, the gradient term will explode and oscillate between large positive and large negative values, which can be problematic in optimization \cite{adam-optimization}, as visualized in figure \ref{fig:nac-mul-eps-issue}.
-\begin{align}
-%\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} \log(|z_{h_{\ell-1}}| + \epsilon) \label{eq:dw}\\
-\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} W_{h_\ell, h_{\ell-1}} \frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}\label{eq:dz}
-\end{align}
+However, allowing this creates critical optimization challenges, even when multiplication ($W_{h_{\ell-1},h_\ell} = 1$) is the desired operation. Expanding the exp-log-transformation, $\text{NAC}_{\bullet}$ can also be express as
+\begin{equation}
+\textrm{NAC}_\bullet:\ z_{h_\ell} = \prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\ .
+\label{eq:division:nac-mul-rewrite}
+\end{equation}
 
-This is not an issue for positive values of $W_{h_{\ell-1},h_\ell}$ (multiplication), as $z_{h_{\ell}}$ and $z_{h_{\ell-1}}$ will be correlated causing the terms $z_{h_\ell}$ and $\frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}$ to partially cancel out.
+Equation \eqref{eq:division:nac-mul-rewrite} reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative, and $\epsilon$ is small then the output will explode. This issue is present even for a reasonably large $\epsilon$ value, and just a slightly negative $W_{h_{\ell-1},h_\ell}$, as visualized in figure \ref{fig:nac-mul-eps-issue}. Note in particularly, that the curvature can cause convergence to an unstable area.
 
-This gradient can be particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}.
+This issue is particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. Thus division by a near-zero values is generally unavoidable.
 A desired multiplication unit should not explode for $z_{h_{\ell-1}}$ near zero, which is why supporting division is likely infeasible.
+
+
+%However, backpropagation through the $\text{NAC}_{\bullet}$ unit (equation \ref{eq:dz}, derivation in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nac-mul}) reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative and $\epsilon$ is small, the gradient term will explode and oscillate between large positive and large negative values, which can be problematic in optimization \cite{adam-optimization}, as visualized in figure \ref{fig:nac-mul-eps-issue}.
+%\begin{align}
+%\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} \log(|z_{h_{\ell-1}}| + \epsilon) \label{eq:dw}\\
+%\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} z_{h_\ell} W_{h_\ell, h_{\ell-1}} \frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}\label{eq:dz}
+%\end{align}
+
+%This is not an issue for positive values of $W_{h_{\ell-1},h_\ell}$ (multiplication), as $z_{h_{\ell}}$ and $z_{h_{\ell-1}}$ will be correlated causing the terms $z_{h_\ell}$ and $\frac{\mathrm{sign}(z_{h_{\ell-1}})}{|z_{h_{\ell-1}}| + \epsilon}$ to partially cancel out.
+
+% This gradient can be particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}.
+% A desired multiplication unit should not explode for $z_{h_{\ell-1}}$ near zero, which is why supporting division is likely infeasible.
 
 \begin{figure}[h]
 \centering
@@ -98,7 +109,7 @@ w_1 & w_1 & 0 & 0 \\
 w_1 & w_1 & w_1 & w_1
 \protect\end{smallmatrix}\right]$, $\mathbf{W}_2 = \left[\protect\begin{smallmatrix}
 w_2 & w_2
-\protect\end{smallmatrix}\right]$. The problem is $x = \left(1, 1.2, 1.8, 2\right), t = 13.2$. The desired solution is $w_1 = w_2 = 1$, although this problem have additional undesired solutions.}
+\protect\end{smallmatrix}\right]$. The problem is $x = \left(1, 1.2, 1.8, 2\right), t = 13.2$. The desired solution is $w_1 = w_2 = 1$, although this problem have additional undesired unstable solutions.}
 \label{fig:nac-mul-eps-issue}
 \end{figure}
 
@@ -114,9 +125,8 @@ As shown in equation \ref{eq:nac-mul:expectation}, satisfying $E[z_{h_\ell}] = 0
 To solve the the gradient and initialization challenges for $\mathrm{NAC}_{\bullet}$ we propose a new neural multiplication unit (NMU):
 
 \begin{align}
-W_{h_{\ell-1},h_\ell} &= \min(\max(\hat{W}_{h_{\ell-1},h_\ell}, 0), 1), \\
-\mathcal{R}_{\ell,\mathrm{bias}} &= \frac{1}{H_\ell \cdot H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \hat{W}_{h_{\ell-1},h_\ell}^2 (1 - \hat{W}_{h_{\ell-1},h_\ell})^2 \\
-\mathcal{R}_{\ell,\mathrm{oob}} &= \frac{1}{H_\ell \cdot H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \max\left(\left|\hat{W}_{h_{\ell-1},h_\ell} - \frac{1}{2}\right| - \frac{1}{2}, 0\right)^2 \\
+W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, 0), 1), \\
+\mathcal{R}_{\ell,\mathrm{sparse}} &= \frac{1}{H_\ell \cdot H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \min\left(W_{h_{\ell-1},h_\ell}, 1 - W_{h_{\ell-1},h_\ell}\right) \\
 \textrm{NMU}:\ z_{h_\ell} &= \prod_{h_{\ell-1}=1}^{H_{\ell-1}} \left(W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell} \right) \label{eq:nmu-defintion}
 \end{align}
 The NMU is regularized similar to the NAU and has a multiplicative identity when $W_{h_{\ell-1},h_\ell}=0$.

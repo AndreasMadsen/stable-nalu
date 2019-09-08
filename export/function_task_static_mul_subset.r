@@ -37,17 +37,17 @@ safe.interval = function (alpha, vec) {
 }
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter == 'default') %>%
+  filter(simple == FALSE & parameter == 'subset.ratio') %>%
   mutate(
     operation = revalue(operation, operation.full.to.short)
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-name.parameter = 'hidden.size'
-plot.label = 'Hidden size'
-plot.x.breaks = c(2, 4, 6, 8, 10)
-name.input = '../results/function_task_static_mul_hidden_size.csv'
-name.output = '../paper/results/simple_function_static_mul_hidden_size.pdf'
+name.parameter = 'subset.ratio'
+plot.label = 'Relative size of subsets compared to input size'
+plot.x.breaks = waiver()
+name.input = '../results/function_task_static_mul_subset.csv'
+name.output = '../paper/results/simple_function_static_mul_subset.pdf'
 
 dat = expand.name(read_csv(name.input)) %>%
   merge(eps) %>%

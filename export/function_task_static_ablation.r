@@ -1,15 +1,15 @@
 rm(list = ls())
 setwd(dirname(parent.frame(2)$ofile))
 
+library(ggplot2)
 library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
-library(kableExtra)
 source('./_function_task_expand_name.r')
 source('./_function_task_table.r')
 
-best.range = 100
+best.range = 5000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -20,8 +20,8 @@ best.model.step.fn = function (errors) {
   }
 }
 
-first.solved.step = function (steps, errors, epsilon) {
-  index = first(which(errors < epsilon))
+first.solved.step = function (steps, errors, threshold) {
+  index = first(which(errors < threshold))
   if (is.na(index)) {
     return(NA)
   } else {
@@ -44,33 +44,31 @@ safe.median = function (vec) {
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter == 'default') %>%
   mutate(
-    input.size = as.integer(input.size),
-    operation = revalue(operation, operation.full.to.short),
-    epsilon = mse
+    operation = revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, epsilon)
+  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-dat = expand.name(read_csv('../results/function_task_static_ablation.csv')) %>%
+name.input = '../results/function_task_static_ablation.csv'
+
+dat = expand.name(read_csv(name.input)) %>%
   merge(eps)
-dat$model = as.character(dat$model)
 
-dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob == 0, paste0(dat$model, ', no $\\mathcal{R}_{sparse},\\mathcal{R}_{oob}$'), dat$model)
-dat$model = ifelse(dat$regualizer == 0 & dat$regualizer.oob != 0, paste0(dat$model, ', no $\\mathcal{R}_{sparse}$'), dat$model)
-dat$model = ifelse(dat$regualizer != 0 & dat$regualizer.oob == 0, paste0(dat$model, ', no $\\mathcal{R}_{oob}$'), dat$model)
+dat$model = as.character(dat$model)
+dat$model = ifelse(dat$regualizer == 0, paste0(dat$model, ', no $\\mathcal{R}_{bias}$'), dat$model)
+dat$model = ifelse(dat$regualizer.oob == 0, paste0(dat$model, ', no W-clamp'), dat$model)
 
 dat.last = dat %>%
   group_by(name) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
-    best.model.step = best.model.step.fn(loss.valid.interpolation),
-    interpolation.last = loss.valid.interpolation[best.model.step],
-    extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    threshold = last(threshold),
+    best.model.step = best.model.step.fn(metric.valid.interpolation),
+    interpolation.last = metric.valid.interpolation[best.model.step],
+    extrapolation.last = metric.test.extrapolation[best.model.step],
+    interpolation.step.solved = first.solved.step(step, metric.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, metric.test.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
-    sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
+    solved = replace_na(metric.test.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     seed = last(seed),
@@ -80,7 +78,7 @@ dat.last = dat %>%
 dat.last.rate = dat.last %>%
   group_by(model, operation) %>%
   summarise(
-    rate.interpolation = mean(interpolation.last < epsilon),
+    rate.interpolation = mean(interpolation.last < threshold),
     rate.extrapolation = mean(solved),
     
     median.interpolation.solved = safe.median(interpolation.step.solved[solved]),
@@ -94,7 +92,6 @@ dat.last.rate = dat.last %>%
     mean.sparse.error.max = mean(sparse.error.max[solved]),
     ci.sparse.error.max = t.confidence.interval(0.95, sparse.error.max[solved]),
     
-    mean.sparse.error.mean = mean(sparse.error.mean[solved]),
     size = n() 
   )
 
@@ -108,4 +105,3 @@ save.table(
   show.operation=FALSE,
   highlight.best=FALSE
 )
-

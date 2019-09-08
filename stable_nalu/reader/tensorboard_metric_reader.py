@@ -54,30 +54,18 @@ class TensorboardMetricReader:
         columns['name'] = dirname
 
         current_epoch = None
-
-        missing_sparse_error = False
-        sparse_errors_inserted = 0
-        sparse_error_first_collected = True
-        sparse_error_collected_at = None
-        sparse_error_max = 0
-        recursive_weight = np.nan
+        current_logged_step = None
 
         for e in tf.train.summary_iterator(filename):
             step = e.step - self.step_start
 
             for v in e.summary.value:
-                if missing_sparse_error and step != sparse_error_collected_at and not sparse_error_first_collected:
-                    columns['sparse.error.max'].append(sparse_error_max)
-                    if self.recursive_weight:
-                        columns['recursive.weight'].append(recursive_weight)
-                    missing_sparse_error = False
-                    sparse_errors_inserted += 1
-
                 if v.tag == 'epoch':
                     current_epoch = v.simple_value
 
                 elif self.metric_matcher(v.tag):
                     columns[v.tag].append(v.simple_value)
+                    current_logged_step = step
 
                     # Syncronize the step count with the loss metrics
                     if len(columns['step']) != len(columns[v.tag]):
@@ -91,36 +79,29 @@ class TensorboardMetricReader:
                     if current_epoch is not None and len(columns['epoch']) != len(columns[v.tag]):
                         columns['epoch'].append(current_epoch)
 
-                    # Syncronize with the next sampled sparse.error, this should
-                    # be from the same step.
-                    if sparse_errors_inserted != len(columns[v.tag]):
-                        missing_sparse_error = True
-
-                elif v.tag.endswith('W/text_summary'):
+                elif v.tag.endswith('W/text_summary') and current_logged_step == step:
                     if self.recursive_weight:
                         W = _parse_numpy_str(v.tensor.string_val[0][5:-6].decode('ascii'))
-                        recursive_weight = W[0, -1]
+                        if len(columns['step']) != len(columns['recursive.weight']):
+                            columns['recursive.weight'].append(W[0, -1])
 
-                elif v.tag.endswith('W/sparsity_error'):
+                elif v.tag.endswith('W/sparsity_error') and current_logged_step == step:
                     # Step changed, update sparse error
-                    if step != sparse_error_collected_at:
-                        sparse_error_max = v.simple_value
+                    if len(columns['step']) != len(columns['sparse.error.max']):
+                        columns['sparse.error.max'].append(v.simple_value)
                     else:
-                        sparse_error_max = max(sparse_error_max, v.simple_value)
+                        columns['sparse.error.max'][-1] = max(
+                            columns['sparse.error.max'][-1],
+                            v.simple_value
+                        )
 
-                    sparse_error_collected_at = step
-                    sparse_error_first_collected = False
-
-        if sparse_errors_inserted == 0:
+        if len(columns['sparse.error.max']) == 0:
             columns['sparse.error.max'] = [None] * len(columns['step'])
-            if self.recursive_weight:
+        if self.recursive_weight:
+            if len(columns['recursive.weight']) == 0:
                 columns['recursive.weight'] = [None] * len(columns['step'])
-        elif missing_sparse_error:
-            columns['sparse.error.max'].append(sparse_error_max)
-            if self.recursive_weight:
-                columns['recursive.weight'].append(recursive_weight)
 
-        return columns
+        return dirname, columns
 
     def __iter__(self):
         reader = TensorboardReader(self.dirname, auto_open=False)
@@ -128,8 +109,13 @@ class TensorboardMetricReader:
              multiprocessing.Pool(self.processes) as pool:
 
             columns_order = None
-            for data in pool.imap_unordered(self._parse_tensorboard_data, reader):
+            for dirname, data in pool.imap_unordered(self._parse_tensorboard_data, reader):
                 pbar.update()
+
+                # Check that some data is present
+                # if len(data['step']) == 0:
+                #     print(f'missing data in: {dirname}')
+                #     continue
 
                 # Fix flushing issue
                 for column_name, column_data in data.items():

@@ -6,10 +6,9 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
-library(xtable)
 source('./_function_task_expand_name.r')
 
-best.range = 100
+best.range = 5000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -38,19 +37,19 @@ safe.interval = function (alpha, vec) {
 }
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter == 'default') %>%
+  filter(simple == FALSE & parameter == 'overlap.ratio') %>%
   mutate(
     operation = revalue(operation, operation.full.to.short)
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-name.parameter = 'regualizer'
-name.label = 'Sparse regualizer'
-name.file = '../results/function_task_static_regualization.csv'
-name.output = '../paper/results/simple_function_static_regualization.pdf'
+name.parameter = 'overlap.ratio'
+plot.label = 'The ratio of which subsets overlap with each other'
+plot.x.breaks = waiver()
+name.input = '../results/function_task_static_mul_overlap.csv'
+name.output = '../paper/results/simple_function_static_mul_overlap.pdf'
 
-dat = expand.name(read_csv(name.file)) %>%
-  filter(model == 'NMU' | (model == 'NAU' & regualizer.scaling.start == 5e+03)) %>%
+dat = expand.name(read_csv(name.input)) %>%
   merge(eps) %>%
   mutate(
     parameter = !!as.name(name.parameter)
@@ -61,14 +60,13 @@ dat.last = dat %>%
   #filter(n() == 201) %>%
   summarise(
     threshold = last(threshold),
-    best.model.step = best.model.step.fn(loss.valid.interpolation),
-    interpolation.last = loss.valid.interpolation[best.model.step],
-    extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
+    best.model.step = best.model.step.fn(metric.valid.interpolation),
+    interpolation.last = metric.valid.interpolation[best.model.step],
+    extrapolation.last = metric.test.extrapolation[best.model.step],
+    interpolation.step.solved = first.solved.step(step, metric.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, metric.test.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
-    sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
+    solved = replace_na(metric.test.extrapolation[best.model.step] < threshold, FALSE),
     parameter = last(parameter),
     model = last(model),
     operation = last(operation),
@@ -126,33 +124,21 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
-make.plot = function (operation.latex, model.latex, filename) {
-  dat.plot = dat.gather %>%
-    filter(operation == operation.latex & model == model.latex) %>%
-    mutate(
-      model=droplevels(model)
+p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
+  geom_point(aes(y = mean.value)) +
+  geom_line(aes(y = mean.value)) +
+  geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
+  scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
+  scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+  scale_x_continuous(name = plot.label, breaks=plot.x.breaks) +
+  facet_wrap(~ key, scales='free_y', labeller = labeller(
+    key = c(
+      success.rate = "Success rate in %",
+      converged.at = "Solved at iteration step",
+      sparse.error = "Sparsity error"
     )
-  
-  p = ggplot(dat.plot, aes(x = as.factor(parameter), colour=model, group=model)) +
-    geom_point(aes(y = mean.value)) +
-    geom_line(aes(y = mean.value)) +
-    geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
-    scale_color_discrete(labels = model.to.exp(levels(dat.plot$model))) +
-    xlab(name.label) +
-    scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
-    facet_wrap(~ key, scales='free_y', labeller = labeller(
-      key = c(
-        success.rate = "Success rate in %",
-        converged.at = "Solved at iteration step",
-        sparse.error = "Sparsity error"
-      )
-    )) +
-    theme(legend.position="bottom") +
-    theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
-  print(p)
-  ggsave(filename, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
-}
-
-make.plot('$\\bm{+}$', 'NAU', '../paper/results/simple_function_static_regualization_add.pdf')
-make.plot('$\\bm{-}$', 'NAU', '../paper/results/simple_function_static_regualization_sub.pdf')
-make.plot('$\\bm{\\times}$', 'NMU', '../paper/results/simple_function_static_regualization_mul.pdf')
+  )) +
+  theme(legend.position="bottom") +
+  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
+print(p)
+ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")

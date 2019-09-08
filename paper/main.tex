@@ -1,21 +1,12 @@
 \documentclass{article}
 
-% if you need to pass options to natbib, use, e.g.:
-%     \PassOptionsToPackage{numbers, compress}{natbib}
-% before loading neurips_2019
+\usepackage{iclr2020_conference,times}
 
 % COMMENT for anonymous submission
-\def\nonanonymous{}
+% \def\nonanonymous{}
 
 \ifdefined\nonanonymous
-% to compile a preprint version, e.g., for submission to arXiv, add add the
-% [preprint] option:
-\usepackage[preprint]{neurips_2019}
-% to compile a camera-ready version, add the [final] option, e.g.:
-%     \usepackage[final]{neurips_2019}
-\else
-% ready for submission
-\usepackage{neurips_2019}
+\iclrfinalcopy
 \fi
 
 % to avoid loading the natbib package, add option nonatbib:
@@ -67,14 +58,13 @@
 % \AND instead of \And before the third author name.
 
 \author{%
-  Andreas Madsen$^{\dag\ddag}$ \\
+  Andreas Madsen \\
+  Computationally Demanding \\
   \texttt{amwebdk@gmail.com}
-  \AND
-  Alexander Rosenberg Johansen$^{\dag}$ \\
+  \And
+  Alexander Rosenberg Johansen \\
+  Technical University of Denmark \\
   \texttt{aler@dtu.dk} \\
-  \\
-$^\dag$Technical University of Denmark \quad
-$^\ddag$Computationally Demanding
 }
 
 \begin{document}
@@ -97,7 +87,7 @@ Exact addition, subtraction, multiplication, and division of real numbers presen
 We would like to thank Andrew Trask and the other authors of the NALU paper, for highlighting the importance and challenges of extrapolation in Neural Networks. We would also like to thank the students Raja Shan Zaker Kreen and William Frisch Møller from The Technical University of Denmark, who initially showed us that the NALU does not converge consistently.
 \fi
 
-\bibliographystyle{plainnat}
+\bibliographystyle{iclr2019_conference}
 \bibliography{bibliography}
 
 \newpage

@@ -6,9 +6,10 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
+library(xtable)
 source('./_function_task_expand_name.r')
 
-best.range = 5000
+best.range = 100
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -43,13 +44,13 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-name.parameter = 'hidden.size'
-plot.label = 'Hidden size'
-plot.x.breaks = c(2, 4, 6, 8, 10)
-name.input = '../results/function_task_static_mul_hidden_size.csv'
-name.output = '../paper/results/simple_function_static_mul_hidden_size.pdf'
+name.parameter = 'regualizer'
+name.label = 'Sparse regualizer'
+name.file = '../results/function_task_static_regualization.csv'
+name.output = '../paper/results/simple_function_static_regualization.pdf'
 
-dat = expand.name(read_csv(name.input)) %>%
+dat = expand.name(read_csv(name.file)) %>%
+  filter(model == 'NMU' | (model == 'NAU' & regualizer.scaling.start == 5e+03)) %>%
   merge(eps) %>%
   mutate(
     parameter = !!as.name(name.parameter)
@@ -124,21 +125,33 @@ dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %
     key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
   )
 
-p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
-  geom_point(aes(y = mean.value)) +
-  geom_line(aes(y = mean.value)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
-  scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
-  scale_x_continuous(name = plot.label, breaks=plot.x.breaks) +
-  facet_wrap(~ key, scales='free_y', labeller = labeller(
-    key = c(
-      success.rate = "Success rate in %",
-      converged.at = "Solved at iteration step",
-      sparse.error = "Sparsity error"
+make.plot = function (operation.latex, model.latex, filename) {
+  dat.plot = dat.gather %>%
+    filter(operation == operation.latex & model == model.latex) %>%
+    mutate(
+      model=droplevels(model)
     )
-  )) +
-  theme(legend.position="bottom") +
-  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
-print(p)
-ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
+  
+  p = ggplot(dat.plot, aes(x = as.factor(parameter), colour=model, group=model)) +
+    geom_point(aes(y = mean.value)) +
+    geom_line(aes(y = mean.value)) +
+    geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
+    scale_color_discrete(labels = model.to.exp(levels(dat.plot$model))) +
+    xlab(name.label) +
+    scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+    facet_wrap(~ key, scales='free_y', labeller = labeller(
+      key = c(
+        success.rate = "Success rate in %",
+        converged.at = "Solved at iteration step",
+        sparse.error = "Sparsity error"
+      )
+    )) +
+    theme(legend.position="bottom") +
+    theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
+  print(p)
+  ggsave(filename, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
+}
+
+make.plot('$\\bm{+}$', 'NAU', '../paper/results/simple_function_static_regualization_add.pdf')
+make.plot('$\\bm{-}$', 'NAU', '../paper/results/simple_function_static_regualization_sub.pdf')
+make.plot('$\\bm{\\times}$', 'NMU', '../paper/results/simple_function_static_regualization_mul.pdf')

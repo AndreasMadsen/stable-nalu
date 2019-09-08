@@ -400,8 +400,7 @@ for epoch_i in range(0, args.max_epochs + 1):
 # Write results for this training
 print(f'finished:')
 print(f'  - loss_train: {loss_train}')
-print(f'  - validation: {validation_error}')
-print(f'  - mnist_classification: {mnist_classification_error}')
+print(f'  - validation: {valid_mse}')
 
 # Use saved weights to visualize the intermediate values.
 stable_nalu.writer.save_model(summary_writer.name, model)

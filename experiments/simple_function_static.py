@@ -104,7 +104,7 @@ parser.add_argument('--nac-mul',
                     choices=['none', 'normal', 'safe', 'max-safe', 'mnac'],
                     type=str,
                     help='Make the second NAC a multiplicative NAC, used in case of a just NAC network.')
-parser.add_argument('--nac-oob',
+parser.add_argument('--oob-mode',
                     action='store',
                     default='clip',
                     choices=['regualized', 'clip'],
@@ -205,7 +205,7 @@ print(f'  - simple: {args.simple}')
 print(f'  -')
 print(f'  - hidden_size: {args.hidden_size}')
 print(f'  - nac_mul: {args.nac_mul}')
-print(f'  - nac_oob: {args.nac_oob}')
+print(f'  - oob_mode: {args.oob_mode}')
 print(f'  - regualizer_scaling: {args.regualizer_scaling}')
 print(f'  - regualizer_scaling_start: {args.regualizer_scaling_start}')
 print(f'  - regualizer_scaling_end: {args.regualizer_scaling_end}')
@@ -243,7 +243,7 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
     f'_op-{args.operation.lower()}'
-    f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
+    f'_oob-{"c" if args.oob_mode == "clip" else "r"}'
     f'_rs-{args.regualizer_scaling}-{args.regualizer_shape}'
     f'_eps-{args.mnac_epsilon}'
     f'_rl-{args.regualizer_scaling_start}-{args.regualizer_scaling_end}'
@@ -291,7 +291,7 @@ model = stable_nalu.network.SimpleFunctionStaticNetwork(
     writer=summary_writer.every(1000).verbose(args.verbose),
     first_layer=args.first_layer,
     hidden_size=args.hidden_size,
-    nac_oob=args.nac_oob,
+    nac_oob=args.oob_mode,
     regualizer_shape=args.regualizer_shape,
     regualizer_z=args.regualizer_z,
     mnac_epsilon=args.mnac_epsilon,
@@ -325,7 +325,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     # Log validation
     if epoch_i % 1000 == 0:
         interpolation_error = test_model(dataset_valid_interpolation_data)
-        extrapolation_error = test_model(dataset_valid_extrapolation_data)
+        extrapolation_error = test_model(dataset_test_extrapolation_data)
 
         summary_writer.add_scalar('metric/valid/interpolation', interpolation_error)
         summary_writer.add_scalar('metric/test/extrapolation', extrapolation_error)
@@ -347,9 +347,10 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
     loss_train = loss_train_criterion + loss_train_regualizer
 
     # Log loss
-    summary_writer.add_scalar('loss/train/critation', loss_train_criterion)
-    summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
-    summary_writer.add_scalar('loss/train/total', loss_train)
+    if args.verbose or epoch_i % 1000 == 0:
+        summary_writer.add_scalar('loss/train/critation', loss_train_criterion)
+        summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
+        summary_writer.add_scalar('loss/train/total', loss_train)
     if epoch_i % 1000 == 0:
         print('train %d: %.5f, inter: %.5f, extra: %.5f' % (epoch_i, loss_train_criterion, interpolation_error, extrapolation_error))
 
@@ -365,7 +366,7 @@ for epoch_i, (x_train, t_train) in zip(range(args.max_iterations + 1), dataset_t
 
 # Compute validation loss
 loss_valid_inter = test_model(dataset_valid_interpolation_data)
-loss_valid_extra = test_model(dataset_valid_extrapolation_data)
+loss_valid_extra = test_model(dataset_test_extrapolation_data)
 
 # Write results for this training
 print(f'finished:')

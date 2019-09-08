@@ -30,6 +30,20 @@ We define the values $a$ and $b$, as the sub of subsets of $\mathbf{x}$ (see fig
   \label{alg:dataset-sampling}
 \end{algorithm}
 
+\subsection{Effect of dataset parameter}
+\label{sec:appendix-simple-function-task:dataset-parameter-effect}
+
+To stress test the models on the multiplication task, we vary the dataset parameters one at a time (table \ref{tab:simple-function-task-defaults}), and run 25 experiments with different seeds. The results, are visualized in figure \ref{fig:simple-function-static-dataset-parameters-boundary}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0},clip]{results/simple_function_static_mul_input_size.pdf}
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0.809cm},clip]{results/simple_function_static_mul_overlap.pdf}
+\includegraphics[width=\linewidth,trim={0 0 0 0.809cm},clip]{results/simple_function_static_mul_subset.pdf}
+\caption{Shows the effect of the dataset parameters.}
+\label{fig:simple-function-static-dataset-parameters-boundary}
+\end{figure}
+
 \subsection{Arithmetic operations comparison - all models}
 \label{sec:appendix:comparison-all-models}
 \begin{table}[h]
@@ -54,7 +68,6 @@ We define the values $a$ and $b$, as the sub of subsets of $\mathbf{x}$ (see fig
 
 Results for all models on addition, subtraction, and multiplication can be found in table \ref{tab:function-task-static-defaults-all}.
 
-\label{sec:appendix:function-task-static-all-comparision}
 \input{results/function_task_static_all.tex}
 
 \subsection{Ablation study}
@@ -67,7 +80,8 @@ Our ablation study (table \ref{tab:function-task-static-ablation}) show that reg
 Not allowing a multiplicative identity ($\mathbf{z} = \mathbf{W} \odot \mathbf{x}$, instead of $\mathbf{z} = \mathbf{W} \odot \mathbf{x} + 1 - \mathbf{W}$), works when there is only two hidden units in the multiplication layer, as no multiplicative identity is necessary. However, for a larger hidden size, as seen in figure \ref{fig:simple-function-static-ablation-hidden-size}, multiplicative identity becomes necessary.
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{results/simple_function_static_ablation_hidden_size.pdf}
+%\includegraphics[width=\linewidth]{results/simple_function_static_ablation_hidden_size.pdf}
+\todo[inline]{missing figure}
 \caption{Compares NMU with NMU without identity, with different input size (hidden layer unit size) to the multiplication layer.}
 \label{fig:simple-function-static-ablation-hidden-size}
 \end{figure}

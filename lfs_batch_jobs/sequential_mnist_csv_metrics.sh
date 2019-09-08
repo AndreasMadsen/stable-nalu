@@ -1,7 +1,7 @@
 #!/bin/bash
 export LSB_JOB_REPORT_MAIL=N
 job_name='sequential_mnist_csv_metrics'
-experiment_names=( 'sequential_mnist_prod_long' )
+experiment_names=( 'sequential_mnist_prod_long' 'sequential_mnist_prod_reference' )
 
 for experiment_name in "${experiment_names[@]}"
 do

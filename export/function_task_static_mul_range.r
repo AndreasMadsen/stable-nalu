@@ -40,7 +40,7 @@ safe.interval = function (alpha, vec) {
 name.parameter = 'interpolation.range'
 name.label = 'Interpolation range'
 name.file = '../results/function_task_static_mul_range.csv'
-name.output = '../paper/results/simple_function_static_range.pdf'
+name.output = '../paper/results/simple_function_static_mul_range.pdf'
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter == 'extrapolation.range') %>%
@@ -61,14 +61,13 @@ dat.last = dat %>%
   #filter(n() == 201) %>%
   summarise(
     threshold = last(threshold),
-    best.model.step = best.model.step.fn(loss.valid.interpolation),
-    interpolation.last = loss.valid.interpolation[best.model.step],
-    extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
+    best.model.step = best.model.step.fn(metric.valid.interpolation),
+    interpolation.last = metric.valid.interpolation[best.model.step],
+    extrapolation.last = metric.test.extrapolation[best.model.step],
+    interpolation.step.solved = first.solved.step(step, metric.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, metric.test.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
-    sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
+    solved = replace_na(metric.test.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     parameter = last(parameter),

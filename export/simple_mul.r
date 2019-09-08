@@ -56,14 +56,13 @@ dat.last = dat %>%
   #filter(n() == 201) %>%
   summarise(
     threshold = last(threshold),
-    best.model.step = best.model.step.fn(loss.valid.interpolation),
-    interpolation.last = loss.valid.interpolation[best.model.step],
-    extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, threshold),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, threshold),
+    best.model.step = best.model.step.fn(metric.valid.interpolation),
+    interpolation.last = metric.valid.interpolation[best.model.step],
+    extrapolation.last = metric.test.extrapolation[best.model.step],
+    interpolation.step.solved = first.solved.step(step, metric.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, metric.test.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
-    sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < threshold, FALSE),
+    solved = replace_na(metric.test.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     seed = last(seed),
@@ -87,7 +86,6 @@ dat.last.rate = dat.last %>%
     mean.sparse.error.max = mean(sparse.error.max[solved]),
     ci.sparse.error.max = t.confidence.interval(0.95, sparse.error.max[solved]),
     
-    mean.sparse.error.mean = mean(sparse.error.mean[solved]),
     size = n() 
   )
 
