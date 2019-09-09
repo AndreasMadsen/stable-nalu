@@ -2,6 +2,7 @@
 \label{sec:experiments}
 
 \subsection{Arithmetic datasets}
+\label{sec:arithmetic-dataset}
 
 The arithmetic dataset is a replica of the "simple function task" as shown in \cite{trask-nalu}.
 The goal is to sum two random subsets of a vector and perform a arithmetic operation as defined below
@@ -86,7 +87,7 @@ Additionally, the NMU model is, unlike the $NAC_{\bullet}$ model, also capable o
 
 Finally, to validate that division and the lack of bias in $NAC_{\bullet}$ are critical issues but that solving these alone are not enough, two additional models are added to the comparison. A variant called $\mathrm{NAC}_{\bullet, \sigma}$ that only supports multiplication, by just constraining the weights with $W = \sigma(\hat{W})$ in $\mathrm{NAC}_{\bullet}$. And a variant of $\mathrm{NAC}_{\bullet, \sigma}$ that uses linear weights and bias regularization, identically to that in NMU model, this model is called $\mathrm{NAC}_{\bullet, \mathrm{NMU}}$.
 
-Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that the NMU can both handle a much larger hidden-size, as well as negative inputs, and that solving the division and bias issues alone are no enough.
+Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that the NMU can both handle a much larger hidden-size, as well as negative inputs, and that solving the division and bias issues alone improves the success rate, but are no enough.
 
 \begin{figure}[h]
 \centering
@@ -99,13 +100,20 @@ Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that 
 
 \subsection{Product of sequential MNIST}
 
-To evaluate The NMU's ability to backpropergate though a more larger unconstrained neural network, the NMU is applied as a recurrent-unit to a sequence of MNIST digits, where the target is to fit the cumulative product. This task is similar to ``MNIST Counting and Arithmetic Tasks'' in \cite{trask-nalu}, but focuses on multiplication rather than addition.
+To evaluate the NMU's ability to backpropergate though a larger unconstrained neural network, the NMU is applied as a recurrent-unit to a sequence of MNIST digits, where the target is to fit the cumulative product. This task is similar to ``MNIST Counting and Arithmetic Tasks'' in \cite{trask-nalu}, but focuses on multiplication rather than addition, the same CNN model is also used \footnote{\url{https://github.com/pytorch/
+examples/tree/master/mnist}}. Each model is trained on a sequences of length 2, and then tested on sequences of length 20. 
 
+Success of convergence is determined by comparing the MSE of each model, with a baseline model that just directly computes the sequential product. If the MSE of each model, is less than the upper 1\% MSE-confidence-interval of the baseline model, then the model is considered successfully converged.
 
+Sparsity error and ``solved at iteration step'' is determined as described in experiment \ref{sec:arithmetic-dataset}. The validation set, is the last 5000 MNIST digits from the training set, which is used to select the best epoch.
+
+In this experiment we discovered that having an unconstrained ``input-network'' causes the multiplication-units to learn an undesired solution, such as $(0.1 \cdot 81 + 1 - 0.1) = 9$. This solves the problem with a similar success-rate, but not in the intended way. To prevent such solution, we regularize the CNN output with $\mathcal{R}_{\mathrm{z}} = \frac{1}{H_{\ell-1} H_\ell} \sum_{h_\ell}^{H_\ell} \sum_{h_{\ell-1}}^{H_{\ell-1}} (1 - W_{h_{\ell-1},h_\ell}) \cdot (1 - \bar{z}_{h_{\ell-1}})^2$. This regularizer is applied to the NMU and $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ models. See appendix \ref{} for the results, when this regularizer is not used.  
+
+Figure \ref{fig:sequential-mnist-prod-results} shows that the NMU does not hindre learning a more complex neural network. And that it can extrapolate to much longer sequences.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth,trim={0 0.5cm 0 0},clip]{results/sequential_mnist_prod_long.pdf}
 \caption{Shows that the NMU allows for backpropergation, such more complex layers can be optimized.} 
-\label{fig:simple-function-static-boundary}
+\label{fig:sequential-mnist-prod-results}
 \end{figure}
