@@ -161,6 +161,23 @@ parser.add_argument('--nalu-gate',
                     type=str,
                     help='Can be normal, regualized, obs-gumbel, or gumbel')
 
+parser.add_argument('--optimizer',
+                    action='store',
+                    default='normal',
+                    choices=['adam', 'sgd'],
+                    type=str,
+                    help='The optimization algorithm to use, Adam or SGD')
+parser.add_argument('--learning-rate',
+                    action='store',
+                    default=1e-3,
+                    type=float,
+                    help='Specify the learning-rate')
+parser.add_argument('--momentum',
+                    action='store',
+                    default=0.0,
+                    type=float,
+                    help='Specify the nestrov momentum, only used with SGD')
+
 parser.add_argument('--no-cuda',
                     action='store_true',
                     default=False,
@@ -217,6 +234,10 @@ print(f'  - nalu_two_gate: {args.nalu_two_gate}')
 print(f'  - nalu_mul: {args.nalu_mul}')
 print(f'  - nalu_gate: {args.nalu_gate}')
 print(f'  -')
+print(f'  - optimizer: {args.optimizer}')
+print(f'  - learning_rate: {args.learning_rate}')
+print(f'  - momentum: {args.momentum}')
+print(f'  -')
 print(f'  - cuda: {args.cuda}')
 print(f'  - name_prefix: {args.name_prefix}')
 print(f'  - remove_existing_data: {args.remove_existing_data}')
@@ -254,7 +275,8 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'_b{args.batch_size}'
     f'_s{args.seed}'
     f'_h{args.hidden_size}'
-    f'_z{args.num_subsets}',
+    f'_z{args.num_subsets}'
+    f'_lr-{args.optimizer}-{"%.5f" % args.learning_rate}-{args.momentum}',
     remove_existing_data=args.remove_existing_data
 )
 
@@ -306,7 +328,13 @@ model.reset_parameters()
 if args.cuda:
     model.cuda()
 criterion = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters())
+
+if args.optimizer == 'adam':
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+elif args.optimizer == 'sgd':
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
+else:
+    raise ValueError(f'{args.optimizer} is not a valid optimizer algorithm')
 
 def test_model(data):
     with torch.no_grad(), model.no_internal_logging(), model.no_random():
