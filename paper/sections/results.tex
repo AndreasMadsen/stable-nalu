@@ -10,37 +10,7 @@ The goal is to sum two random subsets of a vector and perform a arithmetic opera
 t = \sum_{i = s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i \circ \sum_{i = s_{2,\mathrm{start}}}^{s_{2,\mathrm{end}}} x_i \quad \text{where } \mathbf{x} \in \mathbb{R}^n, x_i \sim \mathrm{Uniform}[r_{\mathrm{lower}}, r_{\mathrm{upper}}], \circ \in \{+, -, \times\}
 \label{eq:arithmetic-problem}
 \end{equation}
-where $n$, $r_{\mathrm{lower}}$, $r_{\mathrm{upper}}$, $\circ$, the subset size, and subset overlap are dataset parameters that we use to assess learning capability (see details in appendix \ref{sec:appendix:simple-function-task:data-generation}).
-We define a set of default parameters (see table \ref{tab:simple-function-task-defaults}), the effect of these parameters can be found in appendix \ref{sec:appendix-simple-function-task:dataset-parameter-effect}.
-\begin{table}[h]
-\caption{Default dataset parameters}
-\label{tab:simple-function-task-defaults}
-\centering
-\begin{tabular}{cc}
-\begin{minipage}{.4\linewidth}
-\begin{tabular}{r l}
-\toprule
- Parameter name & Default value \\
- \midrule
- Input size & 100 \\
- Subset ratio & 0.25 \\
- Overlap ratio & 0.5 \\
- \bottomrule
-\end{tabular}
-\end{minipage} & 
-\begin{minipage}{.4\linewidth}
-\begin{tabular}{r l}
-\toprule
- Parameter name & Default value \\
- \midrule
- Interpolation range & $U[1,2]$ \\
- Extrapolation range & $U[2,6]$ \\
- \\
- \bottomrule
-\end{tabular}
-\end{minipage}
-\end{tabular}
-\end{table}
+where $n$ (default $100$), $U[r_{\mathrm{lower}}, r_{\mathrm{upper}}]$ (interpolation default is $U[1,2]$ and extrapolation default is $U[2,6]$), $\circ$, the subset size (default 25\%), and subset overlap (default 50\%) are dataset parameters that we use to assess learning capability (see details in appendix \ref{sec:appendix:simple-function-task:data-generation} and the effect of these parameters in appendix \ref{sec:appendix-simple-function-task:dataset-parameter-effect}).
 
 \subsubsection{Model evaluation}
 The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task consistently we compare the MSE to a nearly-perfect solution on the extrapolation range over multiple seeds. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 10^{-5}$.
@@ -53,8 +23,7 @@ The goal is to achieve a solution that is acceptably close to a perfect solution
     \end{bmatrix}
     \label{eq:nearly-perfect-solution-example}
 \end{equation}
-To measure speed of convergence to a nearly-perfect solution we report the first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$.
-Only models that managed to solve the task are considered for which a 95\% confidence interval is reported.
+To measure speed of convergence the first iteration for which $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$ is reported with a 95\% confidence interval. Only models that managed to solve the task are considered.
 
 We assume an approximate discrete solution with parameters close to $\{-1, 0, 1\}$ is important for inferring exact arithmetic operations.
 To measure the sparsity we introduce a sparsity error (defined in equation \ref{eq:sparsity-error}).
@@ -64,16 +33,20 @@ E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, 
 \label{eq:sparsity-error}
 \end{equation}
 
-\subsubsection{Experimental setup}
+We evaluate each metric every $1000$ iterations based on the test set that uses the extrapolation range, and choose the best iteration based on the validation dataset that uses the interpolation range.
 
-The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$, have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model consists of two NALU layers. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}. All models are fitted with an mean-squared-error loss-function.
+%\subsubsection{Experimental setup}
 
-For all experiments $\lambda_{\mathrm{sparse}} = \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)$. The motivation here, is that the optimization consists of two parts. A warmup period, where $W_{h_{\ell-1},h_\ell}$ should get close to the solution, unhindered by the sparsity regualizer, and then a finalize period where the solution is made sparse. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}. All models are optimized with Adam optimization \cite{adam-optimization} using default parameters and trained for about four hours on an HPC cluster running \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
+%The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$, have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model consists of two NALU layers. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}.% All models are fitted with an mean-squared-error loss-function.
 
-The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed testset with $1 \cdot 10^4$ observations sampled from the extrapolation range. We evaluate validation, test, and sparsity error every $1000$ iterations, and choose the best iteration based on the validation dataset.
+%For all experiments $\lambda_{\mathrm{sparse}} = \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)$. The motivation here, is that the optimization consists of two parts. A warmup period, where $W_{h_{\ell-1},h_\ell}$ should get close to the solution, unhindered by the sparsity regualizer, and then a finalize period where the solution is made sparse. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}.% All models are optimized with Adam optimization \cite{adam-optimization} using default parameters and trained for about four hours on an HPC cluster running \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
+
+%The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed testset with $1 \cdot 10^4$ observations sampled from the extrapolation range.
 
 \subsubsection{Arithmetic operation comparison}
-We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$ used in equation \ref{eq:arithmetic-problem}, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations. Comparison with more models can be found in appendix \ref{sec:appendix:comparison-all-models} and an ablation study of the NMU can be found in appendix \ref{sec:appendix:ablation-study}.
+The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$, have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models, $\mathrm{NAC}_{+}$, NAU, and Linear are just two layers of that unit. Finally, the NALU model consists of two NALU layers. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}.
+
+We compare the models on different arithmetic operation $\circ \in \{+, -, \times\}$, results are seen in table \ref{tab:function-task-static-defaults}, where each experiment is trained for $5 \cdot 10^6$ iterations. Comparison with more models can be found in appendix \ref{sec:appendix:comparison-all-models} and an ablation study of the NMU can be found in appendix \ref{sec:appendix:ablation-study}.
 
 For multiplication, the NMU succeeds more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a sparser solution.
 
@@ -81,9 +54,9 @@ For multiplication, the NMU succeeds more often and converges faster. For additi
 
 \subsubsection{Evaluating theoretical claims}
 
-To validate our theoretical claim, that the NMU models works better than $NAC_{\bullet}$ for larger $H_{\ell-1}$, we increase the hidden size of the network, thereby adding redundant units. Redundant units are very common neural networks, where the purpose is to fit an unknown function. In this case, redundant units poses a bigger challenge than usual, as the multiplication makes all terms dependent during back-propagation.
+To validate our theoretical claim, that the NMU models works better than $NAC_{\bullet}$ for larger $H_{\ell-1}$, we increase the hidden size of the network, thereby adding redundant units. Redundant units are very common neural networks, where the purpose is to fit an unknown function.% In this case, redundant units poses a bigger challenge than usual, as the multiplication makes all terms dependent during back-propagation.
 
-Additionally, the NMU model is, unlike the $NAC_{\bullet}$ model, also capable of understanding inputs that are both negative and positive. To validate this empirically, the training and validation datasets are sampled for $\mathrm{U}[-2,2]$, and then tested on $\mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]$. 
+Additionally, the NMU model is unlike the $NAC_{\bullet}$ model also capable of understanding inputs that are both negative and positive. To validate this empirically, the training and validation datasets are sampled for $\mathrm{U}[-2,2]$, and then tested on $\mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]$.
 
 Finally, to validate that division and the lack of bias in $NAC_{\bullet}$ are critical issues but that solving these alone are not enough, two additional models are added to the comparison. A variant called $\mathrm{NAC}_{\bullet, \sigma}$ that only supports multiplication, by just constraining the weights with $W = \sigma(\hat{W})$ in $\mathrm{NAC}_{\bullet}$. And a variant of $\mathrm{NAC}_{\bullet, \sigma}$ that uses linear weights and bias regularization, identically to that in NMU model, this model is called $\mathrm{NAC}_{\bullet, \mathrm{NMU}}$.
 
@@ -100,20 +73,20 @@ Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that 
 
 \subsection{Product of sequential MNIST}
 
-To evaluate the NMU's ability to backpropergate though a larger unconstrained neural network, the NMU is applied as a recurrent-unit to a sequence of MNIST digits, where the target is to fit the cumulative product. This task is similar to ``MNIST Counting and Arithmetic Tasks'' in \cite{trask-nalu}, but focuses on multiplication rather than addition, the same CNN model is also used \footnote{\url{https://github.com/pytorch/
-examples/tree/master/mnist}}. Each model is trained on a sequences of length 2, and then tested on sequences of length 20. 
+To evaluate the NMU's ability to backpropergate though a larger unconstrained neural network, the NMU is applied as a recurrent-unit to a sequence of MNIST digits, where the target is to fit the cumulative product. This task is similar to ``MNIST Counting and Arithmetic Tasks'' in \cite{trask-nalu}, but use multiplication rather than addition, the same CNN model is also used \footnote{\url{https://github.com/pytorch/
+examples/tree/master/mnist}}. Each model is trained on sequences of length 2, and then tested on sequences of length 20.
 
-Success of convergence is determined by comparing the MSE of each model, with a baseline model that just directly computes the sequential product. If the MSE of each model, is less than the upper 1\% MSE-confidence-interval of the baseline model, then the model is considered successfully converged.
+Success of convergence is determined by comparing the MSE of each model, with a baseline model that directly computes the sequential product. If the MSE of each model, is less than the upper 1\% MSE-confidence-interval of the baseline model, then the model is considered successfully converged.
 
-Sparsity error and ``solved at iteration step'' is determined as described in experiment \ref{sec:arithmetic-dataset}. The validation set, is the last 5000 MNIST digits from the training set, which is used to select the best epoch.
+Sparsity and ``solved at iteration step'' is determined as described in experiment \ref{sec:arithmetic-dataset}. The validation set, is the last 5000 MNIST digits from the training set, which is used to select the best epoch.
 
-In this experiment we discovered that having an unconstrained ``input-network'' causes the multiplication-units to learn an undesired solution, such as $(0.1 \cdot 81 + 1 - 0.1) = 9$. This solves the problem with a similar success-rate, but not in the intended way. To prevent such solution, we regularize the CNN output with $\mathcal{R}_{\mathrm{z}} = \frac{1}{H_{\ell-1} H_\ell} \sum_{h_\ell}^{H_\ell} \sum_{h_{\ell-1}}^{H_{\ell-1}} (1 - W_{h_{\ell-1},h_\ell}) \cdot (1 - \bar{z}_{h_{\ell-1}})^2$. This regularizer is applied to the NMU and $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ models. See appendix \ref{} for the results, when this regularizer is not used.  
+In this experiment we discovered that having an unconstrained ``input-network'' causes the multiplication-units to learn an undesired solution, such as $(0.1 \cdot 81 + 1 - 0.1) = 9$. This solves the problem with a similar success-rate, but not in the intended way. To prevent such solution, we regularize the CNN output with $\mathcal{R}_{\mathrm{z}} = \frac{1}{H_{\ell-1} H_\ell} \sum_{h_\ell}^{H_\ell} \sum_{h_{\ell-1}}^{H_{\ell-1}} (1 - W_{h_{\ell-1},h_\ell}) \cdot (1 - \bar{z}_{h_{\ell-1}})^2$. This regularizer is applied to the NMU and $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ models. See appendix \ref{} for the results, when this regularizer is not used.
 
-Figure \ref{fig:sequential-mnist-prod-results} shows that the NMU does not hindre learning a more complex neural network. And that it can extrapolate to much longer sequences.
+Figure \ref{fig:sequential-mnist-prod-results} shows that the NMU does not hindre learning a more complex neural network. And that it can extrapolate to much longer sequences than what is is trained on.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth,trim={0 0.5cm 0 0},clip]{results/sequential_mnist_prod_long.pdf}
-\caption{Shows that the NMU allows for backpropergation, such more complex layers can be optimized.} 
+\caption{Shows the ability of each model to backpropergation and extrapolate to larger sequence lengths.} 
 \label{fig:sequential-mnist-prod-results}
 \end{figure}

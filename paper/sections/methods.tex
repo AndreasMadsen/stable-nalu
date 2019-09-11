@@ -47,7 +47,7 @@ However, for this initialization the gradient of the loss with respect to  $\hat
 
 Secondly, in our empirical analysis (see table \ref{tab:function-task-static-defaults}) we find that equation \ref{eq:weight} does not create the desired bias for $\{-1, 0, 1\}$ for the addition and subtraction problem.
 
-To create the desired bias of $\{-1, 0, 1\}$ we add a biasing regularizer to the loss function, $\mathcal{L} = \hat{\mathcal{L}} + \lambda_{\mathrm{sparse}} \mathcal{R}_{\ell,\mathrm{sparse}}$. To prevent the gradient challenges when $E[\hat{W}_{h_{\ell-1},h_\ell}] = 0$ we propose a simple clamped linear construction, where $\hat{W}_{h_{\ell-1},h_\ell}$ is clamped to $[-1, 1]$ in each iteration.
+To create the desired bias of $\{-1, 0, 1\}$ we add a biasing regularizer to the loss function, $\mathcal{L} = \hat{\mathcal{L}} + \lambda_{\mathrm{sparse}} \mathcal{R}_{\ell,\mathrm{sparse}}$. To prevent the gradient challenges when $E[\hat{W}_{h_{\ell-1},h_\ell}] = 0$ we propose a simple linear construction, where $W_{h_{\ell-1},h_\ell}$ is clamped to $[-1, 1]$ in each iteration.
 \begin{align}
 W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, -1), 1), \\
 \mathcal{R}_{\ell,\mathrm{sparse}} &= \frac{1}{H_\ell \cdot H_{\ell-1}} \sum_{h_\ell=1}^{H_\ell} \sum_{h_{\ell-1}=1}^{H_{\ell-1}} \min\left(|W_{h_{\ell-1},h_\ell}|, 1 - \left|W_{h_{\ell-1},h_\ell}\right|\right) \\
@@ -58,17 +58,15 @@ W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, -1), 1), \\
 
 The $\text{NAC}_{\bullet}$, as formulated in equation \ref{eq:nacm}, has the ability to perform exact division, or more precisely multiplication of the inverse of elements from a vector, when a weight in $W_{h_{\ell-1},h_\ell}$ is $-1$.
 
-However, allowing this creates critical optimization challenges, even when multiplication ($W_{h_{\ell-1},h_\ell} = 1$) is the desired operation. Expanding the exp-log-transformation, $\text{NAC}_{\bullet}$ can also be express as
+However, allowing this creates critical optimization challenges. Expanding the exp-log-transformation, $\text{NAC}_{\bullet}$ can be express as
 \begin{equation}
 \textrm{NAC}_\bullet:\ z_{h_\ell} = \prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\ .
 \label{eq:division:nac-mul-rewrite}
 \end{equation}
 
-Equation \eqref{eq:division:nac-mul-rewrite} reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative, and $\epsilon$ is small then the output will explode. This issue is present even for a reasonably large $\epsilon$ value, and just a slightly negative $W_{h_{\ell-1},h_\ell}$, as visualized in figure \ref{fig:nac-mul-eps-issue}. Note in particularly, that the curvature can cause convergence to an unstable area.
+Equation \eqref{eq:division:nac-mul-rewrite} reveals that if $|z_{h_{\ell-1}}|$ is near zero (which is likely since $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}), $W_{h_{\ell-1},h_\ell}$ is negative, and $\epsilon$ is small, then the output will explode. This issue is present even for a reasonably large $\epsilon$ value, and just a slightly negative $W_{h_{\ell-1},h_\ell}$, as visualized in figure \ref{fig:nac-mul-eps-issue}. Also note that the curvature can cause convergence to an unstable area.
 
-This issue is particular problematic when considering that $E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}. Thus division by a near-zero values is generally unavoidable.
-A desired multiplication unit should not explode for $z_{h_{\ell-1}}$ near zero, which is why supporting division is likely infeasible.
-
+This singularity issue, is present even when multiplication is the desired operation. Since a multiplication unit should not explode for $z_{h_{\ell-1}}$ near zero, it is likely that  supporting division is infeasible.
 
 %However, backpropagation through the $\text{NAC}_{\bullet}$ unit (equation \ref{eq:dz}, derivation in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nac-mul}) reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative and $\epsilon$ is small, the gradient term will explode and oscillate between large positive and large negative values, which can be problematic in optimization \cite{adam-optimization}, as visualized in figure \ref{fig:nac-mul-eps-issue}.
 %\begin{align}
@@ -85,24 +83,24 @@ A desired multiplication unit should not explode for $z_{h_{\ell-1}}$ near zero,
 \centering
 \begin{subfigure}{.33\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{graphics/nac-mul-eps-1em7.png}
+  \includegraphics[width=\linewidth,trim={0 0 0 4.3cm},clip]{graphics/nac-mul-eps-1em7.png}
   \caption{$\mathrm{NAC}_{\bullet}$ with $\epsilon = 10^{-7}$}
 \end{subfigure}%
 \begin{subfigure}{.33\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{graphics/nac-mul-eps-1em1.png}
+  \includegraphics[width=\linewidth,trim={0 0 0 4.3cm},clip]{graphics/nac-mul-eps-1em1.png}
   \caption{$\mathrm{NAC}_{\bullet}$ with $\epsilon = 0.1$}
+\end{subfigure}
+\begin{subfigure}{.33\textwidth}
+  \centering
+  \includegraphics[width=\linewidth,trim={0 0 0 4.3cm},clip]{graphics/nac-mul-eps-1.png}
+  \caption{$\epsilon = 1$}
 \end{subfigure}
 %\begin{subfigure}{.33\textwidth}
 %  \centering
-%  \includegraphics[width=\linewidth]{graphics/nac-mul-eps-1.png}
-%  \caption{$\epsilon = 1$}
+%\includegraphics[width=\linewidth]{graphics/nac-mul-nmu.png}
+%  \caption{Our NMU solution}
 %\end{subfigure}
-\begin{subfigure}{.33\textwidth}
-  \centering
-\includegraphics[width=\linewidth]{graphics/nac-mul-nmu.png}
-  \caption{Our NMU solution}
-\end{subfigure}
 
 \caption{RMS loss curvature for a $\mathrm{NAC}_{+}$ layer followed by either a $\mathrm{NAC}_{\bullet}$ or a NMU layer. The weight matrices constrained are to $\mathbf{W}_1 = \left[\protect\begin{smallmatrix}
 w_1 & w_1 & 0 & 0 \\
@@ -134,13 +132,13 @@ The NMU unit does not support division by design.
 %Previous experiments using the NALU for division does not work well on division hence very little is lost with this modification \cite{trask-nalu}.
 As opposed to the $\mathrm{NAC}_{\bullet}$, the NMU can represent input of both negative and positive $z_{h_{\ell-1}}$ values and is not $\epsilon$ bounded, which allows the NMU to extrapolate to $z_{h_{\ell-1}}$ that are negative or smaller than $\epsilon$.
 
-The gradients with respect to the weight and input in the NMU are (see details in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}):
-\begin{align}
-\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right) \label{eq:nmugrad-1} \\
-\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} W_{h_{\ell-1},h_\ell} \label{eq:nmugrad-2}
-\end{align}
+%The gradients with respect to the weight and input in the NMU are (see details in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}):
+%\begin{align}
+%\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right) \label{eq:nmugrad-1} \\
+%\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} W_{h_{\ell-1},h_\ell} \label{eq:nmugrad-2}
+%\end{align}
 
-Note that the fraction in equation \ref{eq:nmugrad-1} and \ref{eq:nmugrad-2} does not explode for $z_{h_{\ell-1}}$ close to zero because the denominator cancels out the term for $h_{\ell-1}$ in $z_{h_\ell}$, as seen in equation \ref{eq:nmu-defintion}.
+%Note that the fraction in equation \ref{eq:nmugrad-1} and \ref{eq:nmugrad-2} does not explode for $z_{h_{\ell-1}}$ close to zero because the denominator cancels out the term for $h_{\ell-1}$ in $z_{h_\ell}$, as seen in equation \ref{eq:nmu-defintion}.
 
 \subsubsection{Moments and initialization}
 Our proposed NAU can be initialized using Glorot initialization as it is a linear layer. The $\mathrm{NAC}_{+}$ unit can also achieve an ideal initialization, although it is less trivial (details in Appendix \ref{sec:appendix:moments:weight-matrix-construction}).
@@ -149,4 +147,8 @@ Our proposed NMU is initialized with $E[W_{h_{\ell}, h_{\ell - 1}}] = \nicefrac{
 \begin{equation}
 E[z_{h_\ell}] \approx \left(\frac{1}{2}\right)^{H_{\ell-1}},
 \end{equation}
-which approaches zero for $H_{\ell-1} \rightarrow \infty$ (details in Appendix \ref{sec:appendix:moments:nmu}). The NMU can, with the assumption that, $Var[z_{h_{\ell-1}}] = 1$ and $H_{\ell-1}$ is large, be initialized optimally with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$ (proof in Appendix \ref{sec:appendix:moments:nmu:initialization}). 
+which approaches zero for $H_{\ell-1} \rightarrow \infty$ (details in Appendix \ref{sec:appendix:moments:nmu}). The NMU can, with the assumption that, $Var[z_{h_{\ell-1}}] = 1$ and $H_{\ell-1}$ is large, be initialized optimally with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$ (proof in Appendix \ref{sec:appendix:moments:nmu:initialization}).
+
+\subsubsection{Regularization scaling}
+
+For all experiments $\lambda_{\mathrm{sparse}} = \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)$. The motivation here, is that the optimization consists of two parts. A warmup period, where $W_{h_{\ell-1},h_\ell}$ should get close to the solution, unhindered by the sparsity regualizer, and then a finalize period where the solution is made sparse. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}.
