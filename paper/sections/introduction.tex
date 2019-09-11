@@ -13,14 +13,13 @@ The sub-units are softly gated using a sigmoid function. The parameters, which a
 \caption{Visualization of NMU for a single output scalar $z_1$, this construction repeats for every element in the output vector $\mathbf{z}$.}
 \end{figure}
 We motivate our work by an investigation of the NALU components; the parameter transformation, the sub-units, $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, and the soft gating mechanism.
-The investigation uncovers the following analytical and empirical concerns; the gradients from the weight matrix construction in $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ have zero expectation, the $\text{NAC}_{\bullet}$ has a treacherous optimization space with unwanted global minimas (as shown in figure \ref{fig:nac-mul-eps-issue}) and has exploding/vanishing gradients, when applying the $\text{NAC}_{+}$ in isolation, we observe that the wanted weight matrix values of $\{-1, 0, 1\}$ are rarely found, and our empirical results reveals that the NALU is significantly worse than hard-choosing either the $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$, indicating that the gating mechanism might not work as intended.
+The investigation uncovers the following analytical and empirical concerns; the gradients of the weight matrix construction in $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ have zero expectation, the $\text{NAC}_{\bullet}$ has a treacherous optimization space with unwanted global minimas near singularities, when applying the $\text{NAC}_{+}$ in isolation we observe that the wanted weight matrix values of $\{-1, 0, 1\}$ are rarely found, and our empirical results reveals that the NALU is significantly worse than hard-choosing either the $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$, indicating that the gating mechanism does not work as intended.
 
 We avoid using gating as we see no obvious solution to simultaneously train two vastly different sub-units, the NAU/$\text{NAC}_{+}$ and NMU/$\text{NAC}_{\bullet}$, with a soft gating mechanism.
 We will thus assume that the desired operation is already known, or can empirically be found by varying the network architecture.
 
-
 \subsection{Learning a 10 parameter function}
-Consider the static function $t = (x_1 + x_2) \cdot (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$. To empirically validate the ability of $\mathrm{NAC}_{\bullet}$, NALU, and our proposed NMU we attempt to fit this function by only observing input-output pairs.
+Consider the static function $t = (x_1 + x_2) \cdot (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$. To illustrate the ability of $\mathrm{NAC}_{\bullet}$, NALU, and our proposed NMU we attempt to fit this function by only observing input-output pairs.
 
 For the $\mathrm{NAC}_{\bullet}$, NALU, and NMU we conduct 100 experiments with different seeds and stop after $2 \cdot 10^5$ iterations. The results in table \ref{tab:very-simple-function-results} show that NMU has a higher success rate and converges faster.
 %When inspecting the $6\%$ that did not converge, we found the issue to be underflow when $w = 0$ in the multiplication layer.

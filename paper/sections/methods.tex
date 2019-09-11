@@ -130,15 +130,7 @@ W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, 0), 1), \\
 The NMU is regularized similar to the NAU and has a multiplicative identity when $W_{h_{\ell-1},h_\ell}=0$.
 The NMU unit does not support division by design.
 %Previous experiments using the NALU for division does not work well on division hence very little is lost with this modification \cite{trask-nalu}.
-As opposed to the $\mathrm{NAC}_{\bullet}$, the NMU can represent input of both negative and positive $z_{h_{\ell-1}}$ values and is not $\epsilon$ bounded, which allows the NMU to extrapolate to $z_{h_{\ell-1}}$ that are negative or smaller than $\epsilon$.
-
-%The gradients with respect to the weight and input in the NMU are (see details in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}):
-%\begin{align}
-%\frac{\partial \mathcal{L}}{\partial W_{h_{\ell}, h_{\ell - 1}}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial W_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right) \label{eq:nmugrad-1} \\
-%\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}} &= \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial z_{h_{\ell-1}}} = \sum_{h_\ell = 1}^{H_\ell} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} W_{h_{\ell-1},h_\ell} \label{eq:nmugrad-2}
-%\end{align}
-
-%Note that the fraction in equation \ref{eq:nmugrad-1} and \ref{eq:nmugrad-2} does not explode for $z_{h_{\ell-1}}$ close to zero because the denominator cancels out the term for $h_{\ell-1}$ in $z_{h_\ell}$, as seen in equation \ref{eq:nmu-defintion}.
+As opposed to the $\mathrm{NAC}_{\bullet}$, the NMU can represent input of both negative and positive values and is not $\epsilon$ bounded, which allows the NMU to extrapolate to $z_{h_{\ell-1}}$ that are negative or smaller than $\epsilon$. Its gradients are derived in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}.
 
 \subsubsection{Moments and initialization}
 Our proposed NAU can be initialized using Glorot initialization as it is a linear layer. The $\mathrm{NAC}_{+}$ unit can also achieve an ideal initialization, although it is less trivial (details in Appendix \ref{sec:appendix:moments:weight-matrix-construction}).
@@ -149,6 +141,9 @@ E[z_{h_\ell}] \approx \left(\frac{1}{2}\right)^{H_{\ell-1}},
 \end{equation}
 which approaches zero for $H_{\ell-1} \rightarrow \infty$ (details in Appendix \ref{sec:appendix:moments:nmu}). The NMU can, with the assumption that, $Var[z_{h_{\ell-1}}] = 1$ and $H_{\ell-1}$ is large, be initialized optimally with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$ (proof in Appendix \ref{sec:appendix:moments:nmu:initialization}).
 
-\subsubsection{Regularization scaling}
-
-For all experiments $\lambda_{\mathrm{sparse}} = \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)$. The motivation here, is that the optimization consists of two parts. A warmup period, where $W_{h_{\ell-1},h_\ell}$ should get close to the solution, unhindered by the sparsity regualizer, and then a finalize period where the solution is made sparse. We show the effect of regularization in appendix \ref{sec:appendix:simple-function-task:regualization}.
+\subsubsection{Regularizer scaling}
+We use the regularizer scaling as defined in \eqref{eq:regualizer-scaling}. The motivation here, is that the optimization consists of two parts. A warmup period, where $W_{h_{\ell-1},h_\ell}$ should get close to the solution, unhindered by the sparsity regularizer, and then a period where the solution is made sparse.
+\begin{equation}
+\lambda_{\mathrm{sparse}} = \hat{\lambda}_{\mathrm{sparse}} \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)
+\label{eq:regualizer-scaling}
+\end{equation}

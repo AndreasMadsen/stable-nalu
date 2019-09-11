@@ -30,11 +30,43 @@ We define the values $a$ and $b$, as the sub of subsets of $\mathbf{x}$ (see fig
   \label{alg:dataset-sampling}
 \end{algorithm}
 
+\subsection{Arithmetic operations comparison - all models}
+\label{sec:appendix:comparison-all-models}
+
+Models are defined in table \ref{tab:model-defintions} and are all optimized with Adam optimization \cite{adam-optimization} using default parameters and trained for about four hours on an HPC cluster running \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
+
+The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed testset with $1 \cdot 10^4$ observations sampled from the extrapolation range.
+
+\begin{table}[h]
+\caption{Model definitions}
+\label{tab:model-defintions}
+\centering
+\begin{tabular}{r l l l l l}
+\toprule
+ Model & Layer 1 & Layer 2 & $\hat{\lambda}_{\mathrm{sparse}}$ & $\lambda_{\mathrm{start}}$ & $\lambda_{\mathrm{end}}$ \\
+ \midrule
+ NMU & NAU & NMU & 10 & $10^6$ & $2 \cdot 10^6$ \\
+ NAU & NAU & NAU & 0.01 & $5 \cdot 10^3$ & $5 \cdot 10^4$ \\
+ $\mathrm{NAC}_{\bullet}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet}$ & -- & -- & -- \\
+ $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet,\sigma}$ & -- & -- & -- \\
+ $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & 10 & $10^6$ & $2 \cdot 10^6$ \\
+ $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & -- & -- & -- \\
+ NALU & NALU & NALU & -- & -- & -- \\
+ Linear & Linear & Linear & -- & -- & -- \\
+ ReLU & ReLU & ReLU & -- & -- & -- \\
+ ReLU6 & ReLU6 & ReLU6 & -- & -- & -- \\
+ \bottomrule
+\end{tabular}
+\end{table}
+
+Results for all models on addition, subtraction, and multiplication can be found in table \ref{tab:function-task-static-defaults-all}.
+
+\input{results/function_task_static_all.tex}
+
 \subsection{Effect of dataset parameter}
 \label{sec:appendix-simple-function-task:dataset-parameter-effect}
 
 To stress test the models on the multiplication task, we vary the dataset parameters one at a time (table \ref{tab:simple-function-task-defaults}), and run 25 experiments with different seeds. The results, are visualized in figure \ref{fig:simple-function-static-dataset-parameters-boundary}.
-
 
 \begin{table}[h]
 \caption{Default dataset parameters}
@@ -74,32 +106,6 @@ To stress test the models on the multiplication task, we vary the dataset parame
 \caption{Shows the effect of the dataset parameters.}
 \label{fig:simple-function-static-dataset-parameters-boundary}
 \end{figure}
-
-\subsection{Arithmetic operations comparison - all models}
-\label{sec:appendix:comparison-all-models}
-\begin{table}[h]
-\caption{Model definitions}
-\label{tab:model-defintions}
-\centering
-\begin{tabular}{r l l}
-\toprule
- Model & Layer 1 & Layer 2 \\
- \midrule
- NMU & NAU & NMU \\
- NAU & NAU & NAU \\
- $\mathrm{NAC}_{\bullet}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet}$ \\
- $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ \\
- NALU & NALU & NALU \\
- Linear & Linear & Linear \\
- ReLU & ReLU & ReLU \\
- ReLU6 & ReLU6 & ReLU6 \\
- \bottomrule
-\end{tabular}
-\end{table}
-
-Results for all models on addition, subtraction, and multiplication can be found in table \ref{tab:function-task-static-defaults-all}.
-
-\input{results/function_task_static_all.tex}
 
 \subsection{Ablation study}
 \label{sec:appendix:ablation-study}
