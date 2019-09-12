@@ -9,7 +9,7 @@ for seed in {0..24}
 do
     for operation in "${operations[@]}"
     do
-        for learning_rate in "{$learning_rates[@]}"
+        for learning_rate in "${learning_rates[@]}"
         do
             # Adam
             bsub -q compute -n 1 -W 12:00 -J ${experiment_name} -o /work3/$USER/logs/${experiment_name}/ -e /work3/$USER/logs/${experiment_name}/ -R "span[hosts=1]" -R "rusage[mem=2GB]" ./python_lfs_job.sh \
