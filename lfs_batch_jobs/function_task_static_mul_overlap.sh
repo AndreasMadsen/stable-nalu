@@ -4,7 +4,7 @@ experiment_name='function_task_static_mul_overlap'
 operation=mul
 overlap_ratios=( 0.0 0.1 0.25 0.5 0.75 1.0 )
 verbose_flag=''
-for seed in {0..24}
+for seed in {25..49}
 do
     for overlap_ratio in "${overlap_ratios[@]}"
     do

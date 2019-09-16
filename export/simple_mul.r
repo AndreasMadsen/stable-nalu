@@ -7,6 +7,7 @@ library(tidyr)
 library(readr)
 source('./_function_task_expand_name.r')
 source('./_function_task_table.r')
+source('./_compute_summary.r')
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -24,18 +25,6 @@ first.solved.step = function (steps, errors, threshold) {
   } else {
     return(steps[index])
   }
-}
-
-safe.median = function (vec) {
-  if (length(vec) == 0) {
-    return(NA)
-  } else {
-    return(median(vec))
-  }
-}
-
-t.confidence.interval = function (alpha, vec) {
-  return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
 }
 
 best.range = 5000
@@ -71,23 +60,8 @@ dat.last = dat %>%
 
 dat.last.rate = dat.last %>%
   group_by(model, operation) %>%
-  summarise(
-    rate.interpolation = mean(interpolation.last < threshold),
-    rate.extrapolation = mean(solved),
-    
-    median.interpolation.solved = safe.median(interpolation.step.solved[solved]),
-    mean.interpolation.solved = mean(interpolation.step.solved[solved]),
-    
-    median.extrapolation.solved = safe.median(extrapolation.step.solved[solved]),
-    mean.extrapolation.solved = mean(extrapolation.step.solved[solved]),
-    ci.extrapolation.solved = t.confidence.interval(0.95, extrapolation.step.solved[solved]),
-    
-    median.sparse.error.max = safe.median(sparse.error.max[solved]),
-    mean.sparse.error.max = mean(sparse.error.max[solved]),
-    ci.sparse.error.max = t.confidence.interval(0.95, sparse.error.max[solved]),
-    
-    size = n() 
-  )
+  group_modify(compute.summary) %>%
+  ungroup()
 
 print(dat.last.rate)
 
@@ -96,7 +70,7 @@ save.table(
     (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
   ),
   "very-simple-function-results",
-  "Shows the success-rate for $\\mathcal{L}_{\\mathbf{W}_1, \\mathbf{W}_2} < \\mathcal{L}_{\\mathbf{W}_1^\\epsilon, \\mathbf{W}_2^*}$, at what global step the model converged at and the sparsity error for all weight matrices, with 95\\% confidence interval. Best result is highlighed without considering significance.",
+  "Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\\% confidence interval. Best result is highlighed.",
   "../paper/results/simple_mul.tex"
 )
 

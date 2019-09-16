@@ -4,7 +4,7 @@ experiment_name='function_task_static_mul_subset'
 operation=mul
 subset_ratios=( 0.05 0.10 0.25 0.50 )
 verbose_flag=''
-for seed in {0..24}
+for seed in {25..49}
 do
     for subset_ratio in "${subset_ratios[@]}"
     do

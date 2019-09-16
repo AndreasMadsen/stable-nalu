@@ -4,9 +4,18 @@ sync:
 		--exclude 'tensorboard' --exclude 'results' --exclude 'logs' --exclude 'save' \
 		-e ssh ./ dtu-data:~/workspace/stable-nalu
 
+sync-computationally:
+	rsync --info=progress2 -urltv --delete \
+		--exclude 'tensorboard' --exclude 'logs' --exclude 'save' \
+		-e ssh ./ computationally:~/workspace/stable-nalu
+
 fetch-results:
 	rsync --info=progress2 -urltv \
 		-e ssh dtu-data:~/workspace/stable-nalu/results/ ./results
+
+fetch-paper-results-from-computationally:
+	rsync --info=progress2 -urltv \
+		-e ssh computationally:~/workspace/stable-nalu/paper/results/ ./paper/results
 
 clean:
 	rm -rvf tensorboard/*

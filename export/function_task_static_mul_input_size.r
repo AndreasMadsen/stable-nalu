@@ -7,8 +7,10 @@ library(dplyr)
 library(tidyr)
 library(readr)
 source('./_function_task_expand_name.r')
+source('./_compute_summary.r')
+source('./_plot_parameter.r')
 
-best.range = 5000
+best.range = 15000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -26,14 +28,6 @@ first.solved.step = function (steps, errors, threshold) {
   } else {
     return(steps[index])
   }
-}
-
-safe.interval = function (alpha, vec) {
-  if (length(vec) <= 1) {
-    return(NA)
-  }
-  
-  return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
 }
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
@@ -56,7 +50,7 @@ dat = expand.name(read_csv(name.input)) %>%
   )
 
 dat.last = dat %>%
-  group_by(name) %>%
+  group_by(name, parameter) %>%
   #filter(n() == 201) %>%
   summarise(
     threshold = last(threshold),
@@ -67,7 +61,6 @@ dat.last = dat %>%
     extrapolation.step.solved = first.solved.step(step, metric.test.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     solved = replace_na(metric.test.extrapolation[best.model.step] < threshold, FALSE),
-    parameter = last(parameter),
     model = last(model),
     operation = last(operation),
     seed = last(seed),
@@ -76,70 +69,8 @@ dat.last = dat %>%
 
 dat.last.rate = dat.last %>%
   group_by(model, operation, parameter) %>%
-  summarise(
-    size=n(),
-    success.rate.mean = mean(solved) * 100,
-    success.rate.upper = NA,
-    success.rate.lower = NA,
-    
-    converged.at.mean = mean(extrapolation.step.solved[solved]),
-    converged.at.upper = converged.at.mean + safe.interval(0.95, extrapolation.step.solved[solved]),
-    converged.at.lower = converged.at.mean - safe.interval(0.95, extrapolation.step.solved[solved]),
-    
-    sparse.error.mean = mean(sparse.error.max[solved]),
-    sparse.error.upper = sparse.error.mean + safe.interval(0.95, sparse.error.max[solved]),
-    sparse.error.lower = sparse.error.mean - safe.interval(0.95, sparse.error.max[solved])
-  )
+  group_modify(compute.summary)
 
-dat.gather.mean = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.mean,
-    converged.at = converged.at.mean,
-    sparse.error = sparse.error.mean
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'mean.value', success.rate, converged.at, sparse.error)
-
-dat.gather.upper = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.upper,
-    converged.at = converged.at.upper,
-    sparse.error = sparse.error.upper
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'upper.value', success.rate, converged.at, sparse.error)
-
-dat.gather.lower = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.lower,
-    converged.at = converged.at.lower,
-    sparse.error = sparse.error.lower
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'lower.value', success.rate, converged.at, sparse.error)
-
-dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
-  mutate(
-    model=droplevels(model),
-    key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
-  )
-
-p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
-  geom_point(aes(y = mean.value)) +
-  geom_line(aes(y = mean.value)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
-  scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
-  scale_x_continuous(name = plot.label, breaks=plot.x.breaks) +
-  facet_wrap(~ key, scales='free_y', labeller = labeller(
-    key = c(
-      success.rate = "Success rate in %",
-      converged.at = "Solved at iteration step",
-      sparse.error = "Sparsity error"
-    )
-  )) +
-  theme(legend.position="bottom") +
-  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
+p = plot.parameter(dat.last.rate, plot.label, plot.x.breaks)
 print(p)
 ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
-

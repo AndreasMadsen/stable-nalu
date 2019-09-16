@@ -7,21 +7,30 @@ import stable_nalu
 import argparse
 
 # Parse arguments
-parser = argparse.ArgumentParser(description='Run either the MNIST counting or MNIST Arithmetic task')
+parser = argparse.ArgumentParser(description='Run either the SVHN counting or SVHN Arithmetic task')
 parser.add_argument('--layer-type',
                     action='store',
                     default='NALU',
-                    choices=list(stable_nalu.network.SequentialMnistNetwork.UNIT_NAMES),
+                    choices=list(stable_nalu.network.SequentialSvhnNetwork.UNIT_NAMES),
                     type=str,
                     help='Specify the layer type, e.g. RNN-tanh, LSTM, NAC, NALU')
 parser.add_argument('--operation',
                     action='store',
                     default='cumsum',
                     choices=[
-                        'cumsum', 'sum', 'cumprod', 'prod', 'cumdiv', 'div'
+                        'cumsum', 'sum', 'cumprod', 'prod'
                     ],
                     type=str,
                     help='Specify the operation to use, sum or count')
+parser.add_argument('--resnet',
+                    action='store',
+                    default='resnet18',
+                    choices=[
+                        'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'
+                    ],
+                    type=str,
+                    help='Specify the resnet18 version')
+
 parser.add_argument('--regualizer',
                     action='store',
                     default=10,
@@ -37,16 +46,16 @@ parser.add_argument('--regualizer-oob',
                     default=1,
                     type=float,
                     help='Specify the oob-regualization lambda to be used')
-parser.add_argument('--mnist-digits',
+parser.add_argument('--svhn-digits',
                     action='store',
                     default=[0,1,2,3,4,5,6,7,8,9],
                     type=lambda str: list(map(int,str)),
-                    help='MNIST digits to use')
-parser.add_argument('--mnist-outputs',
+                    help='SVHN digits to use')
+parser.add_argument('--svhn-outputs',
                     action='store',
                     default=1,
                     type=int,
-                    help='number of MNIST to use, more than 1 adds redundant values')
+                    help='number of SVHN outputs to use, more than 1 adds redundant values')
 parser.add_argument('--model-simplification',
                     action='store',
                     default='none',
@@ -83,10 +92,6 @@ parser.add_argument('--extrapolation-lengths',
                     type=ast.literal_eval,
                     help='Specify the sequence lengths used for the extrapolation dataset')
 
-parser.add_argument('--softmax-transform',
-                    action='store_true',
-                    default=False,
-                    help='Should a softmax transformation be used to control the output of the CNN model')
 parser.add_argument('--nac-mul',
                     action='store',
                     default='none',
@@ -156,7 +161,7 @@ parser.add_argument('--no-cuda',
                     help=f'Force no CUDA (cuda usage is detected automatically as {torch.cuda.is_available()})')
 parser.add_argument('--name-prefix',
                     action='store',
-                    default='sequence_mnist',
+                    default='sequence_svhn',
                     type=str,
                     help='Where the data should be stored')
 parser.add_argument('--remove-existing-data',
@@ -175,11 +180,12 @@ setattr(args, 'cuda', torch.cuda.is_available() and not args.no_cuda)
 print(f'running')
 print(f'  - layer_type: {args.layer_type}')
 print(f'  - operation: {args.operation}')
+print(f'  - resnet: {args.resnet}')
 print(f'  - regualizer: {args.regualizer}')
 print(f'  - regualizer_z: {args.regualizer_z}')
 print(f'  - regualizer_oob: {args.regualizer_oob}')
-print(f'  - mnist_digits: {args.mnist_digits}')
-print(f'  - mnist_outputs: {args.mnist_outputs}')
+print(f'  - svhn_digits: {args.svhn_digits}')
+print(f'  - svhn_outputs: {args.svhn_outputs}')
 print(f'  - model_simplification: {args.model_simplification}')
 print(f'  -')
 print(f'  - max_epochs: {args.max_epochs}')
@@ -189,7 +195,6 @@ print(f'  -')
 print(f'  - interpolation_length: {args.interpolation_length}')
 print(f'  - extrapolation_lengths: {args.extrapolation_lengths}')
 print(f'  -')
-print(f'  - softmax_transform: {args.softmax_transform}')
 print(f'  - nac_mul: {args.nac_mul}')
 print(f'  - nac_oob: {args.nac_oob}')
 print(f'  - regualizer_scaling: {args.regualizer_scaling}')
@@ -228,15 +233,16 @@ summary_writer = stable_nalu.writer.SummaryWriter(
     f'{"r" if args.nalu_gate == "regualized" else ""}'
     f'{"u" if args.nalu_gate == "gumbel" else ""}'
     f'{"uu" if args.nalu_gate == "obs-gumbel" else ""}'
-    f'_d-{"".join(map(str, args.mnist_digits))}'
-    f'_h-{args.mnist_outputs}'
+    f'_d-{"".join(map(str, args.svhn_digits))}'
+    f'_h-{args.svhn_outputs}'
     f'_op-{args.operation.lower()}'
+    f'_net-{args.resnet[6:]}'
     f'_oob-{"c" if args.nac_oob == "clip" else "r"}'
     f'_rs-{args.regualizer_scaling}-{args.regualizer_shape}'
     f'_eps-{args.mnac_epsilon}'
     f'_rl-{args.regualizer_scaling_start}-{args.regualizer_scaling_end}'
     f'_r-{args.regualizer}-{args.regualizer_z}-{args.regualizer_oob}'
-    f'_m-{"s" if args.softmax_transform else "l"}-{args.model_simplification[0]}'
+    f'_m-{args.model_simplification[0]}'
     f'_i-{args.interpolation_length}'
     f'_e-{"-".join(map(str, args.extrapolation_lengths))}'
     f'_b{args.batch_size}'
@@ -253,11 +259,11 @@ torch.manual_seed(args.seed)
 torch.backends.cudnn.deterministic = True
 
 # Setup datasets
-dataset = stable_nalu.dataset.SequentialMnistDataset(
+dataset = stable_nalu.dataset.SequentialSvhnDataset(
     operation=args.operation,
     use_cuda=args.cuda,
     seed=args.seed,
-    mnist_digits=args.mnist_digits
+    svhn_digits=args.svhn_digits
 )
 dataset_train = dataset.fork(seq_length=args.interpolation_length, subset='train').dataloader(shuffle=True)
 # Seeds are from random.org
@@ -273,14 +279,12 @@ dataset_test_extrapolations = [
 ]
 
 # setup model
-model = stable_nalu.network.SequentialMnistNetwork(
+model = stable_nalu.network.SequentialSvhnNetwork(
     args.layer_type,
     output_size=dataset.get_item_shape().target[-1],
     writer=summary_writer.every(100).verbose(args.verbose),
-    mnist_digits=args.mnist_digits,
-    mnist_outputs=args.mnist_outputs,
+    svhn_outputs=args.svhn_outputs,
     model_simplification=args.model_simplification,
-    softmax_transform=args.softmax_transform,
     nac_mul=args.nac_mul,
     nac_oob=args.nac_oob,
     regualizer_shape=args.regualizer_shape,
@@ -359,7 +363,7 @@ for epoch_i in range(0, args.max_epochs + 1):
 
         # forward
         with summary_writer.force_logging(epoch_i % 5 == 0 and i_train == 0):
-            mnist_y_train, y_train = model(x_train)
+            svhn_y_train, y_train = model(x_train)
         regualizers = model.regualizer()
 
         if (args.regualizer_scaling == 'linear'):
@@ -381,8 +385,8 @@ for epoch_i in range(0, args.max_epochs + 1):
         summary_writer.add_scalar('loss/train/regualizer', loss_train_regualizer)
         summary_writer.add_scalar('loss/train/total', loss_train)
         if epoch_i % 5 == 0 and i_train == 0:
-            summary_writer.add_tensor('MNIST/train',
-                                      torch.cat([mnist_y_train[:,0,:], t_train[:,0,:]], dim=1))
+            summary_writer.add_tensor('SVHN/train',
+                                      torch.cat([svhn_y_train[:,0,:], t_train[:,0,:]], dim=1))
             print('train %d: %.5f, full: %.5f, %.3f (acc[last]), valid: %.5f, %.3f (acc[last])' % (
                 epoch_i, loss_train_criterion, train_full_mse, train_full_acc_last, valid_mse, valid_acc_last
             ))

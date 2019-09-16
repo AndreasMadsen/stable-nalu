@@ -7,7 +7,7 @@ wall_times=( 10 10 10 15 15  15  30  30  45  45  60  60  75  75 )
 max_miters=(  5  5  5  5  5   5  10  10  10  10  15  15  15  15 )
 
 verbose_flag=''
-for seed in {0..24}
+for seed in {25..49}
 do
     for i in ${!input_sizes[@]}
     do

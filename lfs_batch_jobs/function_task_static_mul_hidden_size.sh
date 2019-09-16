@@ -4,7 +4,7 @@ experiment_name='function_task_static_mul_hidden_size'
 operation=mul
 hidden_sizes=( 2 3 4 5 6 7 8 9 10 )
 verbose_flag=''
-for seed in {0..24}
+for seed in {25..49}
 do
     for hidden_size in "${hidden_sizes[@]}"
     do

@@ -8,6 +8,8 @@ library(tidyr)
 library(readr)
 library(xtable)
 source('./_function_task_expand_name.r')
+source('./_compute_summary.r')
+source('./_plot_parameter.r')
 
 best.range = 5000
 
@@ -57,7 +59,7 @@ dat = expand.name(read_csv(name.file)) %>%
 
 
 dat.last = dat %>%
-  group_by(name) %>%
+  group_by(name, parameter) %>%
   #filter(n() == 201) %>%
   summarise(
     threshold = last(threshold),
@@ -70,60 +72,15 @@ dat.last = dat %>%
     solved = replace_na(metric.test.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
-    parameter = last(parameter),
     seed = last(seed),
     size = n()
   )
 
 dat.last.rate = dat.last %>%
   group_by(model, operation, parameter) %>%
-  summarise(
-    size=n(),
-    success.rate.mean = mean(solved) * 100,
-    success.rate.upper = NA,
-    success.rate.lower = NA,
+  group_modify(compute.summary)
 
-    converged.at.mean = mean(extrapolation.step.solved[solved]),
-    converged.at.upper = converged.at.mean + safe.interval(0.95, extrapolation.step.solved[solved]),
-    converged.at.lower = converged.at.mean - safe.interval(0.95, extrapolation.step.solved[solved]),
-
-    sparse.error.mean = mean(sparse.error.max[solved]),
-    sparse.error.upper = sparse.error.mean + safe.interval(0.95, sparse.error.max[solved]),
-    sparse.error.lower = sparse.error.mean - safe.interval(0.95, sparse.error.max[solved])
-  )
-
-dat.gather.mean = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.mean,
-    converged.at = converged.at.mean,
-    sparse.error = sparse.error.mean
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'mean.value', success.rate, converged.at, sparse.error)
-
-dat.gather.upper = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.upper,
-    converged.at = converged.at.upper,
-    sparse.error = sparse.error.upper
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'upper.value', success.rate, converged.at, sparse.error)
-
-dat.gather.lower = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.lower,
-    converged.at = converged.at.lower,
-    sparse.error = sparse.error.lower
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'lower.value', success.rate, converged.at, sparse.error)
-
-dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
-  mutate(
-    model=droplevels(model),
-    key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
-  )
+dat.gather = plot.parameter.make.data(dat.last.rate)
 
 p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parameter, model))) +
   geom_point(aes(y = mean.value), position=position_dodge(width=0.3)) +

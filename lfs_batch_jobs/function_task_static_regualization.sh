@@ -3,7 +3,7 @@ export LSB_JOB_REPORT_MAIL=N
 experiment_name='function_task_static_regualization'
 regualizations=( 0 0.01 0.1 1 10 100 )
 verbose_flag=''
-for seed in {0..24}
+for seed in {25..49}
 do
     for regualization in "${regualizations[@]}"
     do

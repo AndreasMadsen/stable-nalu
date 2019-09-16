@@ -15,9 +15,6 @@ source('./_plot_parameter.r')
 best.range = 1000
 alpha = 0.01
 
-plot.label = paste0("Extrapolation length (alpha = ", (alpha * 100), "%)")
-plot.x.breaks = c(1,seq(2,20,2))
-
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
   if (length(best.step) == 0) {
@@ -36,17 +33,9 @@ first.solved.step = function (steps, errors, threshold) {
   }
 }
 
-safe.interval = function (alpha, vec) {
-  if (length(vec) <= 1) {
-    return(NA)
-  }
-  
-  return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
-}
-
 eps = expand.name(read_csv('../results/sequential_mnist_prod_reference.csv')) %>%
   gather(
-    key="parameter", value="test.extrapolation.mse",
+    key="paramter", value="test.extrapolation.mse",
     metric.test.extrapolation.1.mse, metric.test.extrapolation.2.mse,
     metric.test.extrapolation.3.mse, metric.test.extrapolation.4.mse,
     metric.test.extrapolation.5.mse, metric.test.extrapolation.6.mse,
@@ -60,17 +49,17 @@ eps = expand.name(read_csv('../results/sequential_mnist_prod_reference.csv')) %>
   ) %>%
   rowwise() %>%
   mutate(
-    parameter = extrapolation.loss.name.to.integer(parameter)
+    paramter = extrapolation.loss.name.to.integer(paramter)
   ) %>%
-  group_by(seed, parameter) %>%
+  group_by(seed, paramter) %>%
   summarise(
     best.model.step = best.model.step.fn(metric.valid.mse),
     threshold = test.extrapolation.mse[best.model.step],
   ) %>%
   filter(seed %in% c(0,2,4,5,6,7,9)) %>% # seed 1, 3, and 8 did not solve it
-  group_by(parameter) %>%
+  group_by(paramter) %>%
   summarise(
-    threshold = mean(threshold) + qt(1 - alpha, 8) * (sd(threshold) / sqrt(n()))
+    threshold = mean(threshold) + qt(1 - alpha, 7) * sd(threshold) / sqrt(n())
   )
 
 dat = expand.name(read_csv('../results/sequential_mnist_prod_long.csv')) %>%
@@ -119,8 +108,7 @@ dat.last = dat %>%
 
 dat.last.rate = dat.last %>%
   group_by(model, operation, parameter, regualizer.z) %>%
-  group_modify(compute.summary) %>%
-  ungroup()
+  group_modify(compute.summary)
 
 plot.by.regualizer.z = function (regualizer.z.show) {
   dat.plot = dat.last.rate %>%
@@ -128,8 +116,8 @@ plot.by.regualizer.z = function (regualizer.z.show) {
       (regualizer.z == regualizer.z.show & model %in% c('$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$', 'NMU')) |
       model %in% c('$\\mathrm{NAC}_{\\bullet}$', '$\\mathrm{NAC}_{\\bullet,\\sigma}$', 'LSTM', 'NALU')
     )
-
-  p = plot.parameter(dat.plot, plot.label, plot.x.breaks) +
+  
+  p = plot.parameter(dat.plot, paste0("Extrapolation length (alpha = ", (alpha * 100), "%)"), c(1,seq(2,20,2))) +
     guides(colour = guide_legend(nrow = 1))
   return(p)
 }

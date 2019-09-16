@@ -1,13 +1,13 @@
 
 \begin{longtable}{crllll}
-\caption{\label{tab:function-task-static-defaults-all}Shows the success-rate for $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, at what global step the model converged at and the sparsity error for all weight matrices, with 95\% confidence interval. Best result is highlighed without considering significance.}\\
+\caption{\label{tab:function-task-static-defaults-all}Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\% confidence interval. Best result is highlighed.}\\
 \toprule
 \multicolumn{1}{c}{Op} & \multicolumn{1}{c}{Model} & \multicolumn{1}{c}{Success} & \multicolumn{2}{c}{Solved at} & \multicolumn{1}{c}{Sparsity error} \\
 \cmidrule(l{3pt}r{3pt}){1-1} \cmidrule(l{3pt}r{3pt}){2-2} \cmidrule(l{3pt}r{3pt}){3-3} \cmidrule(l{3pt}r{3pt}){4-5} \cmidrule(l{3pt}r{3pt}){6-6}
  &  & Rate & Median & Mean & Mean\\
 \midrule
 \endfirsthead
-\caption[]{Shows the success-rate for $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, at what global step the model converged at and the sparsity error for all weight matrices, with 95\% confidence interval. Best result is highlighed without considering significance. \textit{(continued)}}\\
+\caption[]{Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\% confidence interval. Best result is highlighed. \textit{(continued)}}\\
 \toprule
 \multicolumn{1}{c}{Op} & \multicolumn{1}{c}{Model} & \multicolumn{1}{c}{Success} & \multicolumn{2}{c}{Solved at} & \multicolumn{1}{c}{Sparsity error} \\
 \cmidrule(l{3pt}r{3pt}){1-1} \cmidrule(l{3pt}r{3pt}){2-2} \cmidrule(l{3pt}r{3pt}){3-3} \cmidrule(l{3pt}r{3pt}){4-5} \cmidrule(l{3pt}r{3pt}){6-6}
@@ -18,123 +18,123 @@
 \endfoot
 \bottomrule
 \endlastfoot
- & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $96\%$ & $1.9 \cdot 10^{6}$ & $2.2 \cdot 10^{6} \pm 3.4 \cdot 10^{5}$ & $5.1 \cdot 10^{-7} \pm 8.2 \cdot 10^{-8}$\\
+ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $93\% {~}^{+4\%}_{-7\%}$ & $1.8 \cdot 10^{6}$ & $1.9 \cdot 10^{6} {~}^{+7.7 \cdot 10^{4}}_{-9.3 \cdot 10^{4}}$ & $9.5 \cdot 10^{-7}$\\
 
- & $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathbf{100\%}$ & $2.6 \cdot 10^{6}$ & $2.9 \cdot 10^{6} \pm 3.2 \cdot 10^{5}$ & $1.0 \cdot 10^{-4} \pm 4.9 \cdot 10^{-5}$\\
+ & $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $2.5 \cdot 10^{6}$ & $2.6 \cdot 10^{6} {~}^{+8.8 \cdot 10^{4}}_{-7.2 \cdot 10^{4}}$ & $4.6 \cdot 10^{-5} {~}^{+5.0 \cdot 10^{-6}}_{-5.6 \cdot 10^{-6}}$\\
 
- & $\mathrm{NAC}_{\bullet}$ & $24\%$ & $3.8 \cdot 10^{6}$ & $3.7 \cdot 10^{6} \pm 6.8 \cdot 10^{5}$ & $4.0 \cdot 10^{-4} \pm 4.1 \cdot 10^{-4}$\\
+ & $\mathrm{NAC}_{\bullet}$ & $31\% {~}^{+10\%}_{-8\%}$ & $2.8 \cdot 10^{6}$ & $3.0 \cdot 10^{6} {~}^{+2.9 \cdot 10^{5}}_{-2.4 \cdot 10^{5}}$ & $5.8 \cdot 10^{-4} {~}^{+4.8 \cdot 10^{-4}}_{-2.6 \cdot 10^{-4}}$\\
 
- & $\mathrm{NAC}_{+}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{+}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & Linear & $0\%$ & --- & --- & ---\\
+ & Linear & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NALU & $0\%$ & --- & --- & ---\\
+ & NALU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NAU & $0\%$ & --- & --- & ---\\
+ & NAU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NMU & $\mathbf{100\%}$ & $\mathbf{1.5 \cdot 10^{6}}$ & $\mathbf{1.8 \cdot 10^{6} \pm 3.4 \cdot 10^{5}}$ & $\mathbf{4.4 \cdot 10^{-7} \pm 6.9 \cdot 10^{-8}}$\\
+ & NMU & $98\% {~}^{+1\%}_{-5\%}$ & $\mathbf{1.4 \cdot 10^{6}}$ & $\mathbf{1.5 \cdot 10^{6}} {~}^{+4.8 \cdot 10^{4}}_{-6.5 \cdot 10^{4}}$ & $\mathbf{4.2 \cdot 10^{-7}}$\\
 
- & ReLU & $0\%$ & --- & --- & ---\\
+ & ReLU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
-\multirow{-10}{*}{\centering\arraybackslash $\bm{\times}$} & ReLU6 & $0\%$ & --- & --- & ---\\
+\multirow{-10}{*}{\centering\arraybackslash $\bm{\times}$} & ReLU6 & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 \cmidrule{1-6}
- & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $\mathbf{0\%}$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathbf{0\%}$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{\bullet}$ & $\mathbf{0\%}$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet}$ & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{+}$ & $\mathbf{0\%}$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{+}$ & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & Linear & $\mathbf{0\%}$ & --- & --- & ---\\
+ & Linear & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NALU & $\mathbf{0\%}$ & --- & --- & ---\\
+ & NALU & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NAU & $\mathbf{0\%}$ & --- & --- & ---\\
+ & NAU & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NMU & $\mathbf{0\%}$ & --- & --- & ---\\
+ & NMU & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & ReLU & $\mathbf{0\%}$ & --- & --- & ---\\
+ & ReLU & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
-\multirow{-10}{*}{\centering\arraybackslash $\bm{\mathbin{/}}$} & ReLU6 & $\mathbf{0\%}$ & --- & --- & ---\\
+\multirow{-10}{*}{\centering\arraybackslash $\bm{\mathbin{/}}$} & ReLU6 & $\mathbf{0\%} {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 \cmidrule{1-6}
- & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{\bullet,\sigma}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet,\sigma}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{\bullet}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{+}$ & $\mathbf{100\%}$ & $2.4 \cdot 10^{5}$ & $2.5 \cdot 10^{5} \pm 3.5 \cdot 10^{4}$ & $4.7 \cdot 10^{-1} \pm 2.4 \cdot 10^{-2}$\\
+ & $\mathrm{NAC}_{+}$ & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $2.5 \cdot 10^{5}$ & $4.9 \cdot 10^{5} {~}^{+5.2 \cdot 10^{4}}_{-4.5 \cdot 10^{4}}$ & $2.3 \cdot 10^{-1} {~}^{+6.5 \cdot 10^{-3}}_{-6.5 \cdot 10^{-3}}$\\
 
- & Linear & $\mathbf{100\%}$ & $5.8 \cdot 10^{4}$ & $6.0 \cdot 10^{4} \pm 4.2 \cdot 10^{3}$ & $5.5 \cdot 10^{-1} \pm 4.1 \cdot 10^{-2}$\\
+ & Linear & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $6.1 \cdot 10^{4}$ & $\mathbf{6.3 \cdot 10^{4}} {~}^{+2.5 \cdot 10^{3}}_{-3.3 \cdot 10^{3}}$ & $2.5 \cdot 10^{-1} {~}^{+3.6 \cdot 10^{-4}}_{-3.6 \cdot 10^{-4}}$\\
 
- & NALU & $4\%$ & $1.8 \cdot 10^{6}$ & $1.8 \cdot 10^{6}$ & $4.9 \cdot 10^{-1}$\\
+ & NALU & $14\% {~}^{+8\%}_{-5\%}$ & $1.5 \cdot 10^{6}$ & $1.6 \cdot 10^{6} {~}^{+3.8 \cdot 10^{5}}_{-3.3 \cdot 10^{5}}$ & $1.7 \cdot 10^{-1} {~}^{+2.7 \cdot 10^{-2}}_{-2.5 \cdot 10^{-2}}$\\
 
- & NAU & $\mathbf{100\%}$ & $\mathbf{1.8 \cdot 10^{4}}$ & $\mathbf{1.8 \cdot 10^{4} \pm 4.4 \cdot 10^{2}}$ & $\mathbf{3.2 \cdot 10^{-5} \pm 2.8 \cdot 10^{-5}}$\\
+ & NAU & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $\mathbf{1.8 \cdot 10^{4}}$ & $3.9 \cdot 10^{5} {~}^{+4.4 \cdot 10^{4}}_{-3.7 \cdot 10^{4}}$ & $\mathbf{1.8 \cdot 10^{-5}}$\\
 
- & NMU & $0\%$ & --- & --- & ---\\
+ & NMU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & ReLU & $72\%$ & $6.7 \cdot 10^{4}$ & $4.3 \cdot 10^{5} \pm 4.8 \cdot 10^{5}$ & $6.8 \cdot 10^{-1} \pm 1.1 \cdot 10^{-1}$\\
+ & ReLU & $62\% {~}^{+9\%}_{-10\%}$ & $6.2 \cdot 10^{4}$ & $7.6 \cdot 10^{4} {~}^{+8.3 \cdot 10^{3}}_{-7.0 \cdot 10^{3}}$ & $2.5 \cdot 10^{-1} {~}^{+2.4 \cdot 10^{-3}}_{-2.4 \cdot 10^{-3}}$\\
 
-\multirow{-10}{*}{\centering\arraybackslash $\bm{+}$} & ReLU6 & $0\%$ & --- & --- & ---\\
+\multirow{-10}{*}{\centering\arraybackslash $\bm{+}$} & ReLU6 & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 \cmidrule{1-6}
- & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{\bullet,\sigma}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet,\sigma}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{\bullet}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{+}$ & $\mathbf{100\%}$ & $9.0 \cdot 10^{3}$ & $4.0 \cdot 10^{5} \pm 3.1 \cdot 10^{5}$ & $4.5 \cdot 10^{-1} \pm 2.5 \cdot 10^{-2}$\\
+ & $\mathrm{NAC}_{+}$ & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $9.0 \cdot 10^{3}$ & $3.7 \cdot 10^{5} {~}^{+3.8 \cdot 10^{4}}_{-3.8 \cdot 10^{4}}$ & $2.3 \cdot 10^{-1} {~}^{+5.4 \cdot 10^{-3}}_{-5.4 \cdot 10^{-3}}$\\
 
- & Linear & $4\%$ & $2.4 \cdot 10^{6}$ & $2.4 \cdot 10^{6}$ & $4.8 \cdot 10^{-1}$\\
+ & Linear & $7\% {~}^{+7\%}_{-4\%}$ & $3.3 \cdot 10^{6}$ & $1.4 \cdot 10^{6} {~}^{+7.0 \cdot 10^{5}}_{-6.1 \cdot 10^{5}}$ & $1.8 \cdot 10^{-1} {~}^{+7.2 \cdot 10^{-2}}_{-5.8 \cdot 10^{-2}}$\\
 
- & NALU & $8\%$ & $2.3 \cdot 10^{6}$ & $2.3 \cdot 10^{6} \pm 1.1 \cdot 10^{7}$ & $4.7 \cdot 10^{-1} \pm 3.2 \cdot 10^{-1}$\\
+ & NALU & $14\% {~}^{+8\%}_{-5\%}$ & $1.9 \cdot 10^{6}$ & $1.9 \cdot 10^{6} {~}^{+4.4 \cdot 10^{5}}_{-4.5 \cdot 10^{5}}$ & $2.1 \cdot 10^{-1} {~}^{+2.2 \cdot 10^{-2}}_{-2.2 \cdot 10^{-2}}$\\
 
- & NAU & $\mathbf{100\%}$ & $\mathbf{5.0 \cdot 10^{3}}$ & $\mathbf{1.6 \cdot 10^{5} \pm 3.3 \cdot 10^{5}}$ & $1.8 \cdot 10^{-1} \pm 1.0 \cdot 10^{-1}$\\
+ & NAU & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $\mathbf{5.0 \cdot 10^{3}}$ & $\mathbf{1.6 \cdot 10^{5}} {~}^{+1.7 \cdot 10^{4}}_{-1.6 \cdot 10^{4}}$ & $6.6 \cdot 10^{-2} {~}^{+2.5 \cdot 10^{-2}}_{-1.9 \cdot 10^{-2}}$\\
 
- & NMU & $56\%$ & $1.0 \cdot 10^{6}$ & $1.0 \cdot 10^{6} \pm 6.1 \cdot 10^{2}$ & $\mathbf{6.4 \cdot 10^{-4} \pm 1.0 \cdot 10^{-4}}$\\
+ & NMU & $56\% {~}^{+9\%}_{-10\%}$ & $1.0 \cdot 10^{6}$ & $1.0 \cdot 10^{6} {~}^{+5.8 \cdot 10^{2}}_{-5.8 \cdot 10^{2}}$ & $\mathbf{3.4 \cdot 10^{-4}} {~}^{+3.2 \cdot 10^{-5}}_{-2.6 \cdot 10^{-5}}$\\
 
- & ReLU & $0\%$ & --- & --- & ---\\
+ & ReLU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
-\multirow{-10}{*}{\centering\arraybackslash $\bm{-}$} & ReLU6 & $0\%$ & --- & --- & ---\\
+\multirow{-10}{*}{\centering\arraybackslash $\bm{-}$} & ReLU6 & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 \cmidrule{1-6}
- & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $8\%$ & $1.0 \cdot 10^{6}$ & $1.0 \cdot 10^{6} \pm NaN \cdot 10^{-Inf}$ & $\mathbf{3.3 \cdot 10^{-1} \pm 5.8 \cdot 10^{-3}}$\\
+ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $3\% {~}^{+5\%}_{-2\%}$ & $1.0 \cdot 10^{6}$ & $\mathbf{1.0 \cdot 10^{6}}$ & $\mathbf{1.7 \cdot 10^{-1}} {~}^{+8.3 \cdot 10^{-3}}_{-8.1 \cdot 10^{-3}}$\\
 
- & $\mathrm{NAC}_{\bullet,\sigma}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{\bullet,\sigma}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & $\mathrm{NAC}_{\bullet}$ & $\mathbf{12\%}$ & $1.1 \cdot 10^{6}$ & $1.8 \cdot 10^{6} \pm 5.0 \cdot 10^{6}$ & $4.6 \cdot 10^{-1} \pm 1.6 \cdot 10^{-1}$\\
+ & $\mathrm{NAC}_{\bullet}$ & $\mathbf{7\%} {~}^{+7\%}_{-4\%}$ & $\mathbf{4.0 \cdot 10^{5}}$ & $1.5 \cdot 10^{6} {~}^{+6.0 \cdot 10^{5}}_{-5.6 \cdot 10^{5}}$ & $2.4 \cdot 10^{-1} {~}^{+1.7 \cdot 10^{-2}}_{-1.7 \cdot 10^{-2}}$\\
 
- & $\mathrm{NAC}_{+}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{+}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & Linear & $0\%$ & --- & --- & ---\\
+ & Linear & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NALU & $4\%$ & $\mathbf{8.9 \cdot 10^{5}}$ & $\mathbf{8.9 \cdot 10^{5}}$ & $5.0 \cdot 10^{-1}$\\
+ & NALU & $2\% {~}^{+5\%}_{-1\%}$ & $2.6 \cdot 10^{6}$ & $3.3 \cdot 10^{6} {~}^{+1.8 \cdot 10^{6}}_{-2.2 \cdot 10^{6}}$ & $5.0 \cdot 10^{-1}$\\
 
- & NAU & $0\%$ & --- & --- & ---\\
+ & NAU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NMU & $0\%$ & --- & --- & ---\\
+ & NMU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & ReLU & $0\%$ & --- & --- & ---\\
+ & ReLU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
-\multirow{-10}{*}{\centering\arraybackslash $\sqrt{z}$} & ReLU6 & $0\%$ & --- & --- & ---\\
+\multirow{-10}{*}{\centering\arraybackslash $\sqrt{z}$} & ReLU6 & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 \cmidrule{1-6}
- & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $\mathbf{100\%}$ & $1.4 \cdot 10^{6}$ & $1.7 \cdot 10^{6} \pm 3.3 \cdot 10^{5}$ & $\mathbf{3.0 \cdot 10^{-7} \pm 2.9 \cdot 10^{-8}}$\\
+ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $1.4 \cdot 10^{6}$ & $1.5 \cdot 10^{6} {~}^{+7.1 \cdot 10^{4}}_{-5.9 \cdot 10^{4}}$ & $\mathbf{2.9 \cdot 10^{-7}}$\\
 
- & $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathbf{100\%}$ & $1.9 \cdot 10^{6}$ & $2.5 \cdot 10^{6} \pm 4.3 \cdot 10^{5}$ & $3.5 \cdot 10^{-2} \pm 2.1 \cdot 10^{-3}$\\
+ & $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $1.9 \cdot 10^{6}$ & $1.9 \cdot 10^{6} {~}^{+5.3 \cdot 10^{4}}_{-6.2 \cdot 10^{4}}$ & $1.8 \cdot 10^{-2} {~}^{+4.3 \cdot 10^{-4}}_{-4.3 \cdot 10^{-4}}$\\
 
- & $\mathrm{NAC}_{\bullet}$ & $68\%$ & $3.2 \cdot 10^{6}$ & $3.3 \cdot 10^{6} \pm 4.0 \cdot 10^{5}$ & $3.6 \cdot 10^{-2} \pm 2.4 \cdot 10^{-3}$\\
+ & $\mathrm{NAC}_{\bullet}$ & $77\% {~}^{+7\%}_{-9\%}$ & $3.3 \cdot 10^{6}$ & $3.2 \cdot 10^{6} {~}^{+1.6 \cdot 10^{5}}_{-2.0 \cdot 10^{5}}$ & $1.8 \cdot 10^{-2} {~}^{+5.8 \cdot 10^{-4}}_{-5.7 \cdot 10^{-4}}$\\
 
- & $\mathrm{NAC}_{+}$ & $0\%$ & --- & --- & ---\\
+ & $\mathrm{NAC}_{+}$ & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & Linear & $0\%$ & --- & --- & ---\\
+ & Linear & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NALU & $0\%$ & --- & --- & ---\\
+ & NALU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NAU & $0\%$ & --- & --- & ---\\
+ & NAU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
- & NMU & $\mathbf{100\%}$ & $\mathbf{1.2 \cdot 10^{6}}$ & $\mathbf{1.6 \cdot 10^{6} \pm 3.7 \cdot 10^{5}}$ & $4.1 \cdot 10^{-7} \pm 6.1 \cdot 10^{-8}$\\
+ & NMU & $\mathbf{100\%} {~}^{+0\%}_{-4\%}$ & $\mathbf{1.2 \cdot 10^{6}}$ & $\mathbf{1.3 \cdot 10^{6}} {~}^{+3.1 \cdot 10^{4}}_{-3.6 \cdot 10^{4}}$ & $1.8 \cdot 10^{-5}$\\
 
- & ReLU & $0\%$ & --- & --- & ---\\
+ & ReLU & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\
 
-\multirow{-10}{*}{\centering\arraybackslash $z^2$} & ReLU6 & $0\%$ & --- & --- & ---\\*
+\multirow{-10}{*}{\centering\arraybackslash $z^2$} & ReLU6 & $0\% {~}^{+4\%}_{-0\%}$ & --- & --- & ---\\*
 \end{longtable}

@@ -20,6 +20,12 @@ simulate.mse = function (epsilon, samples, operation, simple, input.size, subset
       Y = Z[,1] - Z[,2]
     } else if (operation == 'mul') {
       Y = Z[,1] * Z[,2]
+    } else if (operation == 'div') {
+      Y = Z[,1] / Z[,2]
+    } else if (operation == 'squared') {
+      Y = Z[,1] * Z[,1]
+    } else if (operation == 'root') {
+      Y = sqrt(Z[,1])
     }
     return(Y)
   }
@@ -55,12 +61,15 @@ simulate.mse = function (epsilon, samples, operation, simple, input.size, subset
 
 cases = rbind(
   c(parameter='default', operation='mul', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='default', operation='div', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
   c(parameter='default', operation='add', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
   c(parameter='default', operation='sub', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
-
-  c(parameter='default', operation='mul', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F),
-  c(parameter='default', operation='add', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F),
-  c(parameter='default', operation='sub', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F)
+  c(parameter='default', operation='root', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='default', operation='squared', simple=F, input.size=100, subset.ratio=0.25, overlap.ratio=0.5, range.a=2, range.b=6, range.mirror=F),
+  
+  c(parameter='simple', operation='mul', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='simple', operation='add', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F),
+  c(parameter='simple', operation='sub', simple=T, input.size=4, subset.ratio=NA, overlap.ratio=NA, range.a=2, range.b=6, range.mirror=F)
 )
 
 for (input.size in c(4,10,25,50,75,100,125,150,175,200,225,250,275,300)) {
@@ -88,7 +97,10 @@ cases = rbind(cases,
 eps = data.frame(rbind(
   c(operation='mul', epsilon=0.00001),
   c(operation='add', epsilon=0.00001),
-  c(operation='sub', epsilon=0.00001)
+  c(operation='sub', epsilon=0.00001),
+  c(operation='div', epsilon=0.00001),
+  c(operation='squared', epsilon=0.00001),
+  c(operation='root', epsilon=0.00001)
 ))
 
 mse = data.frame(cases) %>%

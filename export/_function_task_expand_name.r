@@ -129,7 +129,7 @@ expand.name = function (df) {
     )
   
   df.expand.name$name = as.factor(df.expand.name$name)
-  df.expand.name$operation = factor(df.expand.name$operation, c('$\\bm{\\times}$', '$\\bm{+}$', '$\\bm{-}$'))
+  df.expand.name$operation = factor(df.expand.name$operation, c('$\\bm{\\times}$', '$\\bm{\\mathbin{/}}$', '$\\bm{+}$', '$\\bm{-}$', '$\\sqrt{z}$', '$z^2$'))
   df.expand.name$model = as.factor(df.expand.name$model)
   df.expand.name$interpolation.range = as.factor(df.expand.name$interpolation.range)
   df.expand.name$extrapolation.range = as.factor(df.expand.name$extrapolation.range)

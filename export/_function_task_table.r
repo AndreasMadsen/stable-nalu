@@ -1,7 +1,7 @@
 
 library(kableExtra)
 
-save.table = function(dat.last.rate, label, caption, file.out, show.operation=TRUE, highlight.best=TRUE) {
+save.table = function(dat.last.rate, label, caption, file.out, show.operation=TRUE, highlight.best=TRUE, longtable=FALSE) {
   
   latex.scientific = function (num) {
     exp = floor(log10(abs(num)))
@@ -19,12 +19,11 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
   
   latex.math.highlighter = function (content, highlight) {
     if (replace_na(highlight, FALSE) && highlight.best) {
-      return(paste0('$\\mathbf{', content, '}$'))
+      return(paste0('\\mathbf{', content, '}'))
     } else {
-      return(paste0('$', content, '$'))
+      return(content)
     }
   }
-  
   
   latex.formater = function (vec, formater, min.best=T) {
     df.format = data.frame(
@@ -34,29 +33,28 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
       rowwise() %>%
       mutate(
         formatted = ifelse(is.finite(num),
-                           latex.math.highlighter(
-                             formater(num),
-                             is.best
-                           ),
+                           paste0('$', latex.math.highlighter(formater(num), is.best), '$'),
                            '---')
       )
     return(df.format$formatted)
   }
   
-  latex.ci.formater = function (vec.mean, vec.ci, formater, min.best=T) {
+  latex.ci.formater = function (vec.mean, vec.lower, vec.upper, formater, min.best=T) {
     df.format = data.frame(
       is.best = vec.mean == ifelse(min.best, min(vec.mean, na.rm=T), max(vec.mean, na.rm=T)),
       mean = vec.mean,
-      ci = vec.ci
+      ci.defined = !is.na(vec.upper + vec.lower),
+      ci.upper = vec.upper - vec.mean,
+      ci.lower = vec.mean - vec.lower
     ) %>%
       rowwise() %>%
       mutate(
         formatted = ifelse(is.finite(mean), 
-                           latex.math.highlighter(
-                            ifelse(is.finite(ci), paste0(formater(mean), ' \\pm ', formater(ci)), formater(mean)),
-                            is.best
-                           ),
-                           '---')
+                      ifelse(ci.defined,
+                             paste0('$', latex.math.highlighter(formater(mean), is.best),' {~}^{+', formater(ci.upper), '}_{-', formater(ci.lower), '}$'),
+                             paste0('$', latex.math.highlighter(formater(mean), is.best), '$')
+                      ),
+                      '---')
       )
     return(df.format$formatted)
   }
@@ -74,10 +72,10 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
   dat.table = dat.last.rate %>%
     group_by(operation) %>%
     mutate(
-      success.rate = latex.formater(rate.extrapolation, latex.rate, min.best=F),
-      converged.at.median = latex.formater(median.extrapolation.solved, latex.scientific),
-      converged.at.mean = latex.ci.formater(mean.extrapolation.solved, ci.extrapolation.solved, latex.scientific),
-      sparse.error = latex.ci.formater(mean.sparse.error.max, ci.sparse.error.max, latex.scientific)
+      success.rate = latex.ci.formater(success.rate.mean, success.rate.lower, success.rate.upper, latex.rate, min.best=F),
+      converged.at.median = latex.formater(converged.at.median, latex.scientific),
+      converged.at.mean = latex.ci.formater(converged.at.mean, converged.at.lower, converged.at.upper, latex.scientific),
+      sparse.error = latex.ci.formater(sparse.error.mean, sparse.error.lower, sparse.error.upper, latex.scientific)
     ) %>%
     select(operation, model, success.rate, converged.at.median, converged.at.mean, sparse.error) %>%
     arrange(operation, model)
@@ -90,10 +88,11 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
     kable(
       "latex", booktabs=T, align = align, escape=F, label=label,
       caption=caption,
-      col.names = header.2
+      col.names = header.2,
+      longtable=longtable
     ) %>%
     add_header_above(header.1) %>%
-    kable_styling(latex_options=c('hold_position')) %>%
+    kable_styling(latex_options=c('hold_position', 'repeat_header')) %>%
     collapse_rows(columns = ifelse(show.operation, c(1), c(1,2)), latex_hline = ifelse(show.operation, "major", "none")) %>%
     write(file.out)
 }

@@ -5,7 +5,7 @@ operation=mul
 interpolation_ranges=( '[-2,-1]' '[-2,2]'          '[0,1]' '[0.1,0.2]' '[1,2]' '[1.1,1.2]' '[10,20]' )
 extrapolation_ranges=( '[-6,-2]' '[[-6,-2],[2,6]]' '[1,5]' '[0.2,2]'   '[2,6]' '[1.2,6]'  '[20,40]' )
 verbose_flag=''
-for seed in {0..24}
+for seed in {25..49}
 do
     for i in ${!interpolation_ranges[@]}
     do

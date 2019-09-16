@@ -163,7 +163,7 @@ parser.add_argument('--nalu-gate',
 
 parser.add_argument('--optimizer',
                     action='store',
-                    default='normal',
+                    default='adam',
                     choices=['adam', 'sgd'],
                     type=str,
                     help='The optimization algorithm to use, Adam or SGD')

@@ -1,16 +1,15 @@
 
 import torch
+import torchvision
 from ..abstract import ExtendedTorchModule
 from ..layer import GeneralizedLayer, GeneralizedCell
-from .regression_mnist import RegressionMnistNetwork
 
-class SequentialMnistNetwork(ExtendedTorchModule):
+class SequentialSvhnNetwork(ExtendedTorchModule):
     UNIT_NAMES = GeneralizedCell.UNIT_NAMES
 
     def __init__(self, unit_name, output_size, writer=None,
-                 mnist_digits=[0,1,2,3,4,5,6,7,8,9],
-                 softmax_transform=False,
-                 mnist_outputs=1, model_simplification='none',
+                 svhn_outputs=1, resnet='resnet18',
+                 model_simplification='none',
                  nac_mul='none', eps=1e-7,
                  **kwags):
         super().__init__('network', writer=writer, **kwags)
@@ -27,16 +26,14 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         else:
             self.register_buffer('zero_state', torch.Tensor(self.output_size))
 
-        self.image2label = RegressionMnistNetwork(
-            mnist_digits=mnist_digits,
-            mnist_outputs=mnist_outputs,
-            softmax_transform=softmax_transform
+        self.image2label = getattr(torchvision.models, resnet)(
+            num_classes=svhn_outputs
         )
 
         if nac_mul == 'mnac':
             unit_name = unit_name[0:-3] + 'MNAC'
         if self.model_simplification == 'none':
-            self.recurent_cell = GeneralizedCell(mnist_outputs, self.output_size,
+            self.recurent_cell = GeneralizedCell(svhn_outputs, self.output_size,
                                                 unit_name,
                                                 writer=self.writer,
                                                 **kwags)
@@ -55,7 +52,8 @@ class SequentialMnistNetwork(ExtendedTorchModule):
         else:
             torch.nn.init.constant_(self.zero_state, self._best_init_state())
 
-        self.image2label.reset_parameters()
+        # self.image2label.reset_parameters()
+
         if self.model_simplification == 'none':
             self.recurent_cell.reset_parameters()
 

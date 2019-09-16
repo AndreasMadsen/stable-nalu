@@ -6,7 +6,7 @@ from ..layer import GeneralizedLayer, GeneralizedCell
 # Copied from https://github.com/pytorch/examples/blob/master/mnist/main.py, just added a
 # reset_parameters method and changed final layer to have one output.
 
-class RegressionMnisNetwork(ExtendedTorchModule):
+class RegressionMnistNetwork(ExtendedTorchModule):
     def __init__(self,
                  mnist_digits=[0,1,2,3,4,5,6,7,8,9],
                  softmax_transform=False,
