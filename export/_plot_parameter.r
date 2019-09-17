@@ -40,9 +40,9 @@ plot.parameter = function (dat.last.rate, plot.label, plot.x.breaks, ...) {
   dat.gather = plot.parameter.make.data(dat.last.rate, ...);
   
   p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
+    geom_errorbar(aes(ymin = lower.value, ymax = upper.value), alpha=0.5) +
     geom_point(aes(y = mean.value)) +
     geom_line(aes(y = mean.value)) +
-    geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
     geom_blank(data = data.frame(
       key = c("success.rate"),
       model = NA,

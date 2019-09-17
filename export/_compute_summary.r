@@ -35,7 +35,7 @@ compute.gamma.stat = function (x, p.lower, p.upper) {
       upper = unname(ci[2])
     ));
   } else {
-    return(list(mean = mean(x), lower = NA, upper = NA));
+    return(compute.normal.stat(x, p.lower, p.upper));
   }
 }
 
@@ -61,11 +61,7 @@ compute.beta.stat = function (x, p.lower, p.upper) {
     
     if (any(is.na(unname(summary(stat)@coef[, "Std. Error"])) &
         is.na(sqrt(1/diag(stat@details$hessian))))) {
-      return(list(
-        mean = unname(coef(stat)['mu']),
-        lower = NA,
-        upper = NA
-      ));
+      return(compute.normal.stat(x, p.lower, p.upper));
     }
     ci = confint(stat, 'mu', quitely=T)
     
@@ -80,11 +76,7 @@ compute.beta.stat = function (x, p.lower, p.upper) {
       
       if (any(is.na(unname(summary(stat)@coef[, "Std. Error"])) &
           is.na(sqrt(1/diag(stat@details$hessian))))) {
-        return(list(
-          mean = unname(coef(stat)['mu']),
-          lower = NA,
-          upper = NA
-        ));
+        return(compute.normal.stat(x, p.lower, p.upper));
       }
       ci = confint(stat, 'mu', quitely=T)
     }
@@ -95,7 +87,7 @@ compute.beta.stat = function (x, p.lower, p.upper) {
       upper = unname(ci[2])
     ));
   } else {
-    return(list(mean = mean(x), lower = NA, upper = NA));
+    return(compute.normal.stat(x, p.lower, p.upper));
   }
 }
 

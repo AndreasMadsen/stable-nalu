@@ -15,7 +15,7 @@ source('./_plot_parameter.r')
 best.range = 1000
 alpha = 0.01
 
-plot.label = paste0("Extrapolation length (alpha = ", (alpha * 100), "%)")
+plot.label = paste0("Extrapolation length")
 plot.x.breaks = c(1,seq(2,20,2))
 
 best.model.step.fn = function (errors) {
