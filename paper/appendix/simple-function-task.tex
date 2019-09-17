@@ -1,12 +1,8 @@
-\section{Simple function task}
-\subsection{Dataset generation}
-\label{sec:appendix:simple-function-task:data-generation}
+\section{Arithmetic task}
 
-We define the values $a$ and $b$, as the sub of subsets of $\mathbf{x}$ (see figure \ref{fig:simple-function-task-problem}). The exact dataset generation algorithm is defined in algorithm \ref{alg:dataset-sampling}.
+Our ``arithmetic task'' is identical to the ``simple function task'' in the NALU paper \cite{nalu}. However, as they do not describe their dataset generation, dataset parameters, and model evaluation in details we elaborate on that here.
 
-\begin{equation}
-    a = \sum_{i=s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i, \quad b = \sum_{i=s_{2,\mathrm{start}}}^{s_{2,\mathrm{end}}} x_i
-\end{equation}
+The aim of the ``Arithmetic task'' is to directly test arithmetic models ability to extrapolate beyond the training range. Additionally, our generalized version providing a high degree of flexibility in how the input is shaped, sampled, and the problem complexity.
 
 \begin{figure}[h]
 \centering
@@ -15,61 +11,19 @@ We define the values $a$ and $b$, as the sub of subsets of $\mathbf{x}$ (see fig
 \label{fig:simple-function-task-problem}
 \end{figure}
 
-\begin{algorithm}[h]
-  \caption{Dataset sampling algorithm}
-  \begin{algorithmic}[1]
-    \Function{Dataset}{${\Call{Op}{\cdot, \cdot}: \mathrm{Operation}}$, ${i: \mathrm{Input Size}}$, ${s: \mathrm{Subset Ratio}}$, ${o: \mathrm{Overlap Ratio}}$, ${\hspace{3cm}R: \mathrm{Range}}$}
-      \Let{$\mathbf{x}$}{\Call{Uniform}{$R_{lower}, R_{upper}, i$}} \Comment{Sample $i$ elements uniformly}
-      \Let{$k$}{\Call{Uniform}{$0, 1 - 2s - o$}} \Comment{Sample offset}
-      \Let{$a$}{\Call{Sum}{$\mathbf{x}[ik:i(k+s)]$}} \Comment{Create sum $a$ from subset}
-      \Let{$b$}{\Call{Sum}{$\mathbf{x}[i(k+s-o):i (k+2s-0)]$}} \Comment{Create sum $b$ from subset}
-      \Let{$t$}{\Call{Op}{$a, b$}} \Comment{Perform operation on $a$ and $b$}
-      \State \Return{$x, t$}
-    \EndFunction
-  \end{algorithmic}
-  \label{alg:dataset-sampling}
-\end{algorithm}
+\subsection{Dataset generation}
+\label{sec:appendix:simple-function-task:data-generation}
 
-\subsection{Arithmetic operations comparison - all models}
-\label{sec:appendix:comparison-all-models}
+The goal is to sum two random subsets of a vector $\mathbf{x}$, called $a$ and $b$, and perform an arithmetic operation on these.
 
-Models are defined in table \ref{tab:model-defintions} and are all optimized with Adam optimization \cite{adam-optimization} using default parameters and trained for about four hours on an HPC cluster running \text{8-Core Intel Xeon E5-2665 2.4GHz} CPUs.
+\begin{equation}
+    a = \sum_{i=s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i, \quad b = \sum_{i=s_{2,\mathrm{start}}}^{s_{2,\mathrm{end}}} x_i, \quad t = a \circ b
+\end{equation}
 
-The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments has a mini-batch size of 128 observations, a fixed validationset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed testset with $1 \cdot 10^4$ observations sampled from the extrapolation range.
+Algorithm \ref{alg:simple-function-task-generator} defines the exact procedure to generate the data, where an interpolation range will be used for training and validation and an extrapolation range will be used for testing. Default values are defined in table \ref{tab:simple-function-task-defaults}.
 
 \begin{table}[h]
-\caption{Model definitions}
-\label{tab:model-defintions}
-\centering
-\begin{tabular}{r l l l l l}
-\toprule
- Model & Layer 1 & Layer 2 & $\hat{\lambda}_{\mathrm{sparse}}$ & $\lambda_{\mathrm{start}}$ & $\lambda_{\mathrm{end}}$ \\
- \midrule
- NMU & NAU & NMU & 10 & $10^6$ & $2 \cdot 10^6$ \\
- NAU & NAU & NAU & 0.01 & $5 \cdot 10^3$ & $5 \cdot 10^4$ \\
- $\mathrm{NAC}_{\bullet}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet}$ & -- & -- & -- \\
- $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet,\sigma}$ & -- & -- & -- \\
- $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & 10 & $10^6$ & $2 \cdot 10^6$ \\
- $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & -- & -- & -- \\
- NALU & NALU & NALU & -- & -- & -- \\
- Linear & Linear & Linear & -- & -- & -- \\
- ReLU & ReLU & ReLU & -- & -- & -- \\
- ReLU6 & ReLU6 & ReLU6 & -- & -- & -- \\
- \bottomrule
-\end{tabular}
-\end{table}
-
-Results for all models on addition, subtraction, and multiplication can be found in table \ref{tab:function-task-static-defaults-all}.
-
-\input{results/function_task_static_all.tex}
-
-\subsection{Effect of dataset parameter}
-\label{sec:appendix-simple-function-task:dataset-parameter-effect}
-
-To stress test the models on the multiplication task, we vary the dataset parameters one at a time (table \ref{tab:simple-function-task-defaults}), and run 25 experiments with different seeds. The results, are visualized in figure \ref{fig:simple-function-static-dataset-parameters-boundary}.
-
-\begin{table}[h]
-\caption{Default dataset parameters}
+\caption{Default dataset parameters for ``Arithmetic task''}
 \label{tab:simple-function-task-defaults}
 \centering
 \begin{tabular}{cc}
@@ -97,6 +51,67 @@ To stress test the models on the multiplication task, we vary the dataset parame
 \end{minipage}
 \end{tabular}
 \end{table}
+
+\begin{algorithm}[h]
+  \caption{Dataset generation algorithm for ``Arithmetic task''}
+  \begin{algorithmic}[1]
+    \Function{Dataset}{${\Call{Op}{\cdot, \cdot}: \mathrm{Operation}}$, ${i: \mathrm{Input Size}}$, ${s: \mathrm{Subset Ratio}}$, ${o: \mathrm{Overlap Ratio}}$, ${\hspace{3cm}R: \mathrm{Range}}$}
+      \Let{$\mathbf{x}$}{\Call{Uniform}{$R_{lower}, R_{upper}, i$}} \Comment{Sample $i$ elements uniformly}
+      \Let{$k$}{\Call{Uniform}{$0, 1 - 2s - o$}} \Comment{Sample offset}
+      \Let{$a$}{\Call{Sum}{$\mathbf{x}[ik:i(k+s)]$}} \Comment{Create sum $a$ from subset}
+      \Let{$b$}{\Call{Sum}{$\mathbf{x}[i(k+s-o):i (k+2s-0)]$}} \Comment{Create sum $b$ from subset}
+      \Let{$t$}{\Call{Op}{$a, b$}} \Comment{Perform operation on $a$ and $b$}
+      \State \Return{$x, t$}
+    \EndFunction
+  \end{algorithmic}
+  \label{alg:simple-function-task-generator}
+\end{algorithm}
+
+\subsection{Model defintions and setup}
+
+Models are defined in table \ref{tab:simple-function-task-model-defintions} and are all optimized with Adam optimization \cite{adam-optimization} using default parameters, and trained over $5 \cdot 10^6$ iterations. Training takes about 6 hours on a single CPU core(\text{8-Core Intel Xeon E5-2665 2.4GHz}). We run more than 10000 experiments on a HPC cluster.
+
+The training dataset is continuously sampled from the interpolation range where a different seed is used for each experiment, all experiments use a mini-batch size of 128 observations, a fixed validation dataset with $1 \cdot 10^4$ observations sampled from the interpolation range, and a fixed test dataset with $1 \cdot 10^4$ observations sampled from the extrapolation range.
+
+\begin{table}[h]
+\caption{Model definitions}
+\label{tab:simple-function-task-model-defintions}
+\centering
+\begin{tabular}{r l l l l l}
+\toprule
+ Model & Layer 1 & Layer 2 & $\hat{\lambda}_{\mathrm{sparse}}$ & $\lambda_{\mathrm{start}}$ & $\lambda_{\mathrm{end}}$ \\
+ \midrule
+ NMU & NAU & NMU & 10 & $10^6$ & $2 \cdot 10^6$ \\
+ NAU & NAU & NAU & 0.01 & $5 \cdot 10^3$ & $5 \cdot 10^4$ \\
+ $\mathrm{NAC}_{\bullet}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet}$ & -- & -- & -- \\
+ $\mathrm{NAC}_{\bullet,\sigma}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet,\sigma}$ & -- & -- & -- \\
+ $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ & 10 & $10^6$ & $2 \cdot 10^6$ \\
+ $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & $\mathrm{NAC}_{+}$ & -- & -- & -- \\
+ NALU & NALU & NALU & -- & -- & -- \\
+ Linear & Linear & Linear & -- & -- & -- \\
+ ReLU & ReLU & ReLU & -- & -- & -- \\
+ ReLU6 & ReLU6 & ReLU6 & -- & -- & -- \\
+ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Comparing all models}
+\label{sec:appendix:comparison-all-models}
+
+Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{nalu}. All variations of model and operation, are trained for 100 different seeds. Some noteworthy observations are:
+
+\begin{enumerate}
+    \item Division does not work for any model, including the $NAC_{\bullet}$ and NALU models. This may seam surprising but is actually inline with the results (table 1) from the NALU paper, where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. If the NALU model had truly learned division to some degree, then both the interpolation and extrapolation range would yield a small error.
+    \item $NAC_{\bullet}$ and NALU are barely able to learn $\sqrt{z}$, with just 2\% success-rate for NALU and 7\% success-rate for $NAC_{\bullet}$. Thus we don't belive these models are useful for learning a $\sqrt{z}$ operation.
+    \item NMU is fully capable of learning $z^2$. It learns this by learning the subset twice in the NAU layer, this is also how $NAC_{\bullet}$ learns $z^2$.
+\end{enumerate}
+
+\input{results/function_task_static_all.tex}
+
+\subsection{Effect of dataset parameter}
+\label{sec:appendix-simple-function-task:dataset-parameter-effect}
+
+To stress test the models on the multiplication task, we vary the dataset parameters one at a time while keeping the others at their default value (default values in table \ref{tab:simple-function-task-defaults}). Each runs for 50 experiments with different seeds. The results, are visualized in figure \ref{fig:simple-function-static-dataset-parameters-boundary}.
 
 \begin{figure}[h]
 \centering
