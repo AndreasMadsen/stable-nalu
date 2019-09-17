@@ -80,6 +80,8 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
     select(operation, model, success.rate, converged.at.median, converged.at.mean, sparse.error) %>%
     arrange(operation, model)
   
+  no.pagebreak.rows =  which(head(dat.table$operation, -1) == tail(dat.table$operation, -1))
+  
   if (!show.operation) {
     dat.table$operation = NULL
   }
@@ -93,6 +95,7 @@ save.table = function(dat.last.rate, label, caption, file.out, show.operation=TR
     ) %>%
     add_header_above(header.1) %>%
     kable_styling(latex_options=c('hold_position', 'repeat_header')) %>%
+    row_spec(no.pagebreak.rows, extra_latex_after='\\nopagebreak') %>%
     collapse_rows(columns = ifelse(show.operation, c(1), c(1,2)), latex_hline = ifelse(show.operation, "major", "none")) %>%
     write(file.out)
 }
