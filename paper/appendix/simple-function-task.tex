@@ -1,6 +1,6 @@
 \section{Arithmetic task}
 
-Our ``arithmetic task'' is identical to the ``simple function task'' in the NALU paper \cite{nalu}. However, as they do not describe their dataset generation, dataset parameters, and model evaluation in details we elaborate on that here.
+Our ``arithmetic task'' is identical to the ``simple function task'' in the NALU paper \cite{trask-nalu}. However, as they do not describe their dataset generation, dataset parameters, and model evaluation in details we elaborate on that here.
 
 The aim of the ``Arithmetic task'' is to directly test arithmetic models ability to extrapolate beyond the training range. Additionally, our generalized version providing a high degree of flexibility in how the input is shaped, sampled, and the problem complexity.
 
@@ -98,7 +98,7 @@ The training dataset is continuously sampled from the interpolation range where 
 \subsection{Comparing all models}
 \label{sec:appendix:comparison-all-models}
 
-Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{nalu}. All variations of model and operation, are trained for 100 different seeds. Some noteworthy observations are:
+Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{trask-nalu}. All variations of model and operation, are trained for 100 different seeds. Some noteworthy observations are:
 
 \begin{enumerate}
     \item Division does not work for any model, including the $NAC_{\bullet}$ and NALU models. This may seam surprising but is actually inline with the results (table 1) from the NALU paper, where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. If the NALU model had truly learned division to some degree, then both the interpolation and extrapolation range would yield a small error.
@@ -140,32 +140,32 @@ Not allowing a multiplicative identity ($\mathbf{z} = \mathbf{W} \odot \mathbf{x
 
 \subsection{Regularization}
 \label{sec:appendix:simple-function-task:regualization}
-A high sparsity regularization constant can help the model to converge faster. However, a regularization constant too high have have the inverse effect as well, or even make it impossible for the model to converge.
 
-In these experiments, the constant $c$ in equation \ref{eq:regualizer-experiment} is varied. See results in figure \ref{fig:simple-fnction-static-regularizer-add}, \ref{fig:simple-fnction-static-regularizer-sub}, and \ref{fig:simple-fnction-static-regularizer-mul}.
+The $\lambda_{start}$ and $\lambda_{end}$ are simply selected based on how much time it takes for the model to converge. The sparsity regularizer should not be used during early optimization, as this part of the optimization is simply about getting each weight on the right side of $\pm 0.5$.
+
+In these experiments the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$ is optimized. 
+Results are shown in in figure \ref{fig:simple-fnction-static-regularizer-add}, \ref{fig:simple-fnction-static-regularizer-sub}, and \ref{fig:simple-fnction-static-regularizer-mul}.
 \begin{equation}
-\lambda_{\mathrm{bias}} = c \cdot (1 - \exp(-10^5 \cdot t))
-\label{eq:regualizer-experiment}
+\lambda_{\mathrm{sparse}} = \hat{\lambda}_{\mathrm{sparse}} \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)
 \end{equation}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_regualization_add.pdf}
-\caption{Shows the effect of the regularizer parameter $c$ in $\lambda_{\mathrm{bias}}$, on the  arithmetic dataset for the $\bm{+}$ operation.}
+\caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{+}$ operation.}
 \label{fig:simple-fnction-static-regularizer-add}
 \end{figure}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_regualization_sub.pdf}
-\caption{Shows the effect of the regularizer parameter $c$ in  $\lambda_{\mathrm{bias}}$, on the arithmetic dataset for the $\bm{-}$ operation.}
+\caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{-}$ operation.}
 \label{fig:simple-fnction-static-regularizer-sub}
 \end{figure}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_regualization_mul.pdf}
-\caption{Shows the effect of the regularizer parameter $c$ in $\lambda_{\mathrm{bias}}$, on the arithmetic dataset for the $\bm{\times}$ operation.}
+\caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{\times}$ operation.}
 \label{fig:simple-fnction-static-regularizer-mul}
 \end{figure}
-
