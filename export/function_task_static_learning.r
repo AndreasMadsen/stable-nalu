@@ -37,21 +37,18 @@ eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   ) %>%
   select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-name.parameter = 'regualizer'
-name.label = 'Sparse regualizer'
-name.file = '../results/function_task_static_regualization.csv'
-name.output = '../paper/results/simple_function_static_regualization.pdf'
+name.parameter = 'learning.rate'
+name.label = 'Learning rate'
+name.file = '../results/function_task_static_learning.csv'
 
 dat = expand.name(read_csv(name.file)) %>%
-  filter(model == 'NMU' | (model == 'NAU' & regualizer.scaling.start == 5e+03)) %>%
   merge(eps) %>%
   mutate(
     parameter = !!as.name(name.parameter)
   )
 
 dat.last = dat %>%
-  group_by(name, parameter) %>%
-  #filter(n() == 201) %>%
+  group_by(name, parameter, learning.optimizer, learning.momentum) %>%
   summarise(
     threshold = last(threshold),
     best.model.step = best.model.step.fn(metric.valid.interpolation),
@@ -68,22 +65,32 @@ dat.last = dat %>%
   )
 
 dat.last.rate = dat.last %>%
-  group_by(model, operation, parameter) %>%
+  group_by(model, operation, parameter, learning.optimizer, learning.momentum) %>%
   group_modify(compute.summary) %>%
-  ungroup()
-
+  ungroup() %>%
+  mutate(
+    learning.optimizer = as.factor(paste0(as.character(learning.optimizer), ifelse(learning.momentum == 0, '', '-Nesterov')))
+  )
+    
 make.plot = function (operation.latex, model.latex, filename) {
   dat.plot = dat.last.rate %>%
-    filter(operation == operation.latex & model == model.latex) %>%
+    filter(operation == operation.latex & model %in% model.latex) %>%
     mutate(model=droplevels(model)) %>%
-    plot.parameter.make.data();
+    plot.parameter.make.data(learning.optimizer);
   
-  p = ggplot(dat.plot, aes(x = as.factor(parameter), colour=model, group=model)) +
+  p = ggplot(dat.plot, aes(x = parameter, colour=model)) +
     geom_point(aes(y = mean.value)) +
-    geom_line(aes(y = mean.value)) +
-    geom_errorbar(aes(ymin = lower.value, ymax = upper.value), alpha=0.5) +
+    geom_line(aes(y = mean.value, linetype=learning.optimizer)) +
+    geom_errorbar(aes(ymin = lower.value, ymax = upper.value), alpha=0.5, width=0.2) +
+    geom_blank(data = data.frame(
+      key = c("success.rate", "success.rate", "success.rate"),
+      model = NA,
+      y.limit.max = c(1,1,1),
+      parameter = c(0.01,0.01,0.01),
+      learning.optimizer = c('Adam', 'SGD', 'SGD-Nesterov')
+    ), aes(x = parameter, y = y.limit.max)) +
     scale_color_discrete(labels = model.to.exp(levels(dat.plot$model))) +
-    scale_x_discrete(name = name.label) +
+    scale_x_continuous(name = name.label, trans='log10') +
     scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
@@ -92,6 +99,7 @@ make.plot = function (operation.latex, model.latex, filename) {
         sparse.error = "Sparsity error"
       )
     )) +
+    labs(linetype = 'Optimizer') +
     theme(legend.position="bottom") +
     theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
   
@@ -99,6 +107,7 @@ make.plot = function (operation.latex, model.latex, filename) {
   ggsave(filename, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
 }
 
-make.plot('$\\bm{+}$', 'NAU', '../paper/results/simple_function_static_regualization_add.pdf')
-make.plot('$\\bm{-}$', 'NAU', '../paper/results/simple_function_static_regualization_sub.pdf')
-make.plot('$\\bm{\\times}$', 'NMU', '../paper/results/simple_function_static_regualization_mul.pdf')
+make.plot('$\\bm{+}$', c('$\\mathrm{NAC}_{+}$', 'NALU'), '../paper/results/simple_function_static_learning_add.pdf')
+make.plot('$\\bm{-}$', c('$\\mathrm{NAC}_{+}$', 'NALU'), '../paper/results/simple_function_static_learning_sub.pdf')
+make.plot('$\\bm{\\times}$', c('$\\mathrm{NAC}_{\\bullet}$', 'NALU'), '../paper/results/simple_function_static_learning_mul.pdf')
+make.plot('$\\bm{\\mathbin{/}}$', c('$\\mathrm{NAC}_{\\bullet}$', 'NALU'), '../paper/results/simple_function_static_learning_div.pdf')

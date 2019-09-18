@@ -72,7 +72,7 @@ save.table(
     (operation %in% c('$\\bm{\\times}$') & model %in% c('NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
   ),
   "function-task-static-defaults",
-  "Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\\% confidence interval. Best result is highlighed.",
+  "Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
   "../paper/results/function_task_static.tex"
 )
 
@@ -80,7 +80,7 @@ save.table(
 save.table(
   dat.last.rate,
   "function-task-static-defaults-all",
-  "Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\\% confidence interval. Best result is highlighed.",
+  "Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
   "../paper/results/function_task_static_all.tex",
   longtable=T
 )

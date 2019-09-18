@@ -52,6 +52,11 @@ operation.full.to.short = c(
   'op-root'='$\\sqrt{z}$'
 )
 
+learning.optimizer.to.nice = c(
+  'adam'='Adam',
+  'sgd'='SGD'
+)
+
 extract.by.split = function (name, index, default=NA) {
   split = strsplit(as.character(name), '_')[[1]]
   if (length(split) >= index) {
@@ -95,6 +100,21 @@ regualizer.scaling.get = function (regualizer, index) {
   return(as.numeric(split[index + 1]))
 }
 
+learning.get.optimizer = function (learning) {
+  split = strsplit(learning, '-')[[1]]
+  return(revalue(split[2], learning.optimizer.to.nice, warn_missing=FALSE))
+}
+
+learning.get.rate = function (learning) {
+  split = strsplit(learning, '-')[[1]]
+  return(as.numeric(split[3]))
+}
+
+learning.get.momentum = function (learning) {
+  split = strsplit(learning, '-')[[1]]
+  return(as.numeric(split[4]))
+}
+
 expand.name = function (df) {
   names = data.frame(name=unique(df$name))
   
@@ -126,6 +146,10 @@ expand.name = function (df) {
       batch.size=as.integer(substring(extract.by.split(name, 11), 2)),
       seed=as.integer(substring(extract.by.split(name, 12), 2)),
       hidden.size=as.integer(substring(extract.by.split(name, 13, 'h2'), 2)),
+      
+      learning.optimizer=learning.get.optimizer(extract.by.split(name, 15, 'lr-adam-0.00100-0.0')),
+      learning.rate=learning.get.rate(extract.by.split(name, 15, 'lr-adam-0.00100-0.0')),
+      learning.momentum=learning.get.momentum(extract.by.split(name, 15, 'lr-adam-0.00100-0.0')),
     )
   
   df.expand.name$name = as.factor(df.expand.name$name)
