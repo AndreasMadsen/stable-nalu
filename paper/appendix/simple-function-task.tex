@@ -126,17 +126,6 @@ To stress test the models on the multiplication task, we vary the dataset parame
 \label{sec:appendix:ablation-study}
 To validate our model, we perform an ablation on the multiplication problem.
 
-Our ablation study (table \ref{tab:function-task-static-ablation}) show that regularization have little effect in terms of success rate. As it is analytically known that there is no gradient outside of $w \in [0,1]$ for the NMU, the conclusion must be that the optimal weight initialization for the default dataset parameters and tested seeds, does not cause any weights to accidentally break out of $w \in [0,1]$. The sparse regularizer for multiplication have no sparsity effect, as only a sparse solution is a valid solution for multiplication. Although as seen in appendix \ref{sec:appendix:simple-function-task:regualization}, sparsity regularization can improve convergence.
-\input{results/function_task_static_ablation.tex}
-
-Not allowing a multiplicative identity ($\mathbf{z} = \mathbf{W} \odot \mathbf{x}$, instead of $\mathbf{z} = \mathbf{W} \odot \mathbf{x} + 1 - \mathbf{W}$), works when there is only two hidden units in the multiplication layer, as no multiplicative identity is necessary. However, for a larger hidden size, as seen in figure \ref{fig:simple-function-static-ablation-hidden-size}, multiplicative identity becomes necessary.
-\begin{figure}[h]
-\centering
-%\includegraphics[width=\linewidth]{results/simple_function_static_ablation_hidden_size.pdf}
-\todo[inline]{missing figure}
-\caption{Compares NMU with NMU without identity, with different input size (hidden layer unit size) to the multiplication layer.}
-\label{fig:simple-function-static-ablation-hidden-size}
-\end{figure}
 
 \subsection{Regularization}
 \label{sec:appendix:simple-function-task:regualization}
