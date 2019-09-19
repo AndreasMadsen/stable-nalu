@@ -6,15 +6,15 @@ The aim of the ``Arithmetic task'' is to directly test arithmetic models ability
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.8]{graphics/function_task_static_problem.pdf}
-\caption{Dataset is parameterized into ``Input Size'', ``Subset Ratio'', ``Overlap Ratio'', an Operation (here showing multiplication), ``Interpolation Range'' and ``Extrapolation Range'' from which the data set sampled.}
+\includegraphics[scale=0.7]{graphics/function_task_static_problem.pdf}
+\caption{Shows how the dataset is parameterized.}
 \label{fig:simple-function-task-problem}
 \end{figure}
 
 \subsection{Dataset generation}
 \label{sec:appendix:simple-function-task:data-generation}
 
-The goal is to sum two random subsets of a vector $\mathbf{x}$, called $a$ and $b$, and perform an arithmetic operation on these.
+The goal is to sum two random subsets of a vector $\mathbf{x}$ ($a$ and $b$), and perform an arithmetic operation on these ($a \circ b$).
 
 \begin{equation}
     a = \sum_{i=s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i, \quad b = \sum_{i=s_{2,\mathrm{start}}}^{s_{2,\mathrm{end}}} x_i, \quad t = a \circ b
@@ -95,18 +95,25 @@ The training dataset is continuously sampled from the interpolation range where 
 \end{tabular}
 \end{table}
 
-\subsection{Comparing all models}
-\label{sec:appendix:comparison-all-models}
-
-Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{trask-nalu}. All variations of model and operation, are trained for 100 different seeds. Some noteworthy observations are:
+\subsection{Ablation study}
+\label{sec:appendix:ablation-study}
+To validate our model, we perform an ablation on the multiplication problem. Some noteworthy observations:
 
 \begin{enumerate}
-    \item Division does not work for any model, including the $NAC_{\bullet}$ and NALU models. This may seam surprising but is actually inline with the results (table 1) from the NALU paper, where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. If the NALU model had truly learned division to some degree, then both the interpolation and extrapolation range would yield a small error.
-    \item $NAC_{\bullet}$ and NALU are barely able to learn $\sqrt{z}$, with just 2\% success-rate for NALU and 7\% success-rate for $NAC_{\bullet}$. Thus we don't belive these models are useful for learning a $\sqrt{z}$ operation.
-    \item NMU is fully capable of learning $z^2$. It learns this by learning the subset twice in the NAU layer, this is also how $NAC_{\bullet}$ learns $z^2$.
+    \item None of the $W$ constraints, such as $\mathcal{R}_{sparse}$ and clamping W to be in $[0, 1]$, are necessary when the hidden size is just $2$.
+    \item Removing the $\mathcal{R}_{sparse}$ causes the NMU to immediately fail for larger hidden sizes.
+    \item Removing the clamping of W does not cause much difference. This is because $\mathcal{R}_{sparse}$ also constrains $W$ outside of $[0, 1]$. The regularizer used here is $\mathcal{R}_{sparse} = \min(|W|, |1 - W|)$, which is identical to the one used in other experiments in $[0, 1]$, but is also valid outside $[0, 1]$. Doing this gives only a slightly slower convergence. Although, this can not be guaranteed in general, as the regularizer is omitted during the initial optimization.
+    \item Removing both constraints, gives a somewhat satisfying solution, but with a lower success-rate, slower convergence, and higher sparsity error.
 \end{enumerate}
 
-\input{results/function_task_static_all.tex}
+In conclusion both constraints are valuable, as they provide faster convergence and a sparser solution, but they are not critical to the success-rate of the NMU.  
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{results/simple_function_static_mul_hidden_size_ablation.pdf}
+\caption{Ablation study where $\mathcal{R}_{sparse}$ is removed and the clamping of W is removed. There are 50 experiments with different seeds, for each configuration.}
+\label{fig:simple-function-static-ablation}
+\end{figure}
 
 \subsection{Effect of dataset parameter}
 \label{sec:appendix-simple-function-task:dataset-parameter-effect}
@@ -122,11 +129,6 @@ To stress test the models on the multiplication task, we vary the dataset parame
 \label{fig:simple-function-static-dataset-parameters-boundary}
 \end{figure}
 
-\subsection{Ablation study}
-\label{sec:appendix:ablation-study}
-To validate our model, we perform an ablation on the multiplication problem.
-
-
 \subsection{Regularization}
 \label{sec:appendix:simple-function-task:regualization}
 
@@ -138,23 +140,36 @@ Results are shown in in figure \ref{fig:simple-fnction-static-regularizer-add}, 
 \lambda_{\mathrm{sparse}} = \hat{\lambda}_{\mathrm{sparse}} \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)
 \end{equation}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_regualization_add.pdf}
 \caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{+}$ operation.}
 \label{fig:simple-fnction-static-regularizer-add}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_regualization_sub.pdf}
 \caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{-}$ operation.}
 \label{fig:simple-fnction-static-regularizer-sub}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{results/simple_function_static_regualization_mul.pdf}
 \caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{\times}$ operation.}
 \label{fig:simple-fnction-static-regularizer-mul}
 \end{figure}
+
+\subsection{Comparing all models}
+\label{sec:appendix:comparison-all-models}
+
+Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{trask-nalu}. All variations of model and operation, are trained for 100 different seeds. Some noteworthy observations are:
+
+\begin{enumerate}
+    \item Division does not work for any model, including the $NAC_{\bullet}$ and NALU models. This may seam surprising but is actually inline with the results (table 1) from the NALU paper, where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. If the NALU model had truly learned division to some degree, then both the interpolation and extrapolation range would yield a small error.
+    \item $NAC_{\bullet}$ and NALU are barely able to learn $\sqrt{z}$, with just 2\% success-rate for NALU and 7\% success-rate for $NAC_{\bullet}$. Thus we don't belive these models are useful for learning a $\sqrt{z}$ operation.
+    \item NMU is fully capable of learning $z^2$. It learns this by learning the subset twice in the NAU layer, this is also how $NAC_{\bullet}$ learns $z^2$.
+\end{enumerate}
+
+\input{results/function_task_static_all.tex}
