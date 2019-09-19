@@ -6,10 +6,11 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
-library(xtable)
 source('./_function_task_expand_name.r')
+source('./_compute_summary.r')
+source('./_plot_parameter.r')
 
-best.range = 100
+best.range = 5000
 
 best.model.step.fn = function (errors) {
   best.step = max(length(errors) - best.range, 0) + which.min(tail(errors, best.range))
@@ -20,8 +21,8 @@ best.model.step.fn = function (errors) {
   }
 }
 
-first.solved.step = function (steps, errors, epsilon) {
-  index = first(which(errors < epsilon))
+first.solved.step = function (steps, errors, threshold) {
+  index = first(which(errors < threshold))
   if (is.na(index)) {
     return(NA)
   } else {
@@ -29,51 +30,42 @@ first.solved.step = function (steps, errors, epsilon) {
   }
 }
 
-safe.interval = function (alpha, vec) {
-  if (length(vec) <= 1) {
-    return(NA)
-  }
-  
-  return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
-}
-
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
-  filter(simple == FALSE & parameter != 'default') %>%
+  filter(simple == FALSE & parameter == 'default') %>%
   mutate(
-    input.size = as.integer(input.size),
-    operation = revalue(operation, operation.full.to.short),
-    epsilon = mse
+    operation = revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, epsilon)
+  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
 name.parameter = 'hidden.size'
-name.label = 'Hidden size'
-name.output = '../paper/results/simple_function_static_ablation_hidden_size.pdf'
+plot.label = 'Hidden size'
+plot.x.breaks = c(2, 4, 6, 8, 10)
+name.input = '../results/function_task_static_mul_hidden_size_ablation.csv'
+name.output = '../paper/results/simple_function_static_mul_hidden_size_ablation.pdf'
 
-dat = expand.name(rbind(
-  read_csv('../results/function_task_static_mul_hidden_size.csv'),
-  read_csv('../results/function_task_static_mul_hidden_size_ablation.csv')
-)) %>%
+dat = expand.name(read_csv(name.input)) %>%
   merge(eps) %>%
   mutate(
-    parameter = !!as.name(name.parameter)
-  ) %>%
-  filter(parameter <= 6)
+    parameter = !!as.name(name.parameter),
+    model = as.factor(paste0(
+      as.character(model),
+      ifelse(regualizer == 0, ', no $\\mathcal{R}_{sparse}$', ''),
+      ifelse(regualizer.oob == 0, ', no W-clamp', '')
+    ))
+  )
 
 dat.last = dat %>%
-  group_by(name) %>%
+  group_by(name, parameter) %>%
   #filter(n() == 201) %>%
   summarise(
-    epsilon = last(epsilon),
-    best.model.step = best.model.step.fn(loss.valid.interpolation),
-    interpolation.last = loss.valid.interpolation[best.model.step],
-    extrapolation.last = loss.valid.extrapolation[best.model.step],
-    interpolation.step.solved = first.solved.step(step, loss.valid.interpolation, epsilon),
-    extrapolation.step.solved = first.solved.step(step, loss.valid.extrapolation, epsilon),
+    threshold = last(threshold),
+    best.model.step = best.model.step.fn(metric.valid.interpolation),
+    interpolation.last = metric.valid.interpolation[best.model.step],
+    extrapolation.last = metric.test.extrapolation[best.model.step],
+    interpolation.step.solved = first.solved.step(step, metric.valid.interpolation, threshold),
+    extrapolation.step.solved = first.solved.step(step, metric.test.extrapolation, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
-    sparse.error.mean = sparse.error.sum[best.model.step] / sparse.error.count[best.model.step],
-    solved = replace_na(loss.valid.extrapolation[best.model.step] < epsilon, FALSE),
-    parameter = last(parameter),
+    solved = replace_na(metric.test.extrapolation[best.model.step] < threshold, FALSE),
     model = last(model),
     operation = last(operation),
     seed = last(seed),
@@ -82,72 +74,8 @@ dat.last = dat %>%
 
 dat.last.rate = dat.last %>%
   group_by(model, operation, parameter) %>%
-  summarise(
-    size=n(),
-    success.rate.mean = mean(solved) * 100,
-    success.rate.upper = NA,
-    success.rate.lower = NA,
+  group_modify(compute.summary)
 
-    converged.at.mean = mean(extrapolation.step.solved[solved]),
-    converged.at.upper = converged.at.mean + safe.interval(0.95, extrapolation.step.solved[solved]),
-    converged.at.lower = converged.at.mean - safe.interval(0.95, extrapolation.step.solved[solved]),
-
-    sparse.error.mean = mean(sparse.error.max[solved]),
-    sparse.error.upper = sparse.error.mean + safe.interval(0.95, sparse.error.max[solved]),
-    sparse.error.lower = sparse.error.mean - safe.interval(0.95, sparse.error.max[solved])
-  )
-
-dat.gather.mean = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.mean,
-    converged.at = converged.at.mean,
-    sparse.error = sparse.error.mean
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'mean.value', success.rate, converged.at, sparse.error)
-
-dat.gather.upper = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.upper,
-    converged.at = converged.at.upper,
-    sparse.error = sparse.error.upper
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'upper.value', success.rate, converged.at, sparse.error)
-
-dat.gather.lower = dat.last.rate %>%
-  mutate(
-    success.rate = success.rate.lower,
-    converged.at = converged.at.lower,
-    sparse.error = sparse.error.lower
-  ) %>%
-  select(model, operation, parameter, success.rate, converged.at, sparse.error) %>%
-  gather('key', 'lower.value', success.rate, converged.at, sparse.error)
-
-dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
-  filter(
-    model %in% c('NMU', 'NMU, $\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$')
-  ) %>%
-  mutate(
-    model=droplevels(model),
-    key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
-  )
-
-p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
-  geom_point(aes(y = mean.value)) +
-  geom_line(aes(y = mean.value)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value)) +
-  scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
-  xlab(name.label) +
-  scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
-  facet_wrap(~ key, scales='free_y', labeller = labeller(
-    key = c(
-      success.rate = "Success rate in %",
-      converged.at = "Solved at iteration step",
-      sparse.error = "Sparsity error"
-    )
-  )) +
-  theme(legend.position="bottom") +
-  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
+p = plot.parameter(dat.last.rate, plot.label, plot.x.breaks)
 print(p)
-ggsave(name.output, p, device="pdf", width = 13.968, height = 5, scale=1.4, units = "cm")
+ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")

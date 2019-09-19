@@ -36,7 +36,15 @@ model.latex.to.exp = c(
   'NALU'='NALU',
   'NAU'='NAU',
   'NMU'='NMU',
-  'NMU, $\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$'='NMU, z = W · x'
+  'NMU, no $\\mathcal{R}_{sparse}$'=expression(paste("NMU, no ", "", mathcal, paste("R"),
+                                               phantom()[{
+                                                 paste("", "sparse")
+                                               }], "")),
+  'NMU, no W-clamp'='NMU, no W-clamp',
+  'NMU, no $\\mathcal{R}_{sparse}$, no W-clamp'=expression(paste("NMU, no ", "", mathcal, paste("R"),
+                                                            phantom()[{
+                                                              paste("", "sparse")
+                                                            }], ", no W-clamp"))
 )
 
 model.to.exp = function(v) {
