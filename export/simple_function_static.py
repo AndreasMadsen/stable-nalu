@@ -16,6 +16,11 @@ parser.add_argument('--csv-out',
                     action='store',
                     type=str,
                     help='Specify the file for which the csv data is stored at')
+parser.add_argument('--export-gate',
+                    action='store_true',
+                    default=False,
+                    help='Export the NALU gate value to the csv file')
+
 args = parser.parse_args()
 
 # Set threads
@@ -25,7 +30,10 @@ else:
     allowed_processes = None
 
 def matcher(tag):
-    return tag in ['metric/valid/interpolation', 'metric/test/extrapolation']
+    return (
+        tag in ['metric/valid/interpolation', 'metric/test/extrapolation'] or
+        tag.endswith('nalu/gate/mean') and args.export_gate
+    )
 
 reader = stable_nalu.reader.TensorboardMetricReader(
     args.tensorboard_dir,

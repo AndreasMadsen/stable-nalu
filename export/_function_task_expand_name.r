@@ -9,6 +9,7 @@ model.full.to.short = c(
   'nac-nac-n'='$\\mathrm{NAC}_{\\bullet}$',
   'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\sigma}$',
   'nalu'='NALU',
+  'nalu-nalu-2n'='NALU (seperate)',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU',
   'reregualizedlinearposnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$',

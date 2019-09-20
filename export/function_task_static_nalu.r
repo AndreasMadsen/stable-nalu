@@ -1,6 +1,7 @@
 rm(list = ls())
 setwd(dirname(parent.frame(2)$ofile))
 
+library(ggplot2)
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -32,18 +33,25 @@ first.solved.step = function (steps, errors, threshold) {
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter == 'default') %>%
   mutate(
-    operation = revalue(operation, operation.full.to.short),
+    operation = revalue(operation, operation.full.to.short)
   ) %>%
-  select(operation, threshold)
+  select(operation, input.size, overlap.ratio, subset.ratio, extrapolation.range, threshold)
 
-dat = expand.name(
-  read_csv('../results/function_task_static.csv', col_types=cols(sparse.error.max=col_double()))
-) %>%
-  merge(eps)
+name.input = '../results/function_task_static_nalu.csv'
+name.output.pdf = '../paper/results/function_task_static_nalu.pdf'
+name.output.tex = '../paper/results/function_task_static_nalu.tex'
+
+dat = expand.name(read_csv(name.input)) %>%
+  merge(eps) %>%
+  rename(
+    gate = network.layer_2.nalu.gate.mean
+  ) %>%
+  mutate(
+    model = as.factor(ifelse(model == 'NALU', 'NALU (shared)', as.character(model)))
+  )
 
 dat.last = dat %>%
   group_by(name) %>%
-  #filter(n() == 201) %>%
   summarise(
     threshold = last(threshold),
     best.model.step = best.model.step.fn(metric.valid.interpolation),
@@ -56,7 +64,9 @@ dat.last = dat %>%
     model = last(model),
     operation = last(operation),
     seed = last(seed),
-    size = n()
+    size = n(),
+
+    gate.last = gate[best.model.step]
   )
 
 dat.last.rate = dat.last %>%
@@ -64,23 +74,34 @@ dat.last.rate = dat.last %>%
   group_modify(compute.summary) %>%
   ungroup()
 
-print(dat.last.rate)
-
-save.table(
-  dat.last.rate %>% filter(
-    (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('$\\bm{\\times}$') & model %in% c('NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
-  ),
-  "function-task-static-defaults",
-  "Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
-  "../paper/results/function_task_static.tex"
-)
-
-# Check extra_latex_after option, https://haozhu233.github.io/kableExtra/awesome_table_in_pdf.pdf
 save.table(
   dat.last.rate,
-  "function-task-static-defaults-all",
+  "simple-function-static-nalu-gate-table",
   "Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
-  "../paper/results/function_task_static_all.tex",
-  longtable=T
+  name.output.tex
 )
+
+p = ggplot(dat.last, aes(x = gate.last, fill=solved)) +
+  geom_histogram(position = "dodge", bins=25) +
+  scale_x_continuous(name = 'Gate', labels = function (x.value) {
+    return(ifelse(x.value == 1,
+                  'add',
+                  ifelse(x.value == 0,
+                         'mul',
+                         sprintf('%.2f', x.value))))
+  }) +
+  facet_grid(operation ~ model, labeller = labeller(
+    model = c(
+      'NALU (seperate)' = "Seperate",
+      'NALU (shared)' = "Shared"
+    ),
+    operation = c(
+      '$\\bm{\\times}$' = "Multiplication",
+      '$\\bm{+}$' = "Addition"
+    )
+  )) +
+  theme(legend.position="right") +
+  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
+print(p)
+ggsave(name.output.pdf, p, device="pdf", width = 11, height = 7, scale=1.4, units = "cm")
+

@@ -70,7 +70,7 @@ save.table(
     (operation %in% c('$\\bm{\\times}$') & model %in% c('Linear', 'NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
   ),
   "very-simple-function-results",
-  "Shows the success-rate, at what global step the model converged at, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
+  "Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
   "../paper/results/simple_mul.tex"
 )
 

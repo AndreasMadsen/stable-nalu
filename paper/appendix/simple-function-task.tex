@@ -129,6 +129,32 @@ To stress test the models on the multiplication task, we vary the dataset parame
 \label{fig:simple-function-static-dataset-parameters-boundary}
 \end{figure}
 
+\subsection{NALU gating experiment}
+\label{sec:appendix:nalu-gate-experiment}
+
+In the interrest of adding some understand of what goes wrong in the NALU gate, and the shared weight ``hack'' that NALU employees to fix this, we introduce the following experiment.
+
+We train two models, to fit the arithmetic task. Both uses the $\mathrm{NAC}_{+}$ in the first layer and NALU in the second layer. The only difference, is that one model shares the weight between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ in the NALU, and the other just consider them two separate models with separate weights. In both cases NALU should gate between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ and choose the appropriate operation. Note that this NALU model is different from the one presented elsewhere in this paper, including the original NALU paper \cite{trask-nalu}. The typical NALU model, is just two NALU layers with shared weights.
+
+These models are trained for 100 different seeds, on the multiplication and addition task. A histogram of the NALU gate is presented in figure \ref{fig:simple-function-static-nalu-gate-graph} and a summary is presented in table \ref{tab:simple-function-static-nalu-gate-table}. Some noteworthy observations:
+
+\begin{enumerate}
+    \item When the weights are separated, far more trials converge to select $\mathrm{NAC}_{+}$, for both the addition and multiplication task.
+    \item The performance of the addition task, is strongly correlated with NALU selecting the right operation. In the multiplication task, even if the right gate is selected, $\mathrm{NAC}_{*}$ still struggle to converge consistently, as also seen elsewhere in this paper.
+    \item Sharing the weights between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, makes it harder to learn the addition problem. 
+\end{enumerate}
+
+These observations validates, that the NALU gate tends to select $\mathrm{NAC}_{+}$, as $\mathrm{NAC}_{+}$ is far easier to learn than $\mathrm{NAC}_{\bullet}$, thus the $\mathrm{NAC}_{+}$ becomes the best estimator early on which the gate will prefer. Once the gate have selected $\mathrm{NAC}_{+}$, it is no longer possible to learn $\mathrm{NAC}_{\bullet}$.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.8]{results/function_task_static_nalu.pdf}
+\caption{Shows the gating value in the NALU layer followed by a $\mathrm{NAC}_{+}$ layer, where the weights in $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ are either shared or separated.}
+\label{fig:simple-function-static-nalu-gate-graph}
+\end{figure}
+
+\input{results/function_task_static_nalu.tex}
+
 \subsection{Regularization}
 \label{sec:appendix:simple-function-task:regualization}
 
@@ -167,7 +193,7 @@ Results are shown in in figure \ref{fig:simple-fnction-static-regularizer-add}, 
 Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{trask-nalu}. All variations of model and operation, are trained for 100 different seeds. Some noteworthy observations are:
 
 \begin{enumerate}
-    \item Division does not work for any model, including the $NAC_{\bullet}$ and NALU models. This may seam surprising but is actually inline with the results (table 1) from the NALU paper, where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. If the NALU model had truly learned division to some degree, then both the interpolation and extrapolation range would yield a small error.
+    \item Division does not work for any model, including the $NAC_{\bullet}$ and NALU models. This may seam surprising but is actually inline with the results from the NALU paper (\citet{trask-nalu}, table 1), where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. If the NALU model had truly learned division to some degree, then both the interpolation and extrapolation range would yield a small error.
     \item $NAC_{\bullet}$ and NALU are barely able to learn $\sqrt{z}$, with just 2\% success-rate for NALU and 7\% success-rate for $NAC_{\bullet}$. Thus we don't belive these models are useful for learning a $\sqrt{z}$ operation.
     \item NMU is fully capable of learning $z^2$. It learns this by learning the subset twice in the NAU layer, this is also how $NAC_{\bullet}$ learns $z^2$.
 \end{enumerate}

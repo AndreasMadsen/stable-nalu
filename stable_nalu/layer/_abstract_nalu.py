@@ -130,6 +130,7 @@ class AbstractNALULayer(ExtendedTorchModule):
         else:
             g_mul = 1 - g_add
             self.writer.add_histogram('gate', g_add)
+            self.writer.add_scalar('gate/mean', torch.mean(g_add), verbose_only=False)
 
         # a = W x = nac(x)
         a = self.nac_add(x)
