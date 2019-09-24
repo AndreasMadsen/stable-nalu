@@ -137,6 +137,7 @@ plot.by.regualizer.z = function (regualizer.z.show) {
 p.with.R.z = plot.by.regualizer.z(1)
 print(p.with.R.z)
 ggsave('../paper/results/sequential_mnist_prod_long.pdf', p.with.R.z, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
+ggsave('../paper/results/sequential_mnist_prod_long_short.pdf', p.with.R.z, device="pdf", width = 13.968, height = 5.1, scale=1.4, units = "cm")
 
 p.without.R.z = plot.by.regualizer.z(0)
 print(p.without.R.z)

@@ -42,6 +42,7 @@ plot.label = 'Hidden size'
 plot.x.breaks = c(2, 4, 6, 8, 10)
 name.input = '../results/function_task_static_mul_hidden_size.csv'
 name.output = '../paper/results/simple_function_static_mul_hidden_size.pdf'
+name.output.short = '../paper/results/simple_function_static_mul_hidden_size_short.pdf'
 
 dat = expand.name(read_csv(name.input)) %>%
   merge(eps) %>%
@@ -74,3 +75,4 @@ dat.last.rate = dat.last %>%
 p = plot.parameter(dat.last.rate, plot.label, plot.x.breaks)
 print(p)
 ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
+ggsave(name.output.short, p, device="pdf", width = 13.968, height = 4.7, scale=1.4, units = "cm")

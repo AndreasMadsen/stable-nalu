@@ -5,6 +5,9 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(readr)
+require(MASS)
+library(KScorrect) # citation("KScorrect")
+
 source('./_function_task_expand_name.r')
 source('./_function_task_table.r')
 source('./_compute_summary.r')
@@ -59,38 +62,48 @@ dat.last = dat %>%
     size = n()
   )
 
+
+dat.last = read_csv('../paper/results/sft-last.csv')
+
 dat.last.rate = dat.last %>%
   group_by(model, operation) %>%
   group_modify(compute.summary) %>%
   ungroup()
 
-print(dat.last.rate)
-
-save.table(
-  dat.last.rate %>% filter(
-    (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', 'NAU', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('$\\bm{\\times}$') & model %in% c('NMU', '$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
-  ),
-  "function-task-static-defaults",
-  "Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
-  "../paper/results/function_task_static.tex"
-)
-
-save.table(
-  dat.last.rate %>% filter(
-    (operation %in% c('$\\bm{+}$', '$\\bm{-}$') & model %in% c('Linear', '$\\mathrm{NAC}_{+}$', 'NALU')) |
-    (operation %in% c('$\\bm{\\times}$', '$\\bm{\\mathbin{/}}$') & model %in% c('$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
-  ),
-  "function-task-static-defaults",
-  "Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
-  "../paper/results/function_task_static_reproduce.tex"
-)
-
-# Check extra_latex_after option, https://haozhu233.github.io/kableExtra/awesome_table_in_pdf.pdf
-save.table(
-  dat.last.rate,
-  "function-task-static-defaults-all",
-  "Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
-  "../paper/results/function_task_static_all.tex",
-  longtable=T
-)
+dat.last.dist.paramaters = merge(dat.last, dat.last.rate) %>%
+  group_by(model, operation) %>%
+  group_modify(function (df, ...) {
+    
+    if (with(df, length(unique(extrapolation.step.solved[solved]))) > 10) {
+      converged.at.p.value = with(df, LcKS(
+        extrapolation.step.solved[solved], "pgamma",
+        parallel = TRUE,#,
+        #(last(converged.at.mean) * last(converged.at.mean)) / last(converged.at.sigma.2), 
+        #last(converged.at.mean) / last(converged.at.sigma.2)
+      ))$p.value
+    } else {
+      converged.at.p.value = NA
+    }
+    
+    if (sum(df$solved) > 1) {
+      sparse.error.p.value = with(df, ks.test(
+        sparse.error.max[solved], "pbeta",
+        last(sparse.error.mean) * 2 * last(sparse.error.v),
+        (1 - last(sparse.error.mean) * 2) * last(sparse.error.v)
+      ))$p.value
+    }
+    
+    return(with(df, data.frame(
+      converged.at.sigma.2 = last(converged.at.sigma.2),
+      converged.at.p.value = converged.at.p.value,
+      converged.at.mean = last(converged.at.mean),
+      converged.at.lower = last(converged.at.lower),
+      converged.at.upper = last(converged.at.upper),
+      
+      sparse.error.v = last(sparse.error.v),
+      sparse.error.mean = last(sparse.error.mean),
+      sparse.error.lower = last(sparse.error.lower),
+      sparse.error.upper = last(sparse.error.upper)
+    )))
+  })
+  

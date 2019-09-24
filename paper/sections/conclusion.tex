@@ -1,9 +1,6 @@
 \section{Conclusion}
-We have investigated how a function based on constraint weights can extrapolate well on arithmetic operations and if it can learn the weights by stochastic gradient descent.
-Inspired by the recently proposed Neural Arithmetic Logic Unit (NALU), we propose the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU), which has more consistent convergence on a range of addition, subtraction, and multiplication tasks than the NALU.4
-Beyond convergence capabilities, our modifications makes the NMU capable of extrapolating to numerically small numbers and the negative range, which has previously been impossible.
-Our analytic analysis highlights that learning division is challenging as division close to zero creates explosions. \todo{rewrite}
+By including theoretical considerations, such as initialization, gradients, and sparsity, we have developed a new multiplication unit that outperforms the state-of-the-art models on established extrapolation and sequential tasks. Our model converges more consistently, faster, and to more sparse solutions, than previously proposed models. 
 
-% Future work:
-% Depth, applications (convergence is still slow), gating, division, test higher precision.
+A theoretical disadvantage of our multiplication unit is that it is incapable of division. However, previous publications concur that this is a problematic and generally unsolved area, due to the singularity in division. Thus our proposed model is empirically identical when it comes to division. On the other hand, when it comes to multiplication, our model is capable of extrapolating in both the negative range and to very small numbers.
 
+Finally, when it comes to considering more than just two inputs to the multiplication layer, or model clearly outperforms all previously proposed models as well as variations of previous models that borrow from our model. The ability for a neural layer to consider more than just two inputs, is critical in neural networks where the desired function is unknown.

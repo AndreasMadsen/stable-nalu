@@ -31,11 +31,12 @@ compute.gamma.stat = function (x, p.lower, p.upper) {
 
     return(list(
       mean = unname(coef(stat)['mu']),
+      sigma.2 = unname(coef(stat)['sigma.2']),
       lower = unname(ci[1]),
       upper = unname(ci[2])
     ));
   } else {
-    return(compute.normal.stat(x, p.lower, p.upper));
+    return(compute.normal.stat(x, p.lower, p.upper, sigma.2 = var(x)));
   }
 }
 
@@ -50,18 +51,20 @@ compute.beta.stat = function (x, p.lower, p.upper) {
     return(loglik);
   }
   
+  v.init = (mean(x) * (0.5 - mean(x))) / var(x) - 1
+  
   if (sum(!is.na(x)) > 1 && sd(x) > 1e-10) {
     stat = mle2(beta.mean.v.loglik,
                 start = list(
                   mu = mean(x),
-                  v = (mean(x) * (0.5 - mean(x))) / var(x) - 1
+                  v = v.init
                 ),
                 method = 'L-BFGS-B',
                 lower = c(mu=0, v=1e-5), upper = c(mu=0.5, v=Inf));
     
     if (any(is.na(unname(summary(stat)@coef[, "Std. Error"])) &
         is.na(sqrt(1/diag(stat@details$hessian))))) {
-      return(compute.normal.stat(x, p.lower, p.upper));
+      return(compute.normal.stat(x, p.lower, p.upper, v = v.init));
     }
     ci = confint(stat, 'mu', quitely=T)
     
@@ -76,22 +79,23 @@ compute.beta.stat = function (x, p.lower, p.upper) {
       
       if (any(is.na(unname(summary(stat)@coef[, "Std. Error"])) &
           is.na(sqrt(1/diag(stat@details$hessian))))) {
-        return(compute.normal.stat(x, p.lower, p.upper));
+        return(compute.normal.stat(x, p.lower, p.upper, v = v.init));
       }
       ci = confint(stat, 'mu', quitely=T)
     }
     
     return(list(
       mean = unname(coef(stat)['mu']),
+      v = unname(coef(stat)['v']),
       lower = unname(ci[1]),
       upper = unname(ci[2])
     ));
   } else {
-    return(compute.normal.stat(x, p.lower, p.upper));
+    return(compute.normal.stat(x, p.lower, p.upper, v = v.init));
   }
 }
 
-compute.normal.stat = function (x, p.lower, p.upper) {
+compute.normal.stat = function (x, p.lower, p.upper, ...) {
   mu = mean(x);
   alpha = 0.95;
 
@@ -101,10 +105,11 @@ compute.normal.stat = function (x, p.lower, p.upper) {
     return(list(
       mean = mu,
       lower = min(p.upper['mu'], max(p.lower['mu'], mu - ci)),
-      upper = min(p.upper['mu'], max(p.lower['mu'], mu + ci))
+      upper = min(p.upper['mu'], max(p.lower['mu'], mu + ci)),
+      ...
     ));
   } else {
-    return(list(mean = mu, lower = NA, upper = NA));
+    return(list(mean = mu, lower = NA, upper = NA, ...));
   }
 }
 
@@ -122,7 +127,8 @@ compute.summary = function (df.group, vars, assume.normal = FALSE) {
     sparse.error.stat = compute.normal.stat(
       sparse.error,
       c(mu=0, sigma.2=1e-5),
-      c(mu=0.5, sigma.2=Inf)
+      c(mu=0.5, sigma.2=Inf),
+      v = (mean(x) * (0.5 - mean(x))) / var(x) - 1
     );
   } else {
     sparse.error.stat = compute.beta.stat(
@@ -136,7 +142,8 @@ compute.summary = function (df.group, vars, assume.normal = FALSE) {
     converged.at.stat = compute.normal.stat(
       converged.at,
       c(mu=0, sigma.2=1e-5),
-      c(mu=Inf, sigma.2=Inf)
+      c(mu=Inf, sigma.2=Inf),
+      sigma.2 = var(x)
     );
   } else {
     converged.at.stat = compute.gamma.stat(
@@ -152,10 +159,12 @@ compute.summary = function (df.group, vars, assume.normal = FALSE) {
     success.rate.upper = success.rate.stat$upper,
     
     converged.at.median = ifelse(length(converged.at) > 0, median(converged.at), NA),
+    converged.at.sigma.2 = converged.at.stat$sigma.2,
     converged.at.mean = converged.at.stat$mean,
     converged.at.lower = converged.at.stat$lower,
     converged.at.upper = converged.at.stat$upper,
     
+    sparse.error.v = sparse.error.stat$v,
     sparse.error.mean = sparse.error.stat$mean,
     sparse.error.lower = sparse.error.stat$lower,
     sparse.error.upper = sparse.error.stat$upper

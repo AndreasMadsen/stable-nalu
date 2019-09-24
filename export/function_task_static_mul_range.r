@@ -35,7 +35,7 @@ safe.interval = function (alpha, vec) {
   if (length(vec) <= 1) {
     return(NA)
   }
-  
+
   return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
 }
 
@@ -43,6 +43,7 @@ name.parameter = 'interpolation.range'
 name.label = 'Interpolation range'
 name.file = '../results/function_task_static_mul_range.csv'
 name.output = '../paper/results/simple_function_static_mul_range.pdf'
+name.output.reproduction = '../paper/results/simple_function_static_mul_range_reproduce.pdf'
 
 eps = read_csv('../results/function_task_static_mse_expectation.csv') %>%
   filter(simple == FALSE & parameter == 'extrapolation.range') %>%
@@ -82,6 +83,7 @@ dat.last.rate = dat.last %>%
 
 dat.gather = plot.parameter.make.data(dat.last.rate)
 
+
 p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parameter, model))) +
   geom_point(aes(y = mean.value), position=position_dodge(width=0.3)) +
   geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3)) +
@@ -100,3 +102,29 @@ p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parame
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 print(p)
 ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
+
+dat.gather.reproduction = dat.gather %>%
+  filter(model %in% c('$\\mathrm{NAC}_{\\bullet}$', 'NALU') &
+         parameter %in% c('U[0,1]', 'U[0.1,0.2]', 'U[1,2]', 'U[1.1,1.2]', 'U[10,20]')) %>%
+  mutate(
+    model = droplevels(model)
+  )
+
+p = ggplot(dat.gather.reproduction, aes(x = parameter, colour=model, group=interaction(parameter, model))) +
+  geom_point(aes(y = mean.value), position=position_dodge(width=0.3)) +
+  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3)) +
+  scale_color_discrete(labels = model.to.exp(levels(dat.gather.reproduction$model))) +
+  scale_x_discrete(name = name.label) +
+  scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+  facet_wrap(~ key, scales='free_y', labeller = labeller(
+    key = c(
+      success.rate = "Success rate in %",
+      converged.at = "Solved at iteration step",
+      sparse.error = "Sparsity error"
+    )
+  )) +
+  theme(legend.position="bottom") +
+  theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+print(p)
+ggsave(name.output.reproduction, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
