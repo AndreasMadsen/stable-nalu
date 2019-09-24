@@ -120,6 +120,8 @@ In conclusion both constraints are valuable, as they provide faster convergence 
 
 To stress test the models on the multiplication task, we vary the dataset parameters one at a time while keeping the others at their default value (default values in table \ref{tab:simple-function-task-defaults}). Each runs for 50 experiments with different seeds. The results, are visualized in figure \ref{fig:simple-function-static-dataset-parameters-boundary}.
 
+For figure \ref{fig:simple-function-static-theoreical-claims-experiment}, the following extrapolation ranges were used: ${\mathrm{U}[-2,-1] \rightarrow \mathrm{U}[-6,-2]}$, ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$.
+
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth,trim={0 1.3cm 0 0},clip]{results/simple_function_static_mul_input_size.pdf}
@@ -148,7 +150,7 @@ These observations validates, that the NALU gate tends to select $\mathrm{NAC}_{
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.8]{results/function_task_static_nalu.pdf}
+\includegraphics[scale=0.7]{results/function_task_static_nalu.pdf}
 \caption{Shows the gating value in the NALU layer followed by a $\mathrm{NAC}_{+}$ layer, where the weights in $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ are either shared or separated.}
 \label{fig:simple-function-static-nalu-gate-graph}
 \end{figure}

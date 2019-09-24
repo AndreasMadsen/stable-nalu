@@ -1,10 +1,10 @@
 \section{Related work}
-Pure neural models using convolutions, gating, differentiable memory, and/or attention architectures have attempted to learn arithmetic tasks through backpropagation \cite{NeuralGPU,GridLSTM,NTM}.
-Some of the results have close to perfect extrapolation. However, the models are constrained to work only on whole numbers and requires well defined arithmetic setups such as binary representations of numbers for input and output.
-We do not extend current approximative methods, but instead develop two new units that can learn exact arithmetic operations on real numbers, without requiring a binary representations.
+Pure neural models using convolutions, gating, differentiable memory, and/or attention architectures have attempted to learn arithmetic tasks through backpropagation \cite{NeuralGPU,GridLSTM,NTM,FreivaldsL17}.
+Some of the results have close to perfect extrapolation. However, the models are constrained to only work well defined arithmetic setups with no input redundancy, single operation and binary representations of numbers for input and output.
+Our solution is to define a dataset that specifically mimics the nature of neural networks with redundant hidden representation and building components that can solve such.
 
 The Neural Arithmetic Expression Calculator \cite{NAEC} propose learning real number arithmetic by having neural network subcomponents and repeatedly combine them through a memory-encoder-decoder architecture learned with hierarchical reinforcement learning.
-While this model has the ability to dynamically handle a larger variety of expressions compared to our solution their solution do not generalize much beyond interpolation length.
+While this model has the ability to dynamically handle a larger variety of expressions compared to our solution, they require an explicit definition of the operations.
 
 In our experiments, the NAU is used to do a subset-selection, which is then followed by either a summation or multiplication.
 An alternative, fully differentiable version, is to use a gumbel-softmax that can perform exact subset-selection \cite{DSS}.

@@ -9,7 +9,7 @@ As the performance of this task depends on the quality of the image-to-scalar ne
 
 A success-criteria is again used, as reporting the MSE is not interpretable, and models that don't converge will obscure the mean. Furthermore, because the operation is applied recursively, natural error from the dataset will accumulate over time, thus exponentially increasing the MSE. Using a baseline model and reporting the successfulness solves this issue.
 
-\subsection{Without the $\mathrm{R}_z$ regularizer}
+\subsection{Without the \texorpdfstring{$\mathrm{R}_z$}{R\_z} regularizer}
 \label{sec:appendix:sequential-mnist:ablation}
 
 As an ablation study of just the $\mathrm{R}_z$ regularizer, figure \ref{fig:sequential-mnist-prod-ablation} shows the NMU and $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ models without the $\mathrm{R}_z$ regularizer. The success-rate is somewhat similar. However, as seen in the ``sparsity error'' plot, the solution is quite different.

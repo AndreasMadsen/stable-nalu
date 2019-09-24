@@ -2,10 +2,10 @@
 \label{sec:Nalu}
 We define our problem as learning a set of static arithmetic operations between selected elements of a vector. E.g. for a vector $\mathbf{x}$ learn the function ${(x_5 + x_1) \cdot x_7}$. The approach taking in this paper, is to develop layers around specific operations, and then let each layer decide which inputs to include using backpropergation.
 
-We develop these layers by analysing the theoretical issues in the Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}.
-
+We develop these layers by analysing the theoretical issues in the Neural Arithmetic Logic Unit (NALU) by \citet{trask-nalu}.
+s
 \subsection{Introducing NALU}
-The Neural Arithmetic Logic Unit (NALU) consists of two sub-units; the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ that exclusively represent either the $\{+, -\}$ or the $\{\times, \div \}$ operations. The NALU then assumes that either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ will be selected exclusively, using a sigmoid gating-mechanism.
+The Neural Arithmetic Logic Unit (NALU) consists of two sub-units; the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$. These exclusively represent either the $\{+, -\}$ or the $\{\times, \div \}$ operations. The NALU then assumes that either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ will be selected exclusively, using a sigmoid gating-mechanism.
 
 The $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ are defined accordingly,
 \begin{align}
@@ -18,13 +18,13 @@ The $\text{NAC}_{\bullet}$ uses an exponential-log transformation to create the 
 
 The NALU combines these units with a gating mechanism $\mathbf{z} = \mathbf{g} \odot \text{NAC}_{+} + (1 - \mathbf{g}) \odot \text{NAC}_{\bullet}$ given $\mathbf{g} = \sigma(\mathbf{G} \mathbf{x})$. Thus allowing NALU to decide between all of $\{+, -, \times, \div\}$ using backpropagation.
 
-\subsection{Challenges of gating between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$}
+\subsection{Challenges of gating between \texorpdfstring{$\text{NAC}_{+}$}{NAC-add} and \texorpdfstring{$\text{NAC}_{\bullet}$}{NAC-mul}}
 \label{sec:methods:gatting-issue}
-The sigmoid gating-mechanism in NALU, is problemtic in theory. Its purpose to select either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ exclusively, which assumes that the correct sub-unit is selected in first try. As selecting the wrong sub-unit makes it impossible for the correct sub-unit to converge, as it is multiplied by zero.
+The purpose of the gating-mechanism is to select either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ exclusively. This assumes that the correct sub-unit is selected in first try, since selecting the wrong sub-unit makes it impossible for the correct sub-unit to converge, as it is multiplied by zero.
 
-This assumption rarely holds. The gating-mechanism will converge to select the $\text{NAC}_{+}$ unit, independently of the desired operation, as this unit is much easier to optimize and will thus be the best estimator early on. NALU works around this issue by sharing the weight matrix between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, such that even if $\text{NAC}_{+}$ is selected the weights can still, by pure chance, converge such that $\text{NAC}_{\bullet}$ is the best estimator.
+This assumption is problematic as it rarely holds. The gating-mechanism will converge to select the $\text{NAC}_{+}$ unit, independently of the desired operation, as this unit is much easier to optimize and will thus be the best estimator early on. NALU works around this issue by sharing the weight matrix between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, such that even if $\text{NAC}_{+}$ is selected the weights can still, by pure chance, converge such that $\text{NAC}_{\bullet}$ is the best estimator.
 
-To summarize, sharing the weight matrix allows, for a lucky seed, $\text{NAC}_{\bullet}$ to be selected. However, it also makes $\text{NAC}_{+}$ much harder to optimize, when addition is the desired operation. We confirm this empirically in appendix \ref{appendix:nalu-gating-experiment}\todo{add appendix}, by comparing the NALU model with seperate and shared weights. Solving this problem is a research project on its own, we thus focus on improving the sub-units by assuming that the gating is known.
+To summarize, sharing the weight matrix allows, for a lucky seed, $\text{NAC}_{\bullet}$ to be selected. However, it also makes $\text{NAC}_{+}$ much harder to optimize when addition is the desired operation. We confirm this empirically in appendix \ref{sec:appendix:nalu-gate-experiment}, by comparing the NALU model with seperate and shared weights. Solving this problem is a research project on its own, we thus focus on improving the sub-units by assuming that the gating is known.
 
 %To simplify the problem we have chosen to leave out the gating mechanism and focus on the sub-units, assuming "oracle gating". The gating mechanism of the NALU is difficult to converge, as shown in table \ref{tab:function-task-static-defaults}. This is likely due to the vastly different convergence properties. The independence in addition is a lot easier to learn than the heavily dependent multiplication operations, even for problems where addition is not the desired operation. Because addition converges faster, it becomes the best estimator early on and the gate will then choose addition. This causes the multiplication unit to be completely ignored, making it impossible for it to converge even if it is the desired operation.
 
@@ -37,7 +37,7 @@ E\left[\frac{\partial \mathcal{L}}{\partial \hat{M}_{h_{\ell-1},h_\ell}}\right] 
 \label{eq:nac-weight-gradient}
 \end{equation}
 
-Besides the issue of initialization, our empirical analysis (see table \ref{tab:function-task-static-defaults}) show that equation \ref{eq:weight} does not create the desired bias for $\{-1, 0, 1\}$ for the addition and subtraction problem.
+Besides the issue of initialization, our empirical analysis (table \ref{tab:function-task-static-defaults}) show that this weight construction \eqref{eq:weight} does not create the desired bias for $\{-1, 0, 1\}$ for the addition and subtraction problem.
 
 To solve these issues, we add a sparsifying regularizer to the loss function ($\mathcal{L} = \hat{\mathcal{L}} + \lambda_{\mathrm{sparse}} \mathcal{R}_{\ell,\mathrm{sparse}}$) and use simple linear weight construction, where $W_{h_{\ell-1},h_\ell}$ is clamped to $[-1, 1]$ in each iteration.
 
@@ -49,9 +49,9 @@ W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, -1), 1), \\
 
 \subsubsection{Challenges of division} \label{sssec:nac-mul}
 
-The $\text{NAC}_{\bullet}$, as formulated in equation \ref{eq:nacm}, has the ability to perform exact division, or more precisely multiplication of the inverse of elements from a vector, when a weight in $W_{h_{\ell-1},h_\ell}$ is $-1$.
+The $\text{NAC}_{\bullet}$, as formulated in equation \ref{eq:nacm}, has the ability to perform exact multiplication and division, or more precisely multiplication of the inverse of elements from a vector, when a weight in $W_{h_{\ell-1},h_\ell}$ is $-1$.
 
-However, allowing this flexibility creates critical optimization challenges. Expanding the exp-log-transformation, $\text{NAC}_{\bullet}$ can be express as
+However, this flexibility creates critical optimization challenges. Expanding the exp-log-transformation, $\text{NAC}_{\bullet}$ can be express as
 \begin{equation}
 \textrm{NAC}_\bullet:\ z_{h_\ell} = \prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\ .
 \label{eq:division:nac-mul-rewrite}
@@ -104,7 +104,7 @@ w_2 & w_2
 \label{fig:nac-mul-eps-issue}
 \end{figure}
 
-\subsubsection{Initialization of $\mathrm{NAC}_{\bullet}$}
+\subsubsection{Initialization of \texorpdfstring{$\mathrm{NAC}_{\bullet}$}{NAC-mul}}
 Initialization is important to consider for fast and consistent convergence, one desired property is that weights can be initialized such that $E[z_{h_\ell}] = 0$ \cite{glorot-initialization}. Using second order Taylor approximation and assuming all $z_{h_{\ell-1}}$ are uncorrelated, the expectation of $\mathrm{NAC}_{\bullet}$ can be estimated as
 \begin{equation}
 E[z_{h_\ell}] \approx \left(1 + \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}} \Rightarrow E[z_{h_\ell}] > 1.
@@ -137,6 +137,6 @@ which approaches zero for $H_{\ell-1} \rightarrow \infty$ (see Appendix \ref{sec
 \subsubsection{Regularizer scaling}
 We use the regularizer scaling as defined in \eqref{eq:regualizer-scaling}. The motivation here, is that the optimization consists of two parts. A warmup period, where $W_{h_{\ell-1},h_\ell}$ should get close to the solution, unhindered by the sparsity regularizer, and then a period where the solution is made sparse.
 \begin{equation}
-\lambda_{\mathrm{sparse}} = \hat{\lambda}_{\mathrm{sparse}} \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)
+\lambda_{\mathrm{sparse}} = \hat{\lambda}_{\mathrm{sparse}} \max\left(\min\left(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1\right), 0\right)
 \label{eq:regualizer-scaling}
 \end{equation}

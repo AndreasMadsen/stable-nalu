@@ -3,12 +3,14 @@ When studying intelligence, insects, reptiles, and humans have been found to pos
 In our quest to mimic intelligence we have put much faith in neural networks, which in turn has provided unparalleled and often superhuman performance in tasks requiring high cognitive abilities \cite{natureGo,bert,openai-learning-dexterous}.
 However, when using neural networks to learn simple arithmetic problems, such as counting, multiplication, or comparison they systematically fail to extrapolate onto unseen ranges \cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}. This can be a significant drawback when comparing in question answering \cite{naturalquestions} or counting objects in visual data \cite{johnson2017clevr,drewspaper}.
 
-In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) \cite{trask-nalu}.
+In this paper, we analyze and improve parts of the recently proposed Neural Arithmetic Logic Unit (NALU) by \citet{trask-nalu}.
 The NALU is a neural network layer with two sub-units; the $\text{NAC}_{+}$ for addition/subtraction and the $\text{NAC}_{\bullet}$ for multiplication/division.
-The sub-units are softly gated using a sigmoid function. The parameters, which are computed by a soft weight constraint using a tanh-sigmoid transformation, are learned by observing arithmetic input-output pairs and using backpropagation \cite{rumelhart1986learning}.
+The sub-units are softly gated using a sigmoid function.
+The parameters, which are computed by a soft weight constraint using a tanh-sigmoid transformation, are learned by observing arithmetic input-output pairs and using backpropagation \cite{rumelhart1986learning}.
 
-Our contributions are alternatives to the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units that are more theoretically founded. Our alternatives can support small and negative numbers, are more sparse, and supports a larger hidden size, while using less parameters.
-We test these properties through a rigid experimental setup with more than 10000 arithmetic tests and recurrent multiplication of up to 20 MNIST digits \cite{mnist}.
+Our contributions are alternatives to the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units that are more theoretically founded.
+Our alternatives can support small and negative numbers, are more sparse, and supports a larger hidden size, while using less parameters.
+We test these properties through a rigid experimental setup with more than $20000$ arithmetic tests and recurrent multiplication of up to 20 MNIST digits \cite{mnist}.
 %More specifically;
 %an alternative formulation of the soft weight constraint with a clipped linear activation, parameter regularization that biases towards a sparse solution of $\{-1,0,1\}$, and a reformulation of the multiplication unit with a partial linearity. All of which significantly improves upon the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ units as shown through extensive testing on static arithmetic tasks (more than $10000$ experiments) and recurrent multiplication of a sequence of MNIST digits.
 
@@ -30,7 +32,7 @@ Our findings are the following:
 
 Motivated by these challenges, we attempt to solve (a-f) and leave (g-h) for future work.
 
-Furthermore, we find that the experimental setup of \citet{trask-nalu} has the following concerns: (i) the dataset parameters for "simple function task" is not defined. (ii) the evaluation metric is based on relative performance to a random baseline. This means that if the random baseline has an MSE of 1e10, then 1e7 would be considered a score of 0.1. (iii) Multiplication is only thoroughly tested in simple function task and not on anything requiring a deep neural network \todo{(comments on 4.3 in appendix XX)}.
+Furthermore, we find that the experimental setup of \citet{trask-nalu} has the following concerns: (i) the dataset parameters for "simple function task" is not defined. (ii) the evaluation metric is based on relative performance to a random baseline. This means that if the random baseline has an MSE of 1e10, then 1e7 would be considered a score of 0.1. (iii) Multiplication is only thoroughly tested in simple function task and not on anything requiring a deep neural network (comments on 4.3 in appendix \ref{sec:appendix:lanauge-to-number}).
 
 We attempt to solve (i-iii) by proposing a much extended arithmetic task, define a successful convergence criteria, and do multiplication of MNIST digits.
 % The investigation uncovers the following analytical and empirical concerns; the gradients of the weight matrix construction in $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ have zero expectation, the $\text{NAC}_{\bullet}$ has a treacherous optimization space with unwanted global minimas near singularities, when applying the $\text{NAC}_{+}$ in isolation we observe that the wanted weight matrix values of $\{-1, 0, 1\}$ are rarely found, and our empirical results reveals that the NALU is significantly worse than hard-choosing either the $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$, indicating that the gating mechanism does not work as intended.

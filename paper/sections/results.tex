@@ -4,7 +4,7 @@
 \subsection{Arithmetic datasets}
 \label{sec:arithmetic-dataset}
 
-The arithmetic dataset is a replica of the "simple function task" as shown in \cite{trask-nalu}.
+The arithmetic dataset is a replica of the "simple function task" as shown in \citet{trask-nalu}.
 The goal is to sum two random subsets of a vector and perform a arithmetic operation as defined below
 \begin{equation}
 t = \sum_{i = s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i \circ \sum_{i = s_{2,\mathrm{start}}}^{s_{2,\mathrm{end}}} x_i \quad \text{where } \mathbf{x} \in \mathbb{R}^n, x_i \sim \mathrm{Uniform}[r_{\mathrm{lower}}, r_{\mathrm{upper}}], \circ \in \{+, -, \times\}
@@ -13,7 +13,7 @@ t = \sum_{i = s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i \circ \sum_{i = s_{
 where $n$ (default $100$), $U[r_{\mathrm{lower}}, r_{\mathrm{upper}}]$ (interpolation default is $U[1,2]$ and extrapolation default is $U[2,6]$), the subset size (default 25\%), and subset overlap (default 50\%) are parameters that we use to assess learning capability (see details in appendix \ref{sec:appendix:simple-function-task:data-generation} and the effect of varying the parameters in appendix \ref{sec:appendix-simple-function-task:dataset-parameter-effect}).
 
 \subsubsection{Model evaluation}
-The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task consistently we compare the MSE to a nearly-perfect solution on the extrapolation range over multiple seeds. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 10^{-5}$.
+The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task consistently we compare the MSE to a nearly-perfect solution on the extrapolation range over multiple seeds. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), then the success criteria is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 10^{-5}$.
 \begin{equation}
     \mathbf{W}_1^\epsilon = \begin{bmatrix}
     1 - \epsilon & 1 - \epsilon & 0 + \epsilon & 0 + \epsilon \\
@@ -48,7 +48,7 @@ To validate our theoretical claim, that the NMU models works better than $NAC_{\
 
 Additionally, the NMU model is unlike the $NAC_{\bullet}$ model also capable of understanding inputs that are both negative and positive. To validate this empirically, the training and validation datasets are sampled for $\mathrm{U}[-2,2]$, and then tested on $\mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]$.
 
-Finally, to validate that division and the lack of bias in $NAC_{\bullet}$ are critical issues but that solving these alone are not enough, two additional models compared with. A variant of $\mathrm{NAC}_{\bullet}$ called $\mathrm{NAC}_{\bullet, \sigma}$, that only supports multiplication, by constraining the weights with $W = \sigma(\hat{W})$. And a variant, called $\mathrm{NAC}_{\bullet, \mathrm{NMU}}$, that uses linear weights and bias regularization, identically to that in NMU model.
+Finally, to validate that division and the lack of bias in $NAC_{\bullet}$ are critical issues but that solving these alone are not enough, two additional models compared with. A variant of $\mathrm{NAC}_{\bullet}$ called $\mathrm{NAC}_{\bullet, \sigma}$, that only supports multiplication, by constraining the weights with $W = \sigma(\hat{W})$. And a variant, called $\mathrm{NAC}_{\bullet, \mathrm{NMU}}$, that uses linear weights and sparsity regularization, identically to that in NMU model.
 
 Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that the NMU can both handle a much larger hidden-size, as well as negative inputs, and that solving the division and bias issues alone improves the success rate, but are no enough when the hidden-size is large, as there is no ideal initialization.
 
@@ -77,6 +77,6 @@ Figure \ref{fig:sequential-mnist-prod-results} shows that the NMU does not hindr
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth,trim={0 0.5cm 0 0},clip]{results/sequential_mnist_prod_long.pdf}
-\caption{Shows the ability of each model to backpropergation and extrapolate to larger sequence lengths.} 
+\caption{Shows the ability of each model to backpropergation and extrapolate to longer sequences.} 
 \label{fig:sequential-mnist-prod-results}
 \end{figure}

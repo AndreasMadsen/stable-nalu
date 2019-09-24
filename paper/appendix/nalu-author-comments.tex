@@ -2,6 +2,7 @@
 \section{Additional notes}
 
 \subsection{Language to Number Translation Tasks}
+\label{sec:appendix:lanauge-to-number}
 
 In the NALU paper, they include a ``Language to Number Translation Tasks'' that appears to perform multiplication, by applying a recurrent NALU. However, after contracting the authors this turns out not to be the case.
 
@@ -29,11 +30,11 @@ h_t &= &\begin{bmatrix}
  h_{t-1} \\
  0 \\
  0
-\end{bmatrix} &\left(I(x_t = \texttt{100})\begin{bmatrix}100 \\ 1 \\ 1\end{bmatrix}\right)\ &&+ &\begin{bmatrix}
+\end{bmatrix}^T &\left(I(x_t = \texttt{100})\begin{bmatrix}100 \\ 1 \\ 1\end{bmatrix}\right)\ &&+ &\begin{bmatrix}
  0 \\
  h_{t-1} \\
  x_t
-\end{bmatrix} &\left(I(x_t \not= \texttt{100})\begin{bmatrix}100 \\ 1 \\ 1\end{bmatrix}\right)
+\end{bmatrix}^T &\left(I(x_t \not= \texttt{100})\begin{bmatrix}100 \\ 1 \\ 1\end{bmatrix}\right)
 \end{aligned}
 \label{eq:langauge-to-numbers-lstm}
 \end{equation}
