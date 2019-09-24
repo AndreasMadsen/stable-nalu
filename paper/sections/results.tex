@@ -36,7 +36,7 @@ E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, 
 We evaluate each metric every $1000$ iterations on the test set that uses the extrapolation range, and choose the best iteration based on the validation dataset that uses the interpolation range.
 
 \subsubsection{Arithmetic operation comparison}
-We compare models on different arithmetic operation $\circ \in \{+, -, \times\}$. The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$, have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models are just two layers of the same unit. Finally, the NALU model consists of two NALU layers. See explicit definitions in appendix \ref{sec:appendix:comparison-all-models}.
+We compare models on different arithmetic operation $\circ \in \{+, -, \times\}$. The multiplication models, NMU and $\mathrm{NAC}_{\bullet}$, have an addition layer first, either NAU or $\mathrm{NAC}_{+}$, followed by a multiplication layer. The addition models are just two layers of the same unit. Finally, the NALU model consists of two NALU layers. See explicit definitions and regularization values in appendix \ref{sec:appendix:comparison-all-models}.
 
 Each experiment is trained for $5 \cdot 10^6$ iterations (details in appendix \ref{sec:appendix:comparison-all-models}). Results are presented in table \ref{tab:function-task-static-defaults}. For multiplication, the NMU succeeds more often and converges faster. For addition and subtraction, the NAU model converges faster, given the median, and has a sparser solution. A larger comparison is in appendix \ref{sec:appendix:comparison-all-models} and an ablation study is in appendix \ref{sec:appendix:ablation-study}.
 

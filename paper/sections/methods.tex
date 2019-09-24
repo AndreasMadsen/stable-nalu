@@ -3,7 +3,7 @@
 We define our problem as learning a set of static arithmetic operations between selected elements of a vector. E.g. for a vector $\mathbf{x}$ learn the function ${(x_5 + x_1) \cdot x_7}$. The approach taking in this paper, is to develop layers around specific operations, and then let each layer decide which inputs to include using backpropergation.
 
 We develop these layers by analysing the theoretical issues in the Neural Arithmetic Logic Unit (NALU) by \citet{trask-nalu}.
-s
+
 \subsection{Introducing NALU}
 The Neural Arithmetic Logic Unit (NALU) consists of two sub-units; the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$. These exclusively represent either the $\{+, -\}$ or the $\{\times, \div \}$ operations. The NALU then assumes that either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ will be selected exclusively, using a sigmoid gating-mechanism.
 
