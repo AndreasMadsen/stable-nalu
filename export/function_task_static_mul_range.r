@@ -85,14 +85,15 @@ dat.gather = plot.parameter.make.data(dat.last.rate)
 
 
 p = ggplot(dat.gather, aes(x = parameter, colour=model, group=interaction(parameter, model))) +
-  geom_point(aes(y = mean.value), position=position_dodge(width=0.3)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3)) +
+  geom_point(aes(y = mean.value, shape=our.model), position=position_dodge(width=0.3)) +
+  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3), alpha=0.5) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
   scale_x_discrete(name = name.label) +
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+  scale_shape(guide = FALSE) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
-      success.rate = "Success rate in %",
+      success.rate = "Success rate",
       converged.at = "Solved at iteration step",
       sparse.error = "Sparsity error"
     )

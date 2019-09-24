@@ -79,15 +79,16 @@ make.plot = function (operation.latex, model.latex, filename) {
     plot.parameter.make.data();
   
   p = ggplot(dat.plot, aes(x = as.factor(parameter), colour=model, group=model)) +
-    geom_point(aes(y = mean.value)) +
+    geom_point(aes(y = mean.value, shape=our.model)) +
     geom_line(aes(y = mean.value)) +
     geom_errorbar(aes(ymin = lower.value, ymax = upper.value), alpha=0.5) +
     scale_color_discrete(labels = model.to.exp(levels(dat.plot$model))) +
     scale_x_discrete(name = name.label) +
     scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
+    scale_shape(guide = FALSE) +
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
-        success.rate = "Success rate in %",
+        success.rate = "Success rate",
         converged.at = "Solved at iteration step",
         sparse.error = "Sparsity error"
       )

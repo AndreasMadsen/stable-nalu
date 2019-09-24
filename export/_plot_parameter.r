@@ -30,7 +30,8 @@ plot.parameter.make.data = function (dat.last.rate, ...) {
   dat.gather = merge(merge(dat.gather.mean, dat.gather.upper), dat.gather.lower) %>%
     mutate(
       model=droplevels(model),
-      key = factor(key, levels = c("success.rate", "converged.at", "sparse.error"))
+      our.model=model %in% c('NMU', 'NAU'),
+      key = factor(key, levels = c("success.rate", "converged.at", "sparse.error")),
     )
   
   return(dat.gather)
@@ -38,10 +39,10 @@ plot.parameter.make.data = function (dat.last.rate, ...) {
 
 plot.parameter = function (dat.last.rate, plot.label, plot.x.breaks, ...) {
   dat.gather = plot.parameter.make.data(dat.last.rate, ...);
-  
+
   p = ggplot(dat.gather, aes(x = parameter, colour=model)) +
-    geom_errorbar(aes(ymin = lower.value, ymax = upper.value), alpha=0.5) +
-    geom_point(aes(y = mean.value)) +
+    geom_errorbar(aes(ymin = lower.value, ymax = upper.value), alpha=0.4) +
+    geom_point(aes(y = mean.value, shape=our.model)) +
     geom_line(aes(y = mean.value)) +
     geom_blank(data = data.frame(
       key = c("success.rate"),
@@ -52,6 +53,7 @@ plot.parameter = function (dat.last.rate, plot.label, plot.x.breaks, ...) {
     scale_color_discrete(labels = model.to.exp(levels(dat.gather$model))) +
     scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
     scale_x_continuous(name = plot.label, breaks=plot.x.breaks) +
+    scale_shape(guide = FALSE) +
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
         success.rate = "Success rate",
@@ -59,6 +61,7 @@ plot.parameter = function (dat.last.rate, plot.label, plot.x.breaks, ...) {
         sparse.error = "Sparsity error"
       )
     )) +
+    guides(colour = guide_legend(nrow = 1)) +
     theme(legend.position="bottom") +
     theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
   

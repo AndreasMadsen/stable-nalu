@@ -40,7 +40,7 @@ safe.interval = function (alpha, vec) {
   if (length(vec) <= 1) {
     return(NA)
   }
-  
+
   return(abs(qt((1 - alpha) / 2, length(vec) - 1)) * (sd(vec) / sqrt(length(vec))))
 }
 
@@ -109,7 +109,7 @@ dat.last = dat %>%
     extrapolation.step.solved = first.solved.step(step, test.extrapolation.mse, threshold),
     sparse.error.max = sparse.error.max[best.model.step],
     solved = replace_na(test.extrapolation.mse[best.model.step] < threshold, FALSE),
-    
+
     model = last(model),
     operation = last(operation),
     regualizer.z = last(regualizer.z),
@@ -129,8 +129,7 @@ plot.by.regualizer.z = function (regualizer.z.show) {
       model %in% c('$\\mathrm{NAC}_{\\bullet}$', '$\\mathrm{NAC}_{\\bullet,\\sigma}$', 'LSTM', 'NALU')
     )
 
-  p = plot.parameter(dat.plot, plot.label, plot.x.breaks) +
-    guides(colour = guide_legend(nrow = 1))
+  p = plot.parameter(dat.plot, plot.label, plot.x.breaks)
   return(p)
 }
 
