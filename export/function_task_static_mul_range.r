@@ -112,7 +112,7 @@ dat.gather.reproduction = dat.gather %>%
 
 p = ggplot(dat.gather.reproduction, aes(x = parameter, colour=model, group=interaction(parameter, model))) +
   geom_point(aes(y = mean.value), position=position_dodge(width=0.3)) +
-  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3)) +
+  geom_errorbar(aes(ymin = lower.value, ymax = upper.value), position=position_dodge(width=0.3), alpha=0.5) +
   scale_color_discrete(labels = model.to.exp(levels(dat.gather.reproduction$model))) +
   scale_x_discrete(name = name.label) +
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
