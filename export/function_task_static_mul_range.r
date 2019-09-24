@@ -118,7 +118,7 @@ p = ggplot(dat.gather.reproduction, aes(x = parameter, colour=model, group=inter
   scale_y_continuous(name = element_blank(), limits=c(0,NA)) +
   facet_wrap(~ key, scales='free_y', labeller = labeller(
     key = c(
-      success.rate = "Success rate in %",
+      success.rate = "Success rate",
       converged.at = "Solved at iteration step",
       sparse.error = "Sparsity error"
     )

@@ -75,4 +75,4 @@ dat.last.rate = dat.last %>%
 p = plot.parameter(dat.last.rate, plot.label, plot.x.breaks)
 print(p)
 ggsave(name.output, p, device="pdf", width = 13.968, height = 5.7, scale=1.4, units = "cm")
-ggsave(name.output.short, p, device="pdf", width = 13.968, height = 4.7, scale=1.4, units = "cm")
+ggsave(name.output.short, p, device="pdf", width = 13.968, height = 5.1, scale=1.4, units = "cm")

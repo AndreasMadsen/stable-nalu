@@ -54,7 +54,7 @@ plot.parameter = function (dat.last.rate, plot.label, plot.x.breaks, ...) {
     scale_x_continuous(name = plot.label, breaks=plot.x.breaks) +
     facet_wrap(~ key, scales='free_y', labeller = labeller(
       key = c(
-        success.rate = "Success rate in %",
+        success.rate = "Success rate",
         converged.at = "Solved at iteration step",
         sparse.error = "Sparsity error"
       )
