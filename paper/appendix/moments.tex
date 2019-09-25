@@ -48,9 +48,9 @@ Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Va
 \end{aligned}
 \end{equation}
 
-These expectations are better behaved. It is properly unlikely to expect that the expectation can become zero, since the identity for multiplication is 1. However, for a large $H_{\ell-1}$ it will be near zero.
+These expectations are better behaved. It is unlikely that the expectation of a multiplication unit can become zero, since the identity for multiplication is 1. However, for a large $H_{\ell-1}$ it will be near zero.
 
-The variance is also better behaved, but does not provide a input-independent initialization strategy. We propose initializing with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$, as this is the solution to $Var[z_{h_\ell}] = Var[z_{h_{\ell-1}}]$ assuming $Var[z_{h_{\ell-1}}] = 1$ and a large $H_{\ell-1}$ (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}). However, feel free to compute more exact solutions.
+The variance is also better behaved, but does not provide a input-independent initialization strategy. We propose initializing with $Var[W_{h_{\ell-1},h_\ell}] = \frac{1}{4}$, as this is the solution to $Var[z_{h_\ell}] = Var[z_{h_{\ell-1}}]$ assuming $Var[z_{h_{\ell-1}}] = 1$ and a large $H_{\ell-1}$ (see proof in Appendix \ref{sec:appendix:moments:nmu:initialization}). However, more exact solutions are possible if the input variance is known.
 
 \subsection{Expectation and variance for weight matrix construction in NAC layers}
 \label{sec:appendix:moments:weight-matrix-construction}
@@ -98,7 +98,7 @@ Then for $\mathrm{E}[\tanh(\hat{M})^2]$:
 \end{aligned}
 \end{equation}
 
-Finally this gives the variance:
+Which results in the variance:
 \begin{equation}
 \mathrm{Var}[W] = \frac{1}{2r} \left(1 - \frac{\tanh(r)}{r}\right) \left(r - \tanh\left(\frac{r}{2}\right)\right)
 \end{equation}
@@ -107,7 +107,7 @@ Finally this gives the variance:
 \label{sec:appendix:moments:nac-mul}
 \subsubsection{Forward pass}
 
-\paragraph{Expectation} Assuming that each $z_{h_{\ell-1}}$ are uncorrelated the expectation can be simplified to:
+\paragraph{Expectation} Assuming that each $z_{h_{\ell-1}}$ are uncorrelated, the expectation can be simplified to:
 \begin{equation}
 \begin{aligned}
 E[z_{h_\ell}] &= E\left[\exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon) \right)\right] \\
@@ -124,17 +124,17 @@ Here we define $g$ as a non-linear transformation function of two independent st
 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}}) = (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}
 \end{equation}
 
-We then take the second order Taylor approximation of $g$, around $(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])$.
+We then apply second order Taylor approximation of $f$, around $(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])$.
 \begin{equation}
 \begin{aligned}
 &E[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] \approx
 E\Bigg[\\
-&g(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])\\
+&f(E[z_{h_{\ell-1}}], E[W_{h_{\ell}, h_{\ell-1}}])\\
 &+ \begin{bmatrix}
 z_{h_{\ell-1}} - E[z_{h_{\ell-1}}] \\ W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]
 \end{bmatrix}^T \begin{bmatrix}
-\frac{\partial g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}}} \\
-\frac{\partial g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial W_{h_{\ell}, h_{\ell-1}}}
+\frac{\partial f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}}} \\
+\frac{\partial f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial W_{h_{\ell}, h_{\ell-1}}}
 \end{bmatrix} \Bigg\rvert_{
 \begin{cases}
 z_{h_{\ell-1}} = E[z_{h_{\ell-1}}] \\
@@ -145,8 +145,8 @@ W_{h_{\ell}, h_{\ell-1}} = E[W_{h_{\ell}, h_{\ell-1}}]
 z_{h_{\ell-1}} - E[z_{h_{\ell-1}}] \\ W_{h_{\ell}, h_{\ell-1}} - E[W_{h_{\ell}, h_{\ell-1}}]
 \end{bmatrix}^T \\
 &\bullet \begin{bmatrix}
-\frac{\partial^2 g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 z_{h_{\ell-1}}} & \frac{\partial^2 g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}} \partial W_{h_{\ell}, h_{\ell-1}}} \\
-\frac{\partial^2 g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}} \partial W_{h_{\ell}, h_{\ell-1}}} & \frac{\partial^2 g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 W_{h_{\ell}, h_{\ell-1}}}
+\frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 z_{h_{\ell-1}}} & \frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}} \partial W_{h_{\ell}, h_{\ell-1}}} \\
+\frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial z_{h_{\ell-1}} \partial W_{h_{\ell}, h_{\ell-1}}} & \frac{\partial^2 f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})}{\partial^2 W_{h_{\ell}, h_{\ell-1}}}
 \end{bmatrix} \Bigg\rvert_{
 \begin{cases}
 z_{h_{\ell-1}} = E[z_{h_{\ell-1}}] \\
@@ -181,12 +181,13 @@ W_{h_{\ell}, h_{\ell-1}} = E[W_{h_{\ell}, h_{\ell-1}}]
 Inserting the derivatives and computing the inner products yields:
 \begin{equation}
 \begin{aligned}
-&E[g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] \approx
+&E[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})] \approx
 (|E[z_{h_{\ell-1}}]| + \epsilon)^{E[W_{h_{\ell}, h_{\ell-1}}]} \\
 &+ \frac{1}{2} Var[z_{h_{\ell-1}}] (|E[z_{h_{\ell-1}}]| + \epsilon)^{E[W_{h_{\ell}, h_{\ell-1}}] - 2} E[W_{h_{\ell}, h_{\ell-1}}] (E[W_{h_{\ell}, h_{\ell-1}}] - 1) \\
 &+ \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] (|E[z_{h_{\ell-1}}]| + \epsilon)^{E[W_{h_{\ell}, h_{\ell-1}}]} \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2 \\
 &=1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2
 \end{aligned}
+\label{eq:appendix:nac:forward-pass:expectation:taylor}
 \end{equation}
 
 This gives the final expectation:
@@ -197,7 +198,7 @@ E[z_{h_\ell}] &= E\left[g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{H_{\
 \end{aligned}
 \end{equation}
 
-As this expectation is of particular interest, we evaluate the error of the approximation, where $W_{h_{\ell}, h_{\ell-1}} \sim U[-r_w,r_w]$ and $z_{h_{\ell-1}} \sim U[0, r_z]$. These distributions are what is used in the  arithmetic dataset. The error is plotted in figure \ref{fig:nac-mul-expectation-estimate}.
+We evaluate the error of the approximation, where $W_{h_{\ell}, h_{\ell-1}} \sim U[-r_w,r_w]$ and $z_{h_{\ell-1}} \sim U[0, r_z]$. These distributions are what is used in the  arithmetic dataset. The error is plotted in figure \ref{fig:nac-mul-expectation-estimate}.
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{graphics/nac-mul-expectation-estimate.pdf}
@@ -205,26 +206,26 @@ As this expectation is of particular interest, we evaluate the error of the appr
 \label{fig:nac-mul-expectation-estimate}
 \end{figure}
 
-\paragraph{Variance} The variance can be derived using the same assumptions for expectation, that all $z_{h_{\ell-1}}$ are uncorrelated.
+\paragraph{Variance} The variance can be derived using the same assumptions as used in ``expectation'', that all $z_{h_{\ell-1}}$ are uncorrelated.
 \begin{equation}
 \begin{aligned}
 Var[z_{h_\ell}] &= E[z_{h_\ell}^2] - E[z_{h_\ell}]^2 \\
 &= E\left[\prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{2 \cdot W_{h_{\ell}, h_{\ell-1}}} \right]
 - E\left[\prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\right]^2 \\
-&= E\left[g(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}}) \right]^{H_{\ell-1}}
-- E\left[g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{2\cdot H_{\ell-1}}
+&= E\left[f(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}}) \right]^{H_{\ell-1}}
+- E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{2\cdot H_{\ell-1}}
 \end{aligned}
 \end{equation}
 
-We already have from the expectation result that:
+We already have from the expectation result in \eqref{eq:appendix:nac:forward-pass:expectation:taylor} that:
 \begin{equation}
-E\left[g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right] \approx 1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2
+E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right] \approx 1 + \frac{1}{2} Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2
 \end{equation}
 
 By substitution of variable we have that:
 \begin{equation}
 \begin{aligned}
-E\left[g(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}})\right] &\approx 1 + \frac{1}{2} Var[2 \cdot W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2 \\
+E\left[f(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}})\right] &\approx 1 + \frac{1}{2} Var[2 \cdot W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2 \\
 &= \approx 1 + 2 \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2
 \end{aligned}
 \end{equation}
@@ -233,7 +234,7 @@ This gives the variance:
 \begin{equation}
 \begin{aligned}
 Var[z_{h_\ell}] &= E\left[g(z_{h_{\ell-1}}, 2 \cdot W_{h_{\ell}, h_{\ell-1}}) \right]^{H_{\ell-1}}
-- E\left[g(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{2\cdot H_{\ell-1}} \\
+- E\left[f(z_{h_{\ell-1}}, W_{h_{\ell}, h_{\ell-1}})\right]^{2\cdot H_{\ell-1}} \\
 &\approx \left(1 + 2 \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{H_{\ell-1}} \\
 &- \left(1 + \frac{1}{2} \cdot Var[W_{h_{\ell}, h_{\ell-1}}] \log(|E[z_{h_{\ell-1}}]| + \epsilon)^2\right)^{2\cdot H_{\ell-1}}
 \end{aligned}
@@ -251,7 +252,7 @@ Assuming that $z_{h_{\ell+1}}$, $W_{h_{\ell+1},h_\ell}$, and $z_{h_\ell}$ are un
 E\left[\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}\right] \approx E[{z_{h_{\ell+1}}}] E[W_{h_{\ell+1}, h_{\ell}}] E\left[ \frac{\mathrm{abs}'(z_{h_{\ell}})}{|z_{h_{\ell}}| + \epsilon}\right] = E[z_{h_{\ell+1}}] \cdot 0 \cdot E\left[ \frac{\mathrm{abs}'(z_{h_{\ell}})}{|z_{h_\ell}| + \epsilon}\right] = 0
 \end{equation}
 
-\paragraph{Variance} Deriving the variance is more complicated as:
+\paragraph{Variance} Deriving the variance is more complicated:
 \begin{equation}
 \begin{aligned}
 Var\left[\frac{\partial z_{h_{\ell+1}}}{\partial z_{h_\ell}}\right] &= Var\left[z_{h_{\ell+1}} W_{h_{\ell+1}, h_{\ell}} \frac{\mathrm{abs}'(z_{h_{\ell}})}{|z_{h_{\ell}}| + \epsilon}\right]
@@ -318,7 +319,7 @@ Var[z_{h_\ell}] &= E[z_{h_\ell}^2] - E[z_{h_\ell}]^2 \\
 \end{aligned}
 \end{equation}
 
-Assuming again that $E[z_{h_{\ell-1}}] = 0$, which is a desired property and initializing $E[W_{h_{\ell-1},h_\ell}] = \nicefrac{1}{2}$, the variance becomes:
+Assuming that $E[z_{h_{\ell-1}}] = 0$, which is a desired property and initializing $E[W_{h_{\ell-1},h_\ell}] = \nicefrac{1}{2}$, the variance becomes:
 \begin{equation}
 \begin{aligned}
 Var[z_{h_\ell}] &\approx \left(E[W_{h_{\ell-1},h_\ell}^2] \left(E[z_{h_{\ell-1}}^2] + 1\right)\right)^{H_{\ell-1}}- \left(\frac{1}{2}\right)^{2 \cdot H_{\ell-1}} \\
@@ -340,7 +341,7 @@ E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right]
 \end{aligned}
 \end{equation}
 
-Initializing again $E[W_{h_{\ell-1},h_\ell}] = \nicefrac{1}{2}$, and inserting the result for the expectation $E\left[\frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}}\right]$.
+Initializing $E[W_{h_{\ell-1},h_\ell}] = \nicefrac{1}{2}$, and inserting the result for the expectation $E\left[\frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}}\right]$.
 \begin{equation}
 \begin{aligned}
 E\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx H_\ell E\left[\frac{\partial \mathcal{L}}{\partial z_{h_\ell}}\right] \left(\frac{1}{2}\right)^{H_{\ell-1}-1} \frac{1}{2} \\
@@ -419,12 +420,13 @@ Var\left[\frac{\partial \mathcal{L}}{\partial z_{h_{\ell-1}}}\right] &\approx Va
 &\cdot \left(
 \left(Var[W_{h_{\ell-1},h_\ell}] + \frac{1}{4}\right)^{H_{\ell-1}} \left(Var[z_{h_{\ell-1}}] + 1\right)^{H_{\ell-1} - 1}\right)
 \end{aligned}
+\label{eq:appendix:nmu:variance:result}
 \end{equation}
 
 \subsubsection{Initialization}
 \label{sec:appendix:moments:nmu:initialization}
 
-The $W_{h_{\ell-1},h_\ell}$ should be initialized with $E[W_{h_{\ell-1},h_\ell}] = \frac{1}{2}$, in order to not bias towards inclusion or exclusion of $z_{h_{\ell-1}}$. Using the derived variance approximations, the variance should be according to the forward pass:
+The $W_{h_{\ell-1},h_\ell}$ should be initialized with $E[W_{h_{\ell-1},h_\ell}] = \frac{1}{2}$, in order to not bias towards inclusion or exclusion of $z_{h_{\ell-1}}$. Using the derived variance approximations \eqref{eq:appendix:nmu:variance:result}, the variance should be according to the forward pass:
 
 \begin{equation}
 Var[W_{h_{\ell-1},h_\ell}] = \left((1 + Var[z_{h_\ell}])^{-H_{\ell-1}}Var[z_{h_\ell}] + (4 + 4Var[z_{h_\ell}])^{-H_{\ell-1}}\right)^{\frac{1}{H_{\ell-1}}} - \frac{1}{4}
@@ -435,7 +437,7 @@ And according to the backward pass it should be:
 Var[W_{h_{\ell-1},h_\ell}] = \left( \frac{ \left(Var[z_{h_\ell}] + 1\right)^{1 - H_{\ell-1}} }{H_{\ell}} \right)^{\frac{1}{H_{\ell-1}}} - \frac{1}{4}
 \end{equation}
 
-Both criteria are dependent on the input variance. If the input variance is know then optimal initialization is possible. However, as this is often not the case one can perhaps assume that $Var[z_{h_{\ell-1}}] = 1$. This is not an unreasonable assumption in many cases, as there may either be a normalization layer somewhere or the input is normalized. If unit variance is assumed, one gets from the forward pass:
+Both criteria are dependent on the input variance. If the input variance is know then optimal initialization is possible. However, as this is often not the case one can perhaps assume that $Var[z_{h_{\ell-1}}] = 1$. This is not an unreasonable assumption in many cases, as there may either be a normalization layer somewhere or the input is normalized. If unit variance is assumed, the variance for the forward pass becomes:
 \begin{equation}
 Var[W_{h_{\ell-1},h_\ell}] = \left(2^{-H_{\ell-1}} + 8^{-H_{\ell-1}}\right)^{\frac{1}{H_{\ell-1}}} - \frac{1}{4} = \frac{1}{8} \left(\left(4^{H_{\ell-1}} + 1\right)^{H_{\ell-1}} - 2\right)
 \end{equation}

@@ -1,6 +1,6 @@
 \section{Related work}
 Pure neural models using convolutions, gating, differentiable memory, and/or attention architectures have attempted to learn arithmetic tasks through backpropagation \cite{NeuralGPU,GridLSTM,NTM,FreivaldsL17}.
-Some of the results have close to perfect extrapolation. However, the models are constrained to only work well defined arithmetic setups with no input redundancy, single operation and binary representations of numbers for input and output.
+Some of the results have close to perfect extrapolation. However, the models are constrained to only work with well-defined arithmetic setups with no input redundancy, single operation and binary representations of numbers for input and output.
 Our solution is to define a dataset that specifically mimics the nature of neural networks with redundant hidden representation and building components that can solve such.
 
 The Neural Arithmetic Expression Calculator \cite{NAEC} propose learning real number arithmetic by having neural network subcomponents and repeatedly combine them through a memory-encoder-decoder architecture learned with hierarchical reinforcement learning.
