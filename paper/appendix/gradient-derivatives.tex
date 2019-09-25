@@ -8,7 +8,7 @@ For clarity the weight matrix construction is defined using scalar notation
 W_{h_\ell, h_{\ell-1}} = \tanh(\hat{W}_{h_\ell, h_{\ell-1}}) \sigma(\hat{M}_{h_\ell, h_{\ell-1}})
 \end{equation}
 
-The of the loss with respect to $\hat{W}_{h_\ell, h_{\ell-1}}$ and $\hat{M}_{h_\ell, h_{\ell-1}}$ is then straight forward to derive.
+The of the loss with respect to $\hat{W}_{h_\ell, h_{\ell-1}}$ and $\hat{M}_{h_\ell, h_{\ell-1}}$ is then derived using backpropagation.
 \begin{equation}
 \begin{aligned}
 \frac{\partial\mathcal{L}}{\partial \hat{W}_{h_\ell, h_{\ell-1}}} &= \frac{\partial\mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}} \frac{\partial W_{h_\ell, h_{\ell-1}}}{\partial \hat{W}_{h_\ell, h_{\ell-1}}} \\
@@ -18,17 +18,17 @@ The of the loss with respect to $\hat{W}_{h_\ell, h_{\ell-1}}$ and $\hat{M}_{h_\
 \end{aligned}
 \end{equation}
 
-As seen from this result, one only needs to consider $\frac{\partial\mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}}$ for $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, as the gradient with respect to $\hat{W}_{h_\ell, h_{\ell-1}}$ and $\hat{M}_{h_\ell, h_{\ell-1}}$ is just a multiplication on $\frac{\partial\mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}}$.
+As seen from this result, one only needs to consider $\frac{\partial\mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}}$ for $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, as the gradient with respect to $\hat{W}_{h_\ell, h_{\ell-1}}$ and $\hat{M}_{h_\ell, h_{\ell-1}}$ is a multiplication on $\frac{\partial\mathcal{L}}{\partial W_{h_\ell, h_{\ell-1}}}$.
 
 \subsection{Gradient of \texorpdfstring{$\mathrm{NAC}_{\bullet}$}{NAC-mul}}
 \label{sec:appendix:gradient-derivatives:gradient-nac-mul}
 
-First the $\textrm{NAC}_\bullet$ is defined using scalar notation.
+The $\textrm{NAC}_\bullet$ is defined using scalar notation.
 \begin{equation}
 z_{h_\ell} = \exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \log(|z_{h_{\ell-1}}| + \epsilon) \right)
 \end{equation}
 
-The gradient of the loss with respect to $W_{h_\ell, h_{\ell-1}}$ is straight forward to derive.
+The gradient of the loss with respect to $W_{h_\ell, h_{\ell-1}}$ can the be derived using backpropagation.
 \begin{equation}
 \begin{aligned}
 \frac{\partial z_{h_\ell}}{\partial W_{h_\ell, h_{\ell-1}}} &= \exp\left(\sum_{h'_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h'_{\ell-1}} \log(|z_{h'_{\ell-1}}| + \epsilon) \right) \log(|z_{h_{\ell-1}}| + \epsilon) \\
@@ -65,7 +65,7 @@ In scalar notation the NMU is defined as:
 z_{h_\ell} = \prod_{h_{\ell-1}=1}^{H_{\ell-1}} \left(W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell} \right)
 \end{equation}
 
-The gradient of the loss with respect to $W_{h_{\ell-1},h_\ell}$ is fairly trivial. Note that every term but the one for $h_{\ell-1}$, is just a constant with respect to $W_{h_{\ell-1},h_\ell}$. The product, expect the term for $h_{\ell-1}$ can be expressed as $\frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}}$. Using this fact, it becomes trivial to derive the gradient as:
+The gradient of the loss with respect to $W_{h_{\ell-1},h_\ell}$ is fairly trivial. Note that every term but the one for $h_{\ell-1}$, is just a constant with respect to $W_{h_{\ell-1},h_\ell}$. The product, except the term for $h_{\ell-1}$ can be expressed as $\frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}}$. Using this fact, the gradient can be expressed as:
 
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell}, h_{\ell - 1}}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{z_{h_\ell}}{W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell}} \left(z_{h_{\ell-1}} - 1\right)
