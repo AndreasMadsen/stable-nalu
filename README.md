@@ -30,7 +30,7 @@ Reproduction study of the Neural Arithmetic Logic Unit (NALU). We propose an imp
 }
 ```
 
-#### ICLR 2020 (In-review)
+#### ICLR 2020 (Under review)
 
 Our main contribution, which includes a theoretical analysis of the optimization challenges with the NALU. Based on these difficulties we propose several improvements. **This is under double-blind peer-review, please respect our anonymity and reference https://openreview.net/forum?id=H1gNOeHKPS and not this repository!**
 
