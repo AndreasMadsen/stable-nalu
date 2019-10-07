@@ -1,9 +1,10 @@
 # Neural Arithmetic Units
 
-This code encompass two publiations.
-for ICLR 2020. The ICLR paper is still in review, please respect the double-blind review process.
+This code encompass two publiations. The ICLR paper is still in review, please respect the double-blind review process.
 
 ![Hidden Size results](readme-image.png)
+
+_Figure, shows performance of our proposed NMU model._
 
 ## Publications
 
