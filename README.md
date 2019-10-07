@@ -10,7 +10,7 @@ _Figure, shows performance of our proposed NMU model._
 
 #### SEDL Workshop at NeurIPS 2019
 
-A workshop paper published at SEDL|NeurIPS 2019 that is a reproduction study of NALU, proposes an better  evaluation criterion, includes a "converved at" metrics, and a "sparsity error" metrics.
+A workshop paper published at SEDL|NeurIPS 2019 that is a reproduction study of NALU, proposes a better  evaluation criterion, includes a "converved at" metrics, and a "sparsity error" metrics.
 
 ```bib
 @inproceedings{maep-madsen-johansen-2019,
