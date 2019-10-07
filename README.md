@@ -10,7 +10,7 @@ _Figure, shows performance of our proposed NMU model._
 
 #### SEDL Workshop at NeurIPS 2019
 
-Reproduction study of the Neural Arithmetic Logic Unit (NALU). We propose an improved evaluation criterion of arithmetic tasks including a "converged at" and a "sparsity error" metric. Results will be presented at [SEDL|NeurIPS 2019](https://sites.google.com/view/sedl-neurips-2019/#h.p_vZ65rPBhIlB4).
+Reproduction study of the Neural Arithmetic Logic Unit (NALU). We propose an improved evaluation criterion of arithmetic tasks including a "converged at" and a "sparsity error" metric. Results will be presented at [SEDL|NeurIPS 2019](https://sites.google.com/view/sedl-neurips-2019/#h.p_vZ65rPBhIlB4). – [Read paper](http://arxiv.org/abs/1910.01888).
 
 ```bib
 @inproceedings{maep-madsen-johansen-2019,
@@ -32,7 +32,7 @@ Reproduction study of the Neural Arithmetic Logic Unit (NALU). We propose an imp
 
 #### ICLR 2020 (Under review)
 
-Our main contribution, which includes a theoretical analysis of the optimization challenges with the NALU. Based on these difficulties we propose several improvements. **This is under double-blind peer-review, please respect our anonymity and reference https://openreview.net/forum?id=H1gNOeHKPS and not this repository!**
+Our main contribution, which includes a theoretical analysis of the optimization challenges with the NALU. Based on these difficulties we propose several improvements. **This is under double-blind peer-review, please respect our anonymity and reference https://openreview.net/forum?id=H1gNOeHKPS and not this repository!** – [Read paper](https://openreview.net/forum?id=H1gNOeHKPS).
 
 ```bib
 @inproceedings{mnu-madsen-johansen-2020,
