@@ -52,17 +52,7 @@ The main paper, that analyses the challenges in NALU and propose several improve
 python3 setup.py develop
 ```
 
-This will install this code under the name `stable-nalu`, and the following dependencies if missing:
-
-* numpy
-* tqdm
-* torch
-* scipy
-* pandas
-* tensorflow
-* torchvision
-* tensorboard
-* tensorboardX
+This will install this code under the name `stable-nalu`, and the following dependencies if missing: `numpy, tqdm, torch, scipy, pandas, tensorflow, torchvision, tensorboard, tensorboardX`.
 
 ## Experiments used in the paper
 
@@ -83,6 +73,8 @@ can be used:
 * ReLU6: `--layer-type ReLU6`
 * NAC-add: `--layer-type NAC`
 * NAC-mul: `--layer-type NAC --nac-mul normal`
+* NAC-sigma: `--layer-type PosNAC --nac-mul normal`
+* NAC-nmu: `--layer-type ReRegualizedLinearPosNAC --nac-mul normal --first-layer ReRegualizedLinearNAC`
 * NALU: `--layer-type NALU`
 * NAU: `--layer-type ReRegualizedLinearNAC`
 * NMU: `--layer-type ReRegualizedLinearNAC --nac-mul mnac`
