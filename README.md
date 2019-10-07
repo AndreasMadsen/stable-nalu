@@ -1,13 +1,11 @@
-# Stable NALU
+# Neural Arithmetic Units
 
-Note, quite a few terms are different in the code compared to the proposed paper, as the code covers far more than the paper. The original goal was to create a stable version of NALU, but the scope paper have since been reduced to improving the arithmetic components.
+This code encompass two publiations.
+for ICLR 2020. The ICLR paper is still in review, please respect the double-blind review process.
 
 ![Hidden Size results](readme-image.png)
 
 ## Publications
-
-This code encompass two publiations.
-for ICLR 2020. The ICLR paper is still in review, please respect the double-blind review process.
 
 #### SEDL Workshop at NeurIPS 2019
 
