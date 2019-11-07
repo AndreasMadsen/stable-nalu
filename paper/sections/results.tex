@@ -13,7 +13,9 @@ t = \sum_{i = s_{1,\mathrm{start}}}^{s_{1,\mathrm{end}}} x_i \circ \sum_{i = s_{
 where $n$ (default $100$), $U[r_{\mathrm{lower}}, r_{\mathrm{upper}}]$ (interpolation default is $U[1,2]$ and extrapolation default is $U[2,6]$), and other dataset parameters are used to assess learning capability (see details in appendix \ref{sec:appendix:simple-function-task:data-generation} and the effect of varying the parameters in appendix \ref{sec:appendix-simple-function-task:dataset-parameter-effect}).
 
 \subsubsection{Model evaluation}
-The goal is to achieve a solution that is acceptably close to a perfect solution. To evaluate if a model instance solves the task consistently we compare the MSE to a nearly-perfect solution on the extrapolation range over multiple seeds. If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, and $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), then the criteria for successful convergence is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 10^{-5}$. We report a 95\% confidence interval using a binomial distribution \cite{wilson-binomial}.
+We define the success-criterion as a solution that is acceptably close to a perfect solution.
+To evaluate if a model instance solves the task consistently we compare the MSE to a nearly-perfect solution on the extrapolation range over multiple seeds.
+If $\mathbf{W}_1, \mathbf{W}_2$ defines the weights of the fitted model, $\mathbf{W}_1^\epsilon$ is nearly-perfect and $\mathbf{W}_2^*$ is perfect (example in equation \ref{eq:nearly-perfect-solution-example}), then the criteria for successful convergence is $\mathcal{L}_{\mathbf{W}_1, \mathbf{W}_2} < \mathcal{L}_{\mathbf{W}_1^\epsilon, \mathbf{W}_2^*}$, measured on the extrapolation error, for $\epsilon = 10^{-5}$. We report a 95\% confidence interval using a binomial distribution \cite{wilson-binomial}.
 \begin{equation}
     \mathbf{W}_1^\epsilon = \begin{bmatrix}
     1 - \epsilon & 1 - \epsilon & 0 + \epsilon & 0 + \epsilon \\
@@ -27,7 +29,7 @@ To measure speed of convergence the first iteration for which $\mathcal{L}_{\mat
 
 We assume an approximate discrete solution with parameters close to $\{-1, 0, 1\}$ is important for inferring exact arithmetic operations.
 To measure the sparsity we introduce a sparsity error (defined in equation \ref{eq:sparsity-error}).
-Similar to the convergence metric we only include model instances that did solve the task and report the 95\% confidence interval, calculated using a beta distribution with maximum likelihood profiling.
+Similar to the convergence metric we only include model instances that did solve the task and report the 95\% confidence interval, which is calculated using a beta distribution with maximum likelihood profiling.
 \begin{equation}
 E_\mathrm{sparsity} = \max_{h_{\ell-1}, h_{\ell}} \min(|W_{h_{\ell-1},h_\ell}|, |1 - |W_{h_{\ell-1},h_\ell}||)
 \label{eq:sparsity-error}
@@ -46,7 +48,7 @@ Each experiment is trained for $5 \cdot 10^6$ iterations (details in appendix \r
 
 To validate our theoretical claim, that the NMU models works better than $NAC_{\bullet}$ for larger $H_{\ell-1}$, we increase the hidden size of the network, thereby adding redundant units. Redundant units are very common neural networks, where the purpose is to fit an unknown function.
 
-Additionally, the NMU model is unlike the $NAC_{\bullet}$ model also capable of understanding inputs that are both negative and positive. To validate this empirically, the training and validation datasets are sampled for $\mathrm{U}[-2,2]$, and then tested on $\mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]$.
+Additionally, the NMU model is unlike the $NAC_{\bullet}$ model also capable of handling inputs that are both negative and positive. To validate this empirically, the training and validation datasets are sampled for $\mathrm{U}[-2,2]$, and then tested on $\mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]$.
 
 Finally, for a fair comparison we introduce two new units: A variant of $\mathrm{NAC}_{\bullet}$ called $\mathrm{NAC}_{\bullet, \sigma}$, that only supports multiplication, by constraining the weights with $W = \sigma(\hat{W})$. And a variant, called $\mathrm{NAC}_{\bullet, \mathrm{NMU}}$, that uses linear weights and sparsity regularization, identically to that of the NMU.
 
@@ -55,7 +57,7 @@ Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth,trim={0 1.3cm 0 0},clip]{results/simple_function_static_mul_hidden_size_short.pdf}
-\includegraphics[width=\linewidth,trim={0 0.5cm 0 0.809cm},clip]{results/simple_function_static_mul_range.pdf}
+\includegraphics[width=\linewidth,trim={0 0.5cm 0 0.775cm},clip]{results/simple_function_static_mul_range.pdf}
 \caption{Shows that the NMU can handle a large hidden size, and works when the input contains both positive and negative numbers ($U[-2,-2]$).} 
 %\caption{Shows the effect of the dataset parameters. For each interpolation range, the following extrapolation ranges are used: ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$. The uniform sampling ranges are chosen to test the effect of mean, variance, and sign for optimizing.}
 \label{fig:simple-function-static-theoreical-claims-experiment}
@@ -63,19 +65,19 @@ Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that 
 
 \subsection{Product of sequential MNIST}
 
-To investigate if a deep neural network can be learned when backpropagating through an arithmetic layer, the arithmetic layers are used as a recurrent-unit to a sequence of MNIST digits, where the target is to fit the cumulative product. This task is similar to ``MNIST Counting and Arithmetic Tasks'' in \citet{trask-nalu}\footnote{The same CNN is used, \url{https://github.com/pytorch/examples/tree/master/mnist}.}, but use multiplication rather than addition. Each model is trained on sequences of length 2, and then tested on sequences of length up to 20 MNIST digits.
+To investigate if a deep neural network can be learned when backpropagating through an arithmetic layer, the arithmetic layers are used as a recurrent-unit to a sequence of MNIST digits, where the target is to fit the cumulative product. This task is similar to ``MNIST Counting and Arithmetic Tasks'' in \citet{trask-nalu}\footnote{The same CNN is used, \url{https://github.com/pytorch/examples/tree/master/mnist}.}, but uses multiplication rather than addition. Each model is trained on sequences of length 2, and then tested on sequences of length up to 20 MNIST digits.
 
-Success of convergence is determined by comparing the MSE of each model, with a baseline model that has a correct solution for the arithmetic layer. If the MSE of each model, is less than the upper 1\% MSE-confidence-interval of the baseline model, then the model is considered successfully converged.
+We define the success-criterion by comparing the MSE of each model with a baseline model that has a correct solution for the arithmetic layer. If the MSE of each model, is less than the upper 1\% MSE-confidence-interval of the baseline model, then the model is considered successfully converged.
 
 Sparsity and ``solved at iteration step'' is determined as described in experiment \ref{sec:arithmetic-dataset}. The validation set is the last 5000 MNIST digits from the training set, which is used to select the best epoch.
 
 In this experiment we found that having an unconstrained ``input-network'' can cause the multiplication-units to learn an undesired solution, e.g. $(0.1 \cdot 81 + 1 - 0.1) = 9$. This solves the problem with a similar success-rate, but not in the intended way. To prevent such solution, we regularize the CNN output with $\mathcal{R}_{\mathrm{z}} = \frac{1}{H_{\ell-1} H_\ell} \sum_{h_\ell}^{H_\ell} \sum_{h_{\ell-1}}^{H_{\ell-1}} (1 - W_{h_{\ell-1},h_\ell}) \cdot (1 - \bar{z}_{h_{\ell-1}})^2$. This regularizer is applied to the NMU and $\mathrm{NAC}_{\bullet,\mathrm{NMU}}$ models. See appendix \ref{sec:appendix:sequential-mnist:ablation} for the results, when this regularizer is not used.
 
-Figure \ref{fig:sequential-mnist-prod-results} shows that the NMU does not hindre learning a more complex neural network. And that it can extrapolate to much longer sequences than what is is trained on.
+Figure \ref{fig:sequential-mnist-prod-results} shows that the NMU does not hindre learning a more complex neural network. And that it can extrapolate to much longer sequences than what it is trained on.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth,trim={0 0.5cm 0 0},clip]{results/sequential_mnist_prod_long_short.pdf}
+\includegraphics[width=\linewidth,trim={0 0.5cm 0 0},clip]{results/sequential_mnist_prod_long.pdf}
 \caption{Shows the ability of each model to backpropergation and extrapolate to longer sequences.} 
 \label{fig:sequential-mnist-prod-results}
 \end{figure}

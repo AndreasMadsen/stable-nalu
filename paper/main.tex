@@ -3,7 +3,7 @@
 \usepackage{iclr2020_conference,times}
 
 % COMMENT for anonymous submission
-\def\nonanonymous{}
+% \def\nonanonymous{}
 
 \ifdefined\nonanonymous
 \iclrfinalcopy
@@ -73,7 +73,36 @@
 \maketitle
 
 \begin{abstract}
-Exact arithmetic operations of real numbers present a unique learning challenge for machine learning models. Neural networks can approximate complex functions by learning from labeled data. However, when extrapolating to out-of-distribution samples neural networks often fail. Learning the underlying logic, as opposed to an approximation, is crucial for applications such as comparing, counting, and inferring physical models. Our proposed Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU) can learn, using backpropagation, the underlying rules of real number addition, subtraction, and multiplication thereby performing well when extrapolating. The proposed units controls the arithmetic operation by using a sparse weight matrix, which allows the units to perform exact arithmetic operations. Through theoretical analysis, supported by empirical evidence, we justify how the NAU and NMU improve over previous methods. Our experimental setting, motivated by previous work, includes an arithmetic extrapolation task and multiplication of up to 20 MNIST digits. We show that NAU and NMU have fewer parameters, converges more consistently, learns faster, handles large hidden sizes better, and have more meaningful discrete values than previous attempts.\ifdefined\nonanonymous\footnote{Implementation is available on GitHub: \url{https://github.com/AndreasMadsen/stable-nalu}.}\fi
+
+%Learning exact arithmetic operation of real numbers, as part of a neural network, presents a unique challenge. Neural networks can approximate complex functions by learning from labeled data. However, when extrapolating to out-of-distribution samples neural networks often fail. Learning the underlying logic, as opposed to an approximation, is crucial in applications that depends on inferring physical models, comparing, or counting as part of the model.
+
+%Alternative
+%What’s the domain?
+Neural networks can approximate complex functions, but they struggle to perform exact arithmetic operations over real numbers.
+%What’s the issue?
+The lack of inductive bias for arithmetic operations leaves neural networks without the underlying logic needed to extrapolate on tasks such as addition, subtraction, and multiplication.
+%What’s your contribution?
+We present two new neural network components: the Neural Addition Unit (NAU), which can learn to add and subtract; and Neural Multiplication Unit (NMU) that can multiply subsets of a vector.
+%Why is it novel?
+The NMU is to our knowledge the first arithmetic neural network component that can learn multiplication of a vector with a large hidden size.
+%What’s interesting about it?
+The two new components draw inspiration from a theoretical analysis of recent arithmetic components.
+We find that careful initialization, restricting parameter space, and regularizing for sparsity is important when optimizing the NAU and NMU.
+%How does it perform?
+Our results, compared with previous attempts, show that the NAU and NMU converges more consistently, have fewer parameters, learns faster, does not diverge with large hidden sizes, obtains sparse and meaningful weights, and can extrapolate to negative and small numbers.\ifdefined\nonanonymous\footnote{Implementation is available on GitHub: \url{https://github.com/AndreasMadsen/stable-nalu}.}\fi
+
+%What’s the domain?
+%Exact arithmetic operations of real numbers in Neural Networks present a unique learning challenge for machine learning models.
+%What’s the issue?
+%Neural networks can approximate complex functions by learning from labeled data. However, when extrapolating to out-of-distribution samples neural networks often fail. Learning the underlying logic, as opposed to an approximation, is crucial for applications such as comparing, counting, and inferring physical models.
+%What’s your contribution?
+%Our proposed Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU) can learn, using backpropagation, the underlying rules of real number addition, subtraction, and multiplication thereby performing well when extrapolating.
+%Why is it novel?
+%The proposed units controls the arithmetic operation by using a sparse weight matrix, which allows the units to perform exact arithmetic operations.
+%What’s interesting about it?
+%Through theoretical analysis, supported by empirical evidence, we justify how the NAU and NMU improve over previous methods. Our experimental setting, motivated by previous work, includes an arithmetic extrapolation task and multiplication of up to 20 MNIST digits.
+%How does it perform?
+%We show that NAU and NMU have fewer parameters, converges more consistently, learns faster, handles large hidden sizes better, and have more meaningful discrete values than previous attempts.\ifdefined\nonanonymous\footnote{Implementation is available on GitHub: \url{https://github.com/AndreasMadsen/stable-nalu}.}\fi
 \end{abstract}
 
 \input{sections/introduction}

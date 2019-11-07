@@ -1,7 +1,12 @@
 \section{Conclusion}
-By including theoretical considerations, such as initialization, gradients, and sparsity, we have developed a new multiplication unit that outperforms the state-of-the-art models on established extrapolation and sequential tasks. Our model converges more consistently, faster, and to more sparse solutions, than previously proposed models. 
+By including theoretical considerations, such as initialization, gradients, and sparsity, we have developed a new neural multiplication unit (NMU) that outperforms the state-of-the-art models on established extrapolation and sequential tasks.
+Our model converges more consistently, faster, to more sparse solutions than previously proposed models, and supports all input ranges unlike NALU.
 
-We find that performing division and multiplication concurrently is a hard problem because of division by zero that currently can not be solved. However, when it comes to multiplication, our model is capable of extrapolating in both the negative range and to very small numbers.
-%A theoretical disadvantage of our multiplication unit is that it is incapable of division. However, previous publications concur that this is a problematic and generally unsolved area, due to the singularity in division. Thus our proposed model is empirically identical when it comes to division. On the other hand, when it comes to multiplication, our model is capable of extrapolating in both the negative range and to very small numbers.
+A natural next step would be to extend the NMU to support division and add gating between the NMU and NAU, to be comparable in theoretical features with NALU.
+However we find, both experimentally and theoretically, that learning the division is impractical, because of the singularity when dividing by zero, and that a sigmoid-gate that chooses between two functions with vastly different convergences properties, such as a multiplication unit and an addition unit, cannot be consistently learned.
 
-Finally, when it comes to considering more than just two inputs to the multiplication layer, our model clearly outperforms all previously proposed models as well as variations of previous models that borrow from our model. The ability for a neural layer to consider more than just two inputs, is critical in neural networks where the desired function is unknown.
+%Alternative
+%An important aspect of neural networks is supporting a large hidden size with a distributed representation and redundancy.
+%We find that our proposed Neural Multiplication Unit significantly outperforms previous models when increasing the hidden size of the network.
+Finally, when it comes to considering more than just two inputs to the multiplication layer, our model performs significantly better than previously proposed methods and variations of these.
+The ability for a neural layer to consider more than just two inputs, is critical in neural networks where the desired function is unknown.
