@@ -1,6 +1,6 @@
 \begin{table}[!h]
 
-\caption{\label{tab:simple-function-static-nalu-gate-table}Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\% confidence interval. Each value is a summary of 100 different seeds. Note, the NALU models presented here have a fixed $NAC_{+}$ layer as the first layer.}
+\caption{\label{tab:simple-function-static-nalu-gate-table}Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\% confidence interval. Each value is a summary of 100 different seeds.}
 \centering
 \begin{tabular}{crllll}
 \toprule
@@ -8,15 +8,21 @@
 \cmidrule(l{3pt}r{3pt}){1-1} \cmidrule(l{3pt}r{3pt}){2-2} \cmidrule(l{3pt}r{3pt}){3-3} \cmidrule(l{3pt}r{3pt}){4-5} \cmidrule(l{3pt}r{3pt}){6-6}
  &  & Rate & Median & Mean & Mean\\
 \midrule
- & NALU (seperate) & $22\% {~}^{+9\%}_{-7\%}$ & $\mathbf{2.8 \cdot 10^{6}}$ & $\mathbf{3.3 \cdot 10^{6}} {~}^{+3.9 \cdot 10^{5}}_{-3.6 \cdot 10^{5}}$ & $5.8 \cdot 10^{-2} {~}^{+4.1 \cdot 10^{-2}}_{-2.3 \cdot 10^{-2}}$\\
+ & GU & $\mathbf{62\%} {~}^{+9\%}_{-10\%}$ & $\mathbf{1.5 \cdot 10^{6}}$ & $\mathbf{1.5 \cdot 10^{6}} {~}^{+3.9 \cdot 10^{4}}_{-3.8 \cdot 10^{4}}$ & $\mathbf{5.0 \cdot 10^{-5}} {~}^{+2.3 \cdot 10^{-5}}_{-1.8 \cdot 10^{-5}}$\\
 
 \nopagebreak
-\multirow{-2}{*}{\centering\arraybackslash $\bm{\times}$} & NALU (shared) & $\mathbf{24\%} {~}^{+9\%}_{-7\%}$ & $2.9 \cdot 10^{6}$ & $3.3 \cdot 10^{6} {~}^{+3.7 \cdot 10^{5}}_{-3.6 \cdot 10^{5}}$ & $\mathbf{1.0 \cdot 10^{-3}} {~}^{+1.1 \cdot 10^{-3}}_{-4.5 \cdot 10^{-4}}$\\
+ & NALU (seperate) & $22\% {~}^{+9\%}_{-7\%}$ & $2.8 \cdot 10^{6}$ & $3.3 \cdot 10^{6} {~}^{+3.9 \cdot 10^{5}}_{-3.6 \cdot 10^{5}}$ & $5.8 \cdot 10^{-2} {~}^{+4.1 \cdot 10^{-2}}_{-2.3 \cdot 10^{-2}}$\\
+
+\nopagebreak
+\multirow{-3}{*}{\centering\arraybackslash $\bm{\times}$} & NALU (shared) & $24\% {~}^{+9\%}_{-7\%}$ & $2.9 \cdot 10^{6}$ & $3.3 \cdot 10^{6} {~}^{+3.7 \cdot 10^{5}}_{-3.6 \cdot 10^{5}}$ & $1.0 \cdot 10^{-3} {~}^{+1.1 \cdot 10^{-3}}_{-4.5 \cdot 10^{-4}}$\\
 \cmidrule{1-6}
- & NALU (seperate) & $\mathbf{51\%} {~}^{+10\%}_{-10\%}$ & $\mathbf{1.4 \cdot 10^{5}}$ & $\mathbf{2.9 \cdot 10^{5}} {~}^{+3.5 \cdot 10^{4}}_{-4.3 \cdot 10^{4}}$ & $1.8 \cdot 10^{-1} {~}^{+1.4 \cdot 10^{-2}}_{-1.4 \cdot 10^{-2}}$\\
+ & GU & $37\% {~}^{+10\%}_{-9\%}$ & $\mathbf{1.9 \cdot 10^{4}}$ & $4.2 \cdot 10^{5} {~}^{+7.3 \cdot 10^{4}}_{-6.7 \cdot 10^{4}}$ & $\mathbf{1.7 \cdot 10^{-1}} {~}^{+4.6 \cdot 10^{-2}}_{-4.0 \cdot 10^{-2}}$\\
 
 \nopagebreak
-\multirow{-2}{*}{\centering\arraybackslash $\bm{+}$} & NALU (shared) & $34\% {~}^{+10\%}_{-9\%}$ & $1.8 \cdot 10^{5}$ & $3.1 \cdot 10^{5} {~}^{+4.3 \cdot 10^{4}}_{-5.4 \cdot 10^{4}}$ & $\mathbf{1.8 \cdot 10^{-1}} {~}^{+2.3 \cdot 10^{-2}}_{-2.1 \cdot 10^{-2}}$\\
+ & NALU (seperate) & $\mathbf{51\%} {~}^{+10\%}_{-10\%}$ & $1.4 \cdot 10^{5}$ & $\mathbf{2.9 \cdot 10^{5}} {~}^{+3.5 \cdot 10^{4}}_{-4.3 \cdot 10^{4}}$ & $1.8 \cdot 10^{-1} {~}^{+1.4 \cdot 10^{-2}}_{-1.4 \cdot 10^{-2}}$\\
+
+\nopagebreak
+\multirow{-3}{*}{\centering\arraybackslash $\bm{+}$} & NALU (shared) & $34\% {~}^{+10\%}_{-9\%}$ & $1.8 \cdot 10^{5}$ & $3.1 \cdot 10^{5} {~}^{+4.3 \cdot 10^{4}}_{-5.4 \cdot 10^{4}}$ & $1.8 \cdot 10^{-1} {~}^{+2.3 \cdot 10^{-2}}_{-2.1 \cdot 10^{-2}}$\\
 \bottomrule
 \end{tabular}
 \end{table}
