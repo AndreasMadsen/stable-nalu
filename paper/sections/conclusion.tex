@@ -1,6 +1,6 @@
 \section{Conclusion}
 By including theoretical considerations, such as initialization, gradients, and sparsity, we have developed a new neural multiplication unit (NMU) that outperforms the state-of-the-art models on established extrapolation and sequential tasks.
-Our model converges more consistently, faster, to more sparse solutions than previously proposed models, and supports all input ranges unlike NALU.
+Our model converge more consistently, faster, to more sparse solutions than previously proposed models, and supports all input ranges unlike NALU.
 
 A natural next step would be to extend the NMU to support division and add gating between the NMU and NAU, to be comparable in theoretical features with NALU.
 However we find, both experimentally and theoretically, that learning the division is impractical, because of the singularity when dividing by zero, and that a sigmoid-gate that chooses between two functions with vastly different convergences properties, such as a multiplication unit and an addition unit, cannot be consistently learned.
