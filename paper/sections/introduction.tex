@@ -9,18 +9,18 @@ A recent attempt to achieve this goal is the Neural Arithmetic Logic Unit (NALU)
 
 The NALU consists of two sub-units: the $\text{NAC}_{+}$ for addition/subtraction and the $\text{NAC}_{\bullet}$ for multiplication/division.
 The sub-units are softly gated using a sigmoid function in order to exclusively select one of the sub-units.
-However, we find that the soft gating mechanism and the $\text{NAC}_{\bullet}$ are fragile and hard learn.
+However, we find that the soft gating mechanism and the $\text{NAC}_{\bullet}$ are fragile and hard to learn.
 
 In this paper, we analyze and improve upon the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ with respect to addition, subtraction, and multiplication.
-Our proposed improvements, namely the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU), are more theoretically founded and improves performance regarding stability, speed of convergence, and interpretability of results.
+Our proposed improvements, namely the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU), are more theoretically founded and improve performance regarding stability, speed of convergence, and interpretability of results.
 Most importantly, the NMU can support a large hidden input-size.
 
 The improvements, based on a theoretical analysis of the NALU and its components, are achieved by a simplification of the parameter matrix for a better gradient signal, a sparsity regularizer, and a new multiplication unit that can be optimally initialized and supports both negative and small numbers.
-The NMU does not support division.
+The NMU do not support division.
 However, we find that the $\text{NAC}_{\bullet}$ in practice also only supports multiplication and cannot learn division (for theoretical findings on why division is hard to learn, see section \ref{sssec:nac-mul}).
 
-To analyze the impact of each improvement in the NMU by introducing several variants of the $\text{NAC}_{\bullet}$.
-We find that, allowing division makes optimization for multiplication harder, linear and regularized weights improve convergence, and that the NMU style of multiplication is critical when increasing the hidden size.
+To analyze the impact of each improvement we introduce several variants of the $\text{NAC}_{\bullet}$.
+We find that, allowing division makes optimization for multiplication harder, linear and regularized weights improve convergence, and that the NMU style of multiplication is critical when increasing the hidden input size.
 
 Furthermore, we improve upon existing benchmarks in \citet{trask-nalu} by expanding the ``simple function task'', using a multiplicative variant of ``MNIST Counting and Arithmetic Tasks'', and use an improved success-criterion \citet{maep-madsen-johansen-2019}.
 A success-criterion is important because the arithmetic layers are solving a logical problem.
@@ -36,6 +36,6 @@ We propose the MNIST multiplication variant as we want to test the NMU's and $\t
 \end{figure}
 
 \subsection{Learning a 10 parameter function}
-Consider the static function $t = (x_1 + x_2) \cdot (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$. To illustrate the ability of $\mathrm{NAC}_{\bullet}$, NALU, and our proposed NMU, we conduct 100 experiemnts for each model, where we attempt to fit this function. Table \ref{tab:very-simple-function-results} show that NMU has a higher success rate and converges faster.
+Consider the static function $t = (x_1 + x_2) \cdot (x_1 + x_2 + x_3 + x_4)$ for $x \in \mathbb{R}^4$. To illustrate the ability of $\mathrm{NAC}_{\bullet}$, NALU, and our proposed NMU, we conduct 100 experiments for each model, where we attempt to fit this function. Table \ref{tab:very-simple-function-results} shows that NMU has a higher success rate and converge faster.
 %When inspecting the $6\%$ that did not converge, we found the issue to be underflow when $w = 0$ in the multiplication layer.
 \input{results/simple_mul.tex}
