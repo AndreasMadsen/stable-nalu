@@ -2,7 +2,7 @@
 \label{sec:Nalu}
 We define our problem as learning a set of static arithmetic operations between selected elements of a vector. E.g. for a vector $\mathbf{x}$ learn the function ${(x_5 + x_1) \cdot x_7}$. The approach taking in this paper, is to develop layers around specific operations, and then let each layer decide which inputs to include using backpropagation.
 
-We develop these layers by taking inspiration from an theoretical analysis of Neural Arithmetic Logic Unit (NALU) by \citet{trask-nalu}.
+We develop these layers by taking inspiration from a theoretical analysis of Neural Arithmetic Logic Unit (NALU) by \citet{trask-nalu}.
 
 \subsection{Introducing NALU}
 The Neural Arithmetic Logic Unit (NALU) consists of two sub-units; the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$. The sub-units represent either the $\{+, -\}$ or the $\{\times, \div \}$ operations. The NALU then assumes that either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ will be selected exclusively, using a sigmoid gating-mechanism.
@@ -13,7 +13,7 @@ W_{h_\ell, h_{\ell-1}} &= \tanh(\hat{W}_{h_\ell, h_{\ell-1}}) \sigma(\hat{M}_{h_
 \textrm{NAC}_+:\ z_{h_\ell} &= \sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} z_{h_{\ell-1}} \label{eq:naca}\\
 \textrm{NAC}_\bullet:\ z_{h_\ell} &= \exp\left(\sum_{h_{\ell-1}=1}^{H_{\ell-1}} W_{h_{\ell}, h_{\ell-1}} \label{eq:nacm}\log(|z_{h_{\ell-1}}| + \epsilon) \right)
 \end{align}
-where $\hat{\mathbf{W}}, \hat{\mathbf{M}} \in \mathbb{R}^{H_{\ell} \times H_{\ell-1}}$ are weight matrices and $z_{h_{\ell-1}}$ is the input. The matrices are combined using a tanh-sigmoid transformation to bias the parameters towards a $\{-1,0,1\}$ solution. Having $\{-1,0,1\}$ allows $\text{NAC}_{+}$ to be perform exact $\{+, -\}$ operations between elements of a vector.
+where $\hat{\mathbf{W}}, \hat{\mathbf{M}} \in \mathbb{R}^{H_{\ell} \times H_{\ell-1}}$ are weight matrices and $z_{h_{\ell-1}}$ is the input. The matrices are combined using a tanh-sigmoid transformation to bias the parameters towards a $\{-1,0,1\}$ solution. Having $\{-1,0,1\}$ allows $\text{NAC}_{+}$ to perform exact $\{+, -\}$ operations between elements of a vector.
 The $\text{NAC}_{\bullet}$ uses an exponential-log transformation to create the $\{\times, \div \}$ operations within $\epsilon$ precision and for positive inputs only.
 
 The NALU combines these units with a gating mechanism $\mathbf{z} = \mathbf{g} \odot \text{NAC}_{+} + (1 - \mathbf{g}) \odot \text{NAC}_{\bullet}$ given $\mathbf{g} = \sigma(\mathbf{G} \mathbf{x})$. Thus allowing NALU to decide between all of $\{+, -, \times, \div\}$ using backpropagation.
@@ -22,7 +22,7 @@ The NALU combines these units with a gating mechanism $\mathbf{z} = \mathbf{g} \
 
 \citet{glorot-initialization} show that $E[z_{h_\ell}] = 0$ at initialization is a desired property, as it prevents explosion of both the output and the gradients.
 To satisfy this property with $W_{h_{\ell-1},h_\ell} = \tanh(\hat{W}_{h_{\ell-1},h_\ell}) \sigma(\hat{M}_{h_{\ell-1},h_\ell})$, an initialization must satisfy $E[\tanh(\hat{W}_{h_{\ell-1},h_\ell})] = 0$.
-In the context of NALU, this initialization is unbiased as it samples evenly between $+$ and $-$, or $\times$ and $\div$.
+In NALU, this initialization is unbiased as it samples evenly between $+$ and $-$, or $\times$ and $\div$.
 Unfortunately, this initialization also causes the expectation of the gradient to become zero, as shown in \eqref{eq:nac-weight-gradient}.
 
 \begin{equation}
@@ -30,7 +30,7 @@ E\left[\frac{\partial \mathcal{L}}{\partial \hat{M}_{h_{\ell-1},h_\ell}}\right] 
 \label{eq:nac-weight-gradient}
 \end{equation}
 
-Besides the issue of initialization, our empirical analysis (table \ref{tab:function-task-static-defaults}) shows that this weight construction \eqref{eq:weight} does not create the desired bias for $\{-1, 0, 1\}$ for the addition and subtraction problem.
+Besides the issue of initialization, our empirical analysis (table \ref{tab:function-task-static-defaults}) shows that this weight construction \eqref{eq:weight} do not create the desired bias for $\{-1, 0, 1\}$ for the addition and subtraction problem. This bias is desired as it restricts the solution space to exact addition, and in section \label{sec:method:nmu} also exact multiplication, which is an intrinsic property of an underlying arithmetic function. However, it does not necessarily restrict the output space as a plain linear transformation will always be able to scale values accordingly. The bias also adds interpretability which is important for being confident in a model’s ability to extrapolate.
 
 To solve these issues, we add a sparsifying regularizer to the loss function ($\mathcal{L} = \hat{\mathcal{L}} + \lambda_{\mathrm{sparse}} \mathcal{R}_{\ell,\mathrm{sparse}}$) and use simple linear weight construction, where $W_{h_{\ell-1},h_\ell}$ is clamped to $[-1, 1]$ in each iteration.
 
@@ -44,7 +44,7 @@ W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, -1), 1), \\
 
 The $\text{NAC}_{\bullet}$, as formulated in equation \ref{eq:nacm}, has the ability to perform exact multiplication and division, or more precisely multiplication of the inverse of elements from a vector, when a weight in $W_{h_{\ell-1},h_\ell}$ is $-1$.
 
-However, this flexibility creates critical optimization challenges. Expanding the exp-log-transformation, $\text{NAC}_{\bullet}$ can be express as
+However, this flexibility creates critical optimization challenges. Expanding the exp-log-transformation, $\text{NAC}_{\bullet}$ can be expressed as
 \begin{equation}
 \textrm{NAC}_\bullet:\ z_{h_\ell} = \prod_{h_{\ell-1}=1}^{H_{\ell-1}} (|z_{h_{\ell-1}}| + \epsilon)^{W_{h_{\ell}, h_{\ell-1}}}\ .
 \label{eq:division:nac-mul-rewrite}
@@ -52,7 +52,7 @@ However, this flexibility creates critical optimization challenges. Expanding th
 
 In equation \eqref{eq:division:nac-mul-rewrite}, if $|z_{h_{\ell-1}}|$ is near zero ($E[z_{h_{\ell-1}}] = 0$ is a desired property when initializing \cite{glorot-initialization}), $W_{h_{\ell-1},h_\ell}$ is negative, and $\epsilon$ is small, then the output will explode. This issue is present even for a reasonably large $\epsilon$ value (such as $\epsilon = 0.1$), and just a slightly negative $W_{h_{\ell-1},h_\ell}$, as visualized in figure \ref{fig:nac-mul-eps-issue}. Also note that the curvature can cause convergence to an unstable area.
 
-This singularity issue in the optimization space also makes multiplication challenging, which further suggests that supporting division is undesirable. These observations are also found empirically in (see \citet{trask-nalu}, table 1 and Appendix \ref{sec:appendix:comparison-all-models}).
+This singularity issue in the optimization space also makes multiplication challenging, which further suggests that supporting division is undesirable. These observations are also found empirically in \citet[table 1]{trask-nalu} and Appendix \ref{sec:appendix:comparison-all-models}.
 
 %However, backpropagation through the $\text{NAC}_{\bullet}$ unit (equation \ref{eq:dz}, derivation in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nac-mul}) reveals that if $|z_{h_{\ell-1}}|$ is near zero, $W_{h_{\ell-1},h_\ell}$ is negative and $\epsilon$ is small, the gradient term will explode and oscillate between large positive and large negative values, which can be problematic in optimization \cite{adam-optimization}, as visualized in figure \ref{fig:nac-mul-eps-issue}.
 %\begin{align}
@@ -80,7 +80,7 @@ This singularity issue in the optimization space also makes multiplication chall
 \begin{subfigure}{.33\textwidth}
   \centering
   \includegraphics[width=\linewidth,trim={0 0 0 4.35cm},clip]{graphics/nac-mul-eps-1.png}
-  \caption{$\epsilon = 1$}
+  \caption{$\mathrm{NAC}_{\bullet}$ with $\epsilon = 1$}
 \end{subfigure}
 %\begin{subfigure}{.33\textwidth}
 %  \centering
@@ -108,6 +108,7 @@ E[z_{h_\ell}] \approx \left(1 + \frac{1}{2} Var[W_{h_\ell, h_{\ell-1}}] \log(|E[
 As shown in equation \ref{eq:nac-mul:expectation}, satisfying $E[z_{h_\ell}] = 0$ for $\mathrm{NAC}_{\bullet}$ is likely impossible. The variance cannot be input-independently initialized and is expected to explode (proofs in Appendix \ref{sec:appendix:moments:nac-mul}).
 
 \subsection{Neural multiplication unit}
+\label{sec:method:nmu}
 To solve the the gradient and initialization challenges for $\mathrm{NAC}_{\bullet}$ we propose a new unit for multiplication: the Neural Multiplication Unit (NMU)
 
 \begin{align}
@@ -116,8 +117,8 @@ W_{h_{\ell-1},h_\ell} &= \min(\max(W_{h_{\ell-1},h_\ell}, 0), 1), \\
 \textrm{NMU}:\ z_{h_\ell} &= \prod_{h_{\ell-1}=1}^{H_{\ell-1}} \left(W_{h_{\ell-1},h_\ell} z_{h_{\ell-1}} + 1 - W_{h_{\ell-1},h_\ell} \right) \label{eq:nmu-defintion}
 \end{align}
 The NMU is regularized similar to the NAU and has a multiplicative identity when $W_{h_{\ell-1},h_\ell}=0$.
-The NMU does not support division by design.
-%Previous experiments using the NALU for division does not work well on division hence very little is lost with this modification \cite{trask-nalu}.
+The NMU do not support division by design.
+%Previous experiments using the NALU for division do not work well on division hence very little is lost with this modification \cite{trask-nalu}.
 As opposed to the $\mathrm{NAC}_{\bullet}$, the NMU can represent input of both negative and positive values and is not $\epsilon$ bounded, which allows the NMU to extrapolate to $z_{h_{\ell-1}}$ that are negative or smaller than $\epsilon$. Its gradients are derived in Appendix \ref{sec:appendix:gradient-derivatives:gradient-nmu}.
 
 \subsection{Moments and initialization}
@@ -136,13 +137,12 @@ We use the regularizer scaling as defined in \eqref{eq:regualizer-scaling}. We m
 \label{eq:regualizer-scaling}
 \end{equation}
 
-\subsection{NALU: Challenges of gating between \texorpdfstring{$\text{NAC}_{+}$}{NAC-add} and \texorpdfstring{$\text{NAC}_{\bullet}$}{NAC-mul}}
+\subsection{Challenges of gating between addition and multiplication}
 \label{sec:methods:gatting-issue}
 The purpose of the gating-mechanism is to select either $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ exclusively.
 This assumes that the correct sub-unit is selected by the NALU, since selecting the wrong sub-unit leaves no gradient signal for the correct sub-unit.
 
 Empirically we find this assumption to be problematic.
-We observe that both sub-units converges in the beginning of training whereafter the gating-mechanism, seamlessly randomly, converges towards either the $\text{NAC}_{+}$ or $\text{NAC}_{\bullet}$ (in-depth empirical analysis in appendix \ref{sec:appendix:nalu-gate-experiment}, with results for both a shared, non-shared weight matrix between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, and a gated version of the NAU and NMU).
-While the gating works equally random for the NALU and our NMU/NAU variant, we do find that when the gate correctly selects multiplication our NMU converges much more consistently.
+We observe that both sub-units converge in the beginning of training whereafter the gating-mechanism, seemingly randomly, converge towards either the addition or multiplication unit. Our study shows that gating behaves close to random for both NALU and a gated NMU/NAU variant. However, when the gate correctly selects multiplication our NMU converge much more consistently. (in-depth empirical analysis in appendix \ref{sec:appendix:nalu-gate-experiment}, with results for both a shared and non-shared weight matrix between $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$, and a gated version of NAU/NMU).
 
 As the problem size grows, randomly choosing the correct gating value becomes an exponential increasing problem. Because of these challenges we leave solving the problem of sparse gating for future work and focus on improving the sub-units $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$.

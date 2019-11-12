@@ -120,7 +120,7 @@ In conclusion both constraints are valuable, as they provide faster convergence 
 
 To stress test the models on the multiplication task, we vary the dataset parameters one at a time while keeping the others at their default value (default values in table \ref{tab:simple-function-task-defaults}). Each runs for 50 experiments with different seeds. The results, are visualized in figure \ref{fig:simple-function-static-dataset-parameters-boundary}.
 
-For figure \ref{fig:simple-function-static-theoreical-claims-experiment}, the following extrapolation ranges were used: ${\mathrm{U}[-2,-1] \rightarrow \mathrm{U}[-6,-2]}$, ${\mathrm{U}[-2,2] \rightarrow \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \rightarrow \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \rightarrow \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1,2] \rightarrow \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \rightarrow \mathrm{U}[20, 40]}$.
+In figure \ref{fig:simple-function-static-theoreical-claims-experiment}, the inperpolation-range is changed, therefore the the extrapolation-range needs to be changed such it doesn't overlap. For each interpolation-range the following extrapolation-range is used: ${\mathrm{U}[-2,-1] \text{ uses } \mathrm{U}[-6,-2]}$, ${\mathrm{U}[-2,2] \text{ uses } \mathrm{U}[-6,-2] \cup \mathrm{U}[2,6]}$, ${\mathrm{U}[0,1] \text{ uses } \mathrm{U}[1,5]}$, ${\mathrm{U}[0.1,0.2] \text{ uses } \mathrm{U}[0.2,2]}$, ${\mathrm{U}[1.1,1.2] \text{ uses } \mathrm{U}[1.2,6]}$, ${\mathrm{U}[1,2] \text{ uses } \mathrm{U}[2,6]}$, ${\mathrm{U}[10, 20] \text{ uses } \mathrm{U}[20, 40]}$.
 
 \begin{figure}[h]
 \centering
@@ -131,27 +131,29 @@ For figure \ref{fig:simple-function-static-theoreical-claims-experiment}, the fo
 \label{fig:simple-function-static-dataset-parameters-boundary}
 \end{figure}
 
-\subsection{NALU gating experiment}
+\subsection{Gating convergence experiment}
 \label{sec:appendix:nalu-gate-experiment}
 
-In the interrest of adding some understand of what goes wrong in the NALU gate, and the shared weight choice that NALU employees to fix this, we introduce the following experiment.
+In the interest of adding some understand of what goes wrong in the NALU gate, and the shared weight choice that NALU employs to fix this, we introduce the following experiment.
 
-We train two models, to fit the arithmetic task. Both uses the $\mathrm{NAC}_{+}$ in the first layer and NALU in the second layer. The only difference, is that one model shares the weight between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ in the NALU, and the other just consider them two separate models with separate weights. In both cases NALU should gate between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ and choose the appropriate operation. Note that this NALU model is different from the one presented elsewhere in this paper, including the original NALU paper \cite{trask-nalu}. The typical NALU model, is just two NALU layers with shared weights.
+We train two models to fit the arithmetic task. Both uses the $\mathrm{NAC}_{+}$ in the first layer and NALU in the second layer. The only difference is that one model shares the weight between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ in the NALU, and the other just treat them as two separate models with separate weights. In both cases NALU should gate between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ and choose the appropriate operation. Note that this NALU model is different from the one presented elsewhere in this paper, including the original NALU paper \cite{trask-nalu}. The typical NALU model is just two NALU layers with shared weights.
 
-These models are trained for 100 different seeds, on the multiplication and addition task. A histogram of the NALU gate is presented in figure \ref{fig:simple-function-static-nalu-gate-graph} and a summary is presented in table \ref{tab:simple-function-static-nalu-gate-table}. Some noteworthy observations:
+Furthermore, we also introduce a new gated unit that simply gates between our proposed NMU and NAU, using the same sigmoid gating-mechanism in NALU. This also used seperate weights, as NMU and NAU uses different weight constrains and can therefore not be shared.
 
-\begin{enumerate}
-    \item When the weights are separated, far more trials converge to select $\mathrm{NAC}_{+}$, for both the addition and multiplication task. Sharing the weights between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, makes it less likely for addition to be selected. 
-    \item The performance of the addition task, is strongly correlated with NALU selecting the right operation. In the multiplication task, even if the right gate is selected, $\mathrm{NAC}_{\bullet}$ still struggle to converge consistently, as also seen elsewhere in this paper.
-    \item Which gate is selected appears to be mostly random and independent of the task.
+The models are trained for 100 different seeds, on the multiplication and addition task. A histogram of the gate-value is presented in figure \ref{fig:simple-function-static-nalu-gate-graph} and table \ref{tab:simple-function-static-nalu-gate-table} contains a summary. Some noteworthy observations:
+
+\vspace{-0.3cm}\begin{enumerate}
+    \item When the NALU weights are separated, far more trials converge to select $\mathrm{NAC}_{+}$, for both the addition and multiplication task. Sharing the weights between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, makes it less likely for addition to be selected. 
+    \item The performance of the addition task is dependent on NALU selecting the right operation. In the multiplication task, when the right gate is selected, $\mathrm{NAC}_{\bullet}$ do not converge consistently, unlike our NMU that converges more consistently.
+    \item Which gate is selected appears to be mostly random and independent of the task. This issues caused by the sigmoid gating-mechanism and thus exists independent of the used sub-units.
 \end{enumerate}
 
 These observations validates that the NALU gating-mechanism does not converge as intended. This becomes a critical issues when more gates are present, as is normally the case.
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.7]{results/function_task_static_nalu.pdf}
-\caption{Shows the gating value in the NALU layer followed by a $\mathrm{NAC}_{+}$ layer, where the weights in $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ are either shared or separated.}
+\includegraphics[width=0.98\linewidth]{results/function_task_static_nalu.pdf}
+\caption{Shows the gating-value in the NALU layer and a variant that uses NAU/NMU instead of $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$. Separate/shared, refers to the weights in $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$ used in NALU.}
 \label{fig:simple-function-static-nalu-gate-graph}
 \end{figure}
 
@@ -162,30 +164,29 @@ These observations validates that the NALU gating-mechanism does not converge as
 
 The $\lambda_{start}$ and $\lambda_{end}$ are simply selected based on how much time it takes for the model to converge. The sparsity regularizer should not be used during early optimization, as this part of the optimization is simply about getting each weight on the right side of $\pm 0.5$.
 
-In these experiments the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$ is optimized. 
-Results are shown in in figure \ref{fig:simple-fnction-static-regularizer-add}, \ref{fig:simple-fnction-static-regularizer-sub}, and \ref{fig:simple-fnction-static-regularizer-mul}.
+In figure \ref{fig:simple-fnction-static-regularizer-add}, \ref{fig:simple-fnction-static-regularizer-sub}, and \ref{fig:simple-fnction-static-regularizer-mul} the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$ is optimized.
 \begin{equation}
 \lambda_{\mathrm{sparse}} = \hat{\lambda}_{\mathrm{sparse}} \max(\min(\frac{t - \lambda_{\mathrm{start}}}{\lambda_{\mathrm{end}} - \lambda_{\mathrm{start}}}, 1), 0)
 \end{equation}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{results/simple_function_static_regualization_add.pdf}
-\caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{+}$ operation.}
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0},clip]{results/simple_function_static_regualization_add.pdf}
+\caption{Shows effect of $\hat{\lambda}_{\mathrm{sparse}}$ in NAU, on the arithmetic dataset for the $\bm{+}$ operation.}
 \label{fig:simple-fnction-static-regularizer-add}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{results/simple_function_static_regualization_sub.pdf}
-\caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{-}$ operation.}
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0},clip]{results/simple_function_static_regualization_sub.pdf}
+\caption{Shows effect of $\hat{\lambda}_{\mathrm{sparse}}$ in NAU, on the arithmetic dataset for the $\bm{-}$ operation.}
 \label{fig:simple-fnction-static-regularizer-sub}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{results/simple_function_static_regualization_mul.pdf}
-\caption{Shows effect of the scaling factor $\hat{\lambda}_{\mathrm{sparse}}$, on the arithmetic dataset for the $\bm{\times}$ operation.}
+\includegraphics[width=\linewidth,trim={0 1.3cm 0 0},clip]{results/simple_function_static_regualization_mul.pdf}
+\caption{Shows effect of $\hat{\lambda}_{\mathrm{sparse}}$ in NMU, on the arithmetic dataset for the $\bm{\times}$ operation.}
 \label{fig:simple-fnction-static-regularizer-mul}
 \end{figure}
 
@@ -195,9 +196,9 @@ Results are shown in in figure \ref{fig:simple-fnction-static-regularizer-add}, 
 Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{trask-nalu}. All variations of model and operation, are trained for 100 different seeds. Some noteworthy observations are:
 
 \begin{enumerate}
-    \item Division does not work for any model, including the $NAC_{\bullet}$ and NALU models. This may seam surprising but is actually inline with the results from the NALU paper (\citet{trask-nalu}, table 1), where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. A correct solution to division should have both a small interpolation and extrapolation error.
-    \item $NAC_{\bullet}$ and NALU are barely able to learn $\sqrt{z}$, with just 2\% success-rate for NALU and 7\% success-rate for $NAC_{\bullet}$.
-    \item NMU is fully capable of learning $z^2$. It learns this by learning the same subset twice in the NAU layer, this is also how $NAC_{\bullet}$ learns $z^2$.
+    \item Division does not work for any model, including the $\mathrm{NAC}_{\bullet}$ and NALU models. This may seem surprising but is actually in line with the results from the NALU paper (\citet{trask-nalu}, table 1), where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. A correct solution to division should have both a small interpolation and extrapolation error.
+    \item $\mathrm{NAC}_{\bullet}$ and NALU are barely able to learn $\sqrt{z}$, with just 2\% success-rate for NALU and 7\% success-rate for $\mathrm{NAC}_{\bullet}$.
+    \item NMU is fully capable of learning $z^2$. It learn this by learning the same subset twice in the NAU layer, this is also how $\mathrm{NAC}_{\bullet}$ learn $z^2$.
 \end{enumerate}
 
 \input{results/function_task_static_all.tex}
