@@ -37,7 +37,7 @@ Algorithm \ref{alg:simple-function-task-generator} defines the exact procedure t
  Overlap ratio & 0.5 \\
  \bottomrule
 \end{tabular}
-\end{minipage} & 
+\end{minipage} &
 \begin{minipage}{.4\linewidth}
 \begin{tabular}{r l}
 \toprule
@@ -106,7 +106,7 @@ To validate our model, we perform an ablation on the multiplication problem. Som
     \item Removing both constraints, gives a somewhat satisfying solution, but with a lower success-rate, slower convergence, and higher sparsity error.
 \end{enumerate}
 
-In conclusion both constraints are valuable, as they provide faster convergence and a sparser solution, but they are not critical to the success-rate of the NMU.  
+In conclusion both constraints are valuable, as they provide faster convergence and a sparser solution, but they are not critical to the success-rate of the NMU.
 
 \begin{figure}[h]
 \centering
@@ -138,12 +138,12 @@ In the interest of adding some understand of what goes wrong in the NALU gate, a
 
 We train two models to fit the arithmetic task. Both uses the $\mathrm{NAC}_{+}$ in the first layer and NALU in the second layer. The only difference is that one model shares the weight between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ in the NALU, and the other just treat them as two separate models with separate weights. In both cases NALU should gate between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ and choose the appropriate operation. Note that this NALU model is different from the one presented elsewhere in this paper, including the original NALU paper \cite{trask-nalu}. The typical NALU model is just two NALU layers with shared weights.
 
-Furthermore, we also introduce a new gated unit (GU) that simply gates between our proposed NMU and NAU, using the same sigmoid gating-mechanism in NALU. This also used seperate weights, as NMU and NAU uses different weight constrains and can therefore not be shared.
+Furthermore, we also introduce a new gated unit that simply gates between our proposed NMU and NAU, using the same sigmoid gating-mechanism in NALU. This also used seperate weights, as NMU and NAU uses different weight constrains and can therefore not be shared.
 
 The models are trained for 100 different seeds, on the multiplication and addition task. A histogram of the gate-value is presented in figure \ref{fig:simple-function-static-nalu-gate-graph} and table \ref{tab:simple-function-static-nalu-gate-table} contains a summary. Some noteworthy observations:
 
 \vspace{-0.3cm}\begin{enumerate}
-    \item When the NALU weights are separated, far more trials converge to select $\mathrm{NAC}_{+}$, for both the addition and multiplication task. Sharing the weights between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, makes it less likely for addition to be selected. 
+    \item When the NALU weights are separated, far more trials converge to select $\mathrm{NAC}_{+}$, for both the addition and multiplication task. Sharing the weights between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$, makes it less likely for addition to be selected.
     \item The performance of the addition task is dependent on NALU selecting the right operation. In the multiplication task, when the right gate is selected, $\mathrm{NAC}_{\bullet}$ do not converge consistently, unlike our NMU that converges more consistently.
     \item Which gate is selected appears to be mostly random and independent of the task. This issues caused by the sigmoid gating-mechanism and thus exists independent of the used sub-units.
 \end{enumerate}
@@ -153,7 +153,7 @@ These observations validates that the NALU gating-mechanism does not converge as
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.98\linewidth]{results/function_task_static_nalu.pdf}
-\caption{Shows the gating-value in the NALU layer or in the variant (GU) that uses NAU/NMU instead of $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$. Separate/shared, refers to the weights in $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$ used in NALU.}
+\caption{Shows the gating-value in the NALU layer and a variant that uses NAU/NMU instead of $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$. Separate/shared, refers to the weights in $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$ used in NALU.}
 \label{fig:simple-function-static-nalu-gate-graph}
 \end{figure}
 
