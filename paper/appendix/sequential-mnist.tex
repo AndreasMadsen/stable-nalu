@@ -13,7 +13,11 @@ Similar to the simple function task we use a success-criteria as reporting the M
 
 Figure \label{fig:sequential-mnist-sum} shows results for sequential addition of MNIST digits. This experiment is identical to the MNIST Digit Addition Test from \citet[section 4.2]{trask-nalu}. The models are trained on a sequence of 10 digits and evaluated on sequences between 1 and 1000 MNIST digits.
 
-Note that the NAU model includes the $R_z$ regularizer, similarly to the ``Multiplication of sequential MNIST'' experiment in section \ref{section:results:cumprod_mnist}. To provide a fair comparison, a variant of $\mathrm{NAC}_{+}$ that also uses this regularizer is included, this variant is called $\mathrm{NAC}_{+, R_z}$. Section \ref{sec:appendix:sequential-mnist-sum:ablation} provides an ablation study of the $R_z$ regularizer.
+Note that the NAU model includes the $R_z$ regularizer, similarly to the ``Multiplication of sequential MNIST'' experiment in section \ref{section:results:cumprod_mnist}. However, because the weights are in $[-1, 1]$, and not $[0,1]$, and the idendity of addition is $0$, and not $1$, $R_z$ is 
+\begin{equation}
+    \mathcal{R}_{\mathrm{z}} = \frac{1}{H_{\ell-1} H_\ell} \sum_{h_\ell}^{H_\ell} \sum_{h_{\ell-1}}^{H_{\ell-1}} (1 - |W_{h_{\ell-1},h_\ell}|) \cdot \bar{z}_{h_{\ell-1}}^2\ .
+\end{equation}
+To provide a fair comparison, a variant of $\mathrm{NAC}_{+}$ that also uses this regularizer is included, this variant is called $\mathrm{NAC}_{+, R_z}$. Section \ref{sec:appendix:sequential-mnist-sum:ablation} provides an ablation study of the $R_z$ regularizer.
 
 \begin{figure}[h]
 \centering
