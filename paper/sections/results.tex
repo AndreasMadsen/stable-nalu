@@ -64,7 +64,7 @@ Figure \ref{fig:simple-function-static-theoreical-claims-experiment} shows that 
 \end{figure}
 
 \subsection{Product of sequential MNIST}
-
+\label{section:results:cumprod_mnist}
 To investigate if a deep neural network can be learned when backpropagating through an arithmetic layer, the arithmetic layers are used as a recurrent-unit to a sequence of MNIST digits, where the target is to fit the cumulative product. This task is similar to ``MNIST Counting and Arithmetic Tasks'' in \citet{trask-nalu}\footnote{The same CNN is used, \url{https://github.com/pytorch/examples/tree/master/mnist}.}, but uses multiplication rather than addition. Each model is trained on sequences of length 2, and then tested on sequences of length up to 20 MNIST digits.
 
 We define the success-criterion by comparing the MSE of each model with a baseline model that has a correct solution for the arithmetic layer. If the MSE of each model, is less than the upper 1\% MSE-confidence-interval of the baseline model, then the model is considered successfully converged.
