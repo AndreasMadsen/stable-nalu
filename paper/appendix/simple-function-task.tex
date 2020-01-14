@@ -1,8 +1,8 @@
 \section{Arithmetic task}
 
-Our ``arithmetic task'' is identical to the ``simple function task'' in the NALU paper \cite{trask-nalu}. However, as they do not describe their dataset generation, dataset parameters, and model evaluation in details we elaborate on that here.
-
 The aim of the ``Arithmetic task'' is to directly test arithmetic models ability to extrapolate beyond the training range. Additionally, our generalized version provides a high degree of flexibility in how the input is shaped, sampled, and the problem complexity.
+
+Our ``arithmetic task'' is identical to the ``simple function task'' in the NALU paper \cite{trask-nalu}. However, as they do not describe their setup in details, we use the setup from \citet{maep-madsen-johansen-2019}, which provide Algorithm \ref{tab:simple-function-task-defaults}, an evaluation-criterion to if and when the model has converged, the sparsity error, as well as methods for computing confidence intervals for success-rate and the sparsity error.
 
 \begin{figure}[h]
 \centering
@@ -136,24 +136,24 @@ In figure \ref{fig:simple-function-static-theoreical-claims-experiment}, the int
 
 In the interest of adding some understand of what goes wrong in the NALU gate, and the shared weight choice that NALU employs to remedy this, we introduce the following experiment.
 
-We train two models to fit the arithmetic task. Both uses the $\mathrm{NAC}_{+}$ in the first layer and NALU in the second layer. The only difference is that one model shares the weight between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ in the NALU, and the other just treat them as two separate models with separate weights. In both cases NALU should gate between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ and choose the appropriate operation. Note that this NALU model is different from the one presented elsewhere in this paper, including the original NALU paper \cite{trask-nalu}. The typical NALU model is just two NALU layers with shared weights.
+We train two models to fit the arithmetic task. Both uses the $\mathrm{NAC}_{+}$ in the first layer and NALU in the second layer. The only difference is that one model shares the weight between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ in the NALU, and the other treat them as two separate units with separate weights. In both cases NALU should gate between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ and choose the appropriate operation. Note that this NALU model is different from the one presented elsewhere in this paper, including the original NALU paper \cite{trask-nalu}. The typical NALU model is just two NALU layers with shared weights.
 
-Furthermore, we also introduce a new gated unit that simply gates between our proposed NMU and NAU, using the same sigmoid gating-mechanism as in the NALU. This combination is done with seperate weights, as NMU and NAU uses different weight constrains and can therefore not be shared.
+Furthermore, we also introduce a new gated unit that simply gates between our proposed NMU and NAU, using the same sigmoid gating-mechanism as in the NALU. This combination is done with seperate weights, as NMU and NAU use different weight constrains and can therefore not be shared.
 
 The models are trained and evaluated over 100 different seeds on the multiplication and addition task. A histogram of the gate-value for all seeds is presented in figure \ref{fig:simple-function-static-nalu-gate-graph} and table \ref{tab:simple-function-static-nalu-gate-table} contains a summary. Some noteworthy observations:
 
 \vspace{-0.3cm}\begin{enumerate}
     \item When the NALU weights are separated far more trials converge to select $\mathrm{NAC}_{+}$ for both the addition and multiplication task. Sharing the weights between $\mathrm{NAC}_{+}$ and $\mathrm{NAC}_{\bullet}$ makes the gating less likely to converge for addition.
     \item The performance of the addition task is dependent on NALU selecting the right operation. In the multiplication task, when the right gate is selected, $\mathrm{NAC}_{\bullet}$ do not converge consistently, unlike our NMU that converges more consistently.
-    \item Which operation the gate converges to appears to be mostly random and independent of the task. This issues caused by the sigmoid gating-mechanism and thus exists independent of the used sub-units.
+    \item Which operation the gate converges to appears to be mostly random and independent of the task. These issues are caused by the sigmoid gating-mechanism and thus exists independent of the used sub-units.
 \end{enumerate}
 
-These observations validates that the NALU gating-mechanism does not converge as intended. This becomes a critical issues when more gates are present, as is normally the case. E.g. when stacking multiple NALU layers together.
+\vspace{-0.2cm}These observations validates that the NALU gating-mechanism does not converge as intended. This becomes a critical issues when more gates are present, as is normally the case. E.g. when stacking multiple NALU layers together.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.98\linewidth]{results/function_task_static_nalu.pdf}
-\caption{Shows the gating-value in the NALU layer and a variant that uses NAU/NMU instead of $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$. Separate/shared refers to the weights in $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$ used in NALU.}
+\includegraphics[width=0.93\linewidth]{results/function_task_static_nalu.pdf}
+\vspace{-0.2cm}\caption{Shows the gating-value in the NALU layer and a variant that uses NAU/NMU instead of $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$. Separate/shared refers to the weights in $\mathrm{NAC}_{+}$/$\mathrm{NAC}_{\bullet}$ used in NALU.}
 \label{fig:simple-function-static-nalu-gate-graph}
 \end{figure}
 
@@ -196,9 +196,10 @@ In figure \ref{fig:simple-fnction-static-regularizer-add}, \ref{fig:simple-fncti
 Table \ref{tab:function-task-static-defaults-all} compares all models on all operations used in NALU \cite{trask-nalu}. All variations of models and operations are trained for 100 different seeds to build confidence intervals. Some noteworthy observations are:
 
 \begin{enumerate}
-    \item Division does not work for any model, including the $\mathrm{NAC}_{\bullet}$ and NALU models. This may seem surprising but is actually in line with the results from the NALU paper (\citet{trask-nalu}, table 1) where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline with have a higher error for the extrapolation range, a similar error will appear to be smaller. A correct solution to division should have both a small interpolation and extrapolation error.
+    \item Division does not work for any model, including the $\mathrm{NAC}_{\bullet}$ and NALU models. This may seem surprising but is actually in line with the results from the NALU paper (\citet{trask-nalu}, table 1) where there is a large error given the interpolation range. The extrapolation range has a smaller error, but this is an artifact of their evaluation method where they normalize with a random baseline. Since a random baseline will have a higher error for the extrapolation range, errors just appear to be smaller. A correct solution to division should have both a small interpolation and extrapolation error. 
     \item $\mathrm{NAC}_{\bullet}$ and NALU are barely able to learn $\sqrt{z}$, with just 2\% success-rate for NALU and 7\% success-rate for $\mathrm{NAC}_{\bullet}$.
     \item NMU is fully capable of learning $z^2$. It learn this by learning the same subset twice in the NAU layer, this is also how $\mathrm{NAC}_{\bullet}$ learn $z^2$.
+    \item The Gated NAU/NMU (discussed in section \ref{sec:appendix:nalu-gate-experiment}) works very poorly, because the NMU initialization assumes that $E[z_{h_{\ell-1}}] = 0$. This is usually true, as discussed in section \ref{sec:methods:moments-and-initialization}, but not in this case for the first layer. In the recommended NMU model, the NMU layer appears after NAU, which causes that assumption to be satisfied.
 \end{enumerate}
 
 \input{results/function_task_static_all.tex}
