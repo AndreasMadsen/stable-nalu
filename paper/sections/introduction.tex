@@ -1,37 +1,39 @@
 \section{Introduction}
 When studying intelligence, insects, reptiles, and humans have been found to possess neurons with the capacity to hold integers, real numbers, and perform arithmetic operations \cite{nieder-neuronal-number,rugani-arithmetic-chicks,gallistel-numbers-in-brain}.
 In our quest to mimic intelligence we have put much faith in neural networks, which in turn has provided unparalleled and often superhuman performance in tasks requiring high cognitive abilities \cite{natureGo,bert,openai-learning-dexterous}.
-However, when using neural networks to learn simple arithmetic problems, such as counting, multiplication, or comparison they systematically fail to extrapolate onto unseen ranges \cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}.
+However, when using neural networks to solve simple arithmetic problems, such as counting, multiplication, or comparison they systematically fail to extrapolate onto unseen ranges \cite{stillNotSystematic,suzgun2019evaluating,trask-nalu}.
 The absence of inductive bias makes it difficult for neural networks to extrapolate well on arithmetic tasks as they lack the underlying logic to represent the required operations.
 
-We would like to achieve a neural network component that can take an arbitrary hidden input, learn to select the appropriate elements, and apply the desired arithmetic operation.
+A neural component that can solve arithmetic problems should be able to: take an arbitrary hidden input, learn to select the appropriate elements, and apply the desired arithmetic operation.
 A recent attempt to achieve this goal is the Neural Arithmetic Logic Unit (NALU), by \citet{trask-nalu}.
 
-The NALU consists of two sub-units: the $\text{NAC}_{+}$ for addition/subtraction and the $\text{NAC}_{\bullet}$ for multiplication/division.
-The sub-units are softly gated using a sigmoid function in order to exclusively select one of the sub-units.
-However, we find that the soft gating mechanism and the $\text{NAC}_{\bullet}$ are fragile and hard to learn.
+The NALU models the inductive bias explicitly via two sub-units: the $\text{NAC}_{+}$ for addition/subtraction and the $\text{NAC}_{\bullet}$ for multiplication/division.
+The sub-units are softly gated between, using a sigmoid function, to exclusively select one of the sub-units.
+However, we find that the soft gating-mechanism and the $\text{NAC}_{\bullet}$ are fragile and hard to learn.
 
 In this paper, we analyze and improve upon the $\text{NAC}_{+}$ and $\text{NAC}_{\bullet}$ with respect to addition, subtraction, and multiplication.
-Our proposed improvements, namely the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU), are more theoretically founded and improve performance regarding stability, speed of convergence, and interpretability of results.
-Most importantly, the NMU can support a large hidden input-size.
+Our proposed improvements, namely the Neural Addition Unit (NAU) and Neural Multiplication Unit (NMU), are more theoretically founded and improve performance regarding stability, speed of convergence, and interpretability of weights.
+Most importantly, the NMU supports both negative and small numbers and a large hidden input-size, which is paramount as neural networks are overparameterized and hidden values are often unbounded.
 
-The improvements, based on a theoretical analysis of the NALU and its components, are achieved by a simplification of the parameter matrix for a better gradient signal, a sparsity regularizer, and a new multiplication unit that can be optimally initialized and supports both negative and small numbers.
+The improvements, which are based on a theoretical analysis of the NALU and its components, are achieved by a simplification of the parameter matrix for a better gradient signal, a sparsity regularizer, and a new multiplication unit that can be optimally initialized.
 The NMU do not support division.
-However, we find that the $\text{NAC}_{\bullet}$ in practice also only supports multiplication and cannot learn division (for theoretical findings on why division is hard to learn, see section \ref{sssec:nac-mul}).
+However, we find that the $\text{NAC}_{\bullet}$ in practice also only supports multiplication and cannot learn division (theoretical analysis on division discussed in section \ref{sssec:nac-mul}).
 
 To analyze the impact of each improvement we introduce several variants of the $\text{NAC}_{\bullet}$.
-We find that, allowing division makes optimization for multiplication harder, linear and regularized weights improve convergence, and that the NMU style of multiplication is critical when increasing the hidden input size.
+We find that, allowing division makes optimization for multiplication harder, linear and regularized weights improve convergence, and the NMU way of multiplying is critical when increasing the hidden size.
 
-Furthermore, we improve upon existing benchmarks in \citet{trask-nalu} by expanding the ``simple function task'', using a multiplicative variant of ``MNIST Counting and Arithmetic Tasks'', and use an improved success-criterion \citet{maep-madsen-johansen-2019}.
-A success-criterion is important because the arithmetic layers are solving a logical problem.
-We propose the MNIST multiplication variant as we want to test the NMU's and $\text{NAC}_{\bullet}$'s ability to learn from real data.
+Furthermore, we improve upon existing benchmarks in \citet{trask-nalu} by expanding the ``simple function task'', expanding ``MNIST Counting and Arithmetic Tasks'' with a multiplicative task, and using an improved success-criterion \citet{maep-madsen-johansen-2019}.
+This success-criterion is important because the arithmetic layers are solving a logical problem.
+We propose the MNIST multiplication variant as we want to test the NMU’s and $\text{NAC}_{\bullet}$’s ability to learn from real data and extrapolate.
+
+%We propose an multiplication variant of ''MNIST Counting and Arithmetic Tasks''to test the NMU's and $\text{NAC}_{\bullet}$'s ability to learn from real data.
 %Hence, the solution found is either correct or wrong.
 %To test this we propose using a success-criteria to evaluate model performance.
 %A success-criterion enables measuring sensitivity to the initialization seed as well as the number of iterations until convergence.
 
 \begin{figure}[t]
 \centering
-\includegraphics[scale=0.7]{graphics/nmu.pdf}
+\includegraphics[scale=0.65]{graphics/nmu.pdf}
 \caption{Visualization of NMU for a single output scalar $z_1$, this construction repeats for every element in the output vector $\mathbf{z}$.}
 \end{figure}
 
