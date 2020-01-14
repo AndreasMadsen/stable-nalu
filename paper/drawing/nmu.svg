@@ -5404,8 +5404,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="17.302221"
-     inkscape:cx="364.62742"
-     inkscape:cy="111.81153"
+     inkscape:cx="401.61689"
+     inkscape:cy="125.68258"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -6504,11 +6504,6 @@
         </g>
       </g>
     </g>
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-       d="M 150.63258,53.540163 131.15074,65.620742"
-       id="path4221"
-       inkscape:connector-curvature="0" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:0.36500001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.97647059"
        d="m 134.53909,62.826618 c 0.3651,0.414245 1.21203,-0.04014 1.21203,-0.04014 l 4.36437,-2.748235 c 0.7324,-0.461192 1.42043,-0.537064 2.62646,-0.571304 0,0 -0.85714,-0.421003 0.15807,-1.090671 l 4.34438,-2.740378 c 0.39308,-0.455714 -0.0587,-0.912686 -0.0587,-0.912686"
