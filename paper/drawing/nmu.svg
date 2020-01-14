@@ -5403,9 +5403,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.1627776"
-     inkscape:cx="282.01613"
-     inkscape:cy="142.72107"
+     inkscape:zoom="17.302221"
+     inkscape:cx="364.62742"
+     inkscape:cy="111.81153"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -6505,14 +6505,19 @@
       </g>
     </g>
     <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 150.63258,53.540163 131.15074,65.620742"
+       id="path4221"
+       inkscape:connector-curvature="0" />
+    <path
        style="fill:none;fill-rule:evenodd;stroke:#666666;stroke-width:0.36500001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.97647059"
-       d="m 134.53909,62.826618 c 0.48743,0.53658 1.21203,-0.162479 1.21203,-0.162479 l 5.5358,-4.773151 c 0.65548,-0.565182 2.39911,-0.414729 2.36649,-0.433677 0,0 -1.33118,-0.252792 -0.85124,-0.784834 l 4.47276,-4.303342 c 0.39308,-0.455714 -0.0893,-0.820935 -0.0893,-0.820935"
+       d="m 134.53909,62.826618 c 0.3651,0.414245 1.21203,-0.04014 1.21203,-0.04014 l 4.36437,-2.748235 c 0.7324,-0.461192 1.42043,-0.537064 2.62646,-0.571304 0,0 -0.85714,-0.421003 0.15807,-1.090671 l 4.34438,-2.740378 c 0.39308,-0.455714 -0.0587,-0.912686 -0.0587,-0.912686"
        id="path7919"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccscccc" />
     <g
        id="surface1-83"
-       transform="matrix(0.14883184,0,0,0.14883184,154.69287,59.2111)">
+       transform="matrix(0.14883184,0,0,0.14883184,154.24905,61.657799)">
       <g
          id="g7992"
          style="fill:#000000;fill-opacity:1">
