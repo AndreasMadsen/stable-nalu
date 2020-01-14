@@ -15,6 +15,12 @@ model.latex.to.exp = c(
                                          phantom()[{
                                            paste("", "+")
                                          }], "")),
+  '$\\mathrm{NAC}_{+,R_z}$'=expression(paste("", "", plain(paste("NAC")), 
+                                         phantom()[{
+                                           paste("", "+", ",", "R", phantom()[{
+                                             paste("z")
+                                           }])
+                                         }], "")),
   '$\\mathrm{NAC}_{\\bullet}$'=expression(paste("", "", plain(paste("NAC")), 
                                            phantom()[{
                                              paste("", symbol("\xb7"))

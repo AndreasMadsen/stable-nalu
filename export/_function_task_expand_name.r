@@ -9,9 +9,10 @@ model.full.to.short = c(
   'nac-nac-n'='$\\mathrm{NAC}_{\\bullet}$',
   'posnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\sigma}$',
   'nalu'='NALU',
-  'nalu-nalu-2n'='NALU (seperate)',
+  'nalu-nalu-2n'='NALU (separate)',
   'reregualizedlinearnac'='NAU',
   'reregualizedlinearnac-nac-m'='NMU',
+  'reregualizedlinearnalu-nalu-2nm'='Gated NAU/NMU',
   'reregualizedlinearposnac-nac-n'='$\\mathrm{NAC}_{\\bullet,\\mathrm{NMU}}$',
   'regualizedlinearnac-nac-m'='NMU, $\\mathbf{W} = \\mathbf{\\hat{W}}$',
   'sillyreregualizedlinearnac-nac-m'='NMU, $\\mathbf{z} = \\mathbf{W} \\odot \\mathbf{x}$'
@@ -22,6 +23,12 @@ model.latex.to.exp = c(
   'ReLU'='ReLU',
   'ReLU6'='ReLU6',
   '$\\mathrm{NAC}_{+}$'=TeX('$\\mathrm{NAC}_{+}$'),
+  '$\\mathrm{NAC}_{+,R_z}$'=expression(paste("", "", plain(paste("NAC")), 
+                                             phantom()[{
+                                               paste("", phantom() + phantom(), "R", phantom()[{
+                                                 paste("z")
+                                               }])
+                                             }], "")),
   '$\\mathrm{NAC}_{\\bullet}$'=expression(paste("", "", plain(paste("NAC")), 
                                            phantom()[{
                                              paste("", symbol("\xb7"))
@@ -37,12 +44,12 @@ model.latex.to.exp = c(
   'NALU'='NALU',
   'NAU'='NAU',
   'NMU'='NMU',
-  'NMU, no $\\mathcal{R}_{sparse}$'=expression(paste("NMU, no ", "", mathcal, paste("R"),
+  'NMU, no $\\mathcal{R}_{sparse}$'=expression(paste("NMU, no ", "", paste("R"),
                                                phantom()[{
                                                  paste("", "sparse")
                                                }], "")),
   'NMU, no W-clamp'='NMU, no W-clamp',
-  'NMU, no $\\mathcal{R}_{sparse}$, no W-clamp'=expression(paste("NMU, no ", "", mathcal, paste("R"),
+  'NMU, no $\\mathcal{R}_{sparse}$, no W-clamp'=expression(paste("NMU, no ", "", paste("R"),
                                                             phantom()[{
                                                               paste("", "sparse")
                                                             }], ", no W-clamp"))

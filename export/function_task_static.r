@@ -82,7 +82,7 @@ save.table(
     (operation %in% c('$\\bm{\\times}$', '$\\bm{\\mathbin{/}}$') & model %in% c('$\\mathrm{NAC}_{\\bullet}$', 'NALU'))
   ),
   "function-task-static-defaults",
-  "Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
+  "Comparison of the success-rate, when the model converged, and the sparsity error, with 95\% confidence interval on the ``arithmetic datasets'' task. Each value is a summary of 100 different seeds.",
   "../paper/results/function_task_static_reproduce.tex"
 )
 
@@ -90,7 +90,7 @@ save.table(
 save.table(
   dat.last.rate,
   "function-task-static-defaults-all",
-  "Shows the success-rate, when the model converged, and the sparsity error for all weight matrices, with 95\\% confidence interval. Each value is a summary of 100 different seeds.",
+  "Comparison of the success-rate, when the model converged, and the sparsity error, with 95\% confidence interval on the ``arithmetic datasets'' task. Each value is a summary of 100 different seeds.",
   "../paper/results/function_task_static_all.tex",
   longtable=T
 )

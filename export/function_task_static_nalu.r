@@ -91,10 +91,6 @@ p = ggplot(dat.last, aes(x = gate.last, fill=solved)) +
                          sprintf('%.2f', x.value))))
   }) +
   facet_grid(operation ~ model, labeller = labeller(
-    model = c(
-      'NALU (seperate)' = "Seperate",
-      'NALU (shared)' = "Shared"
-    ),
     operation = c(
       '$\\bm{\\times}$' = "Multiplication",
       '$\\bm{+}$' = "Addition"
@@ -103,5 +99,5 @@ p = ggplot(dat.last, aes(x = gate.last, fill=solved)) +
   theme(legend.position="right") +
   theme(plot.margin=unit(c(5.5, 10.5, 5.5, 5.5), "points"))
 print(p)
-ggsave(name.output.pdf, p, device="pdf", width = 11, height = 7, scale=1.4, units = "cm")
+ggsave(name.output.pdf, p, device="pdf", width = 13.968, height = 7, scale=1.4, units = "cm")
 

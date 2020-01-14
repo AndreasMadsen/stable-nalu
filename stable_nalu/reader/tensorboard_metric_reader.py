@@ -124,6 +124,9 @@ class TensorboardMetricReader:
 
                 # Convert to dataframe
                 df = pandas.DataFrame(data)
+                if len(df) == 0:
+                    print(f'Warning: No data for {dirname}')
+                    continue
 
                 # Ensure the columns are always order the same
                 if columns_order is None:
