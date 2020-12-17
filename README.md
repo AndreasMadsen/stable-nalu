@@ -25,23 +25,27 @@ Reproduction study of the Neural Arithmetic Logic Unit (NALU). We propose an imp
     url={http://arxiv.org/abs/1910.01888},
     archivePrefix={arXiv},
     primaryClass={cs.LG},
-    eprint={1910.01888},
-    timestamp={Fri, 4 Oct 2019 12:00:36 UTC}
+    arxivId = {2001.05016},
+    eprint={1910.01888}
 }
 ```
 
-#### ICLR 2020 (Under review)
+#### ICLR 2020 (Spotlight)
 
-Our main contribution, which includes a theoretical analysis of the optimization challenges with the NALU. Based on these difficulties we propose several improvements. **This is under double-blind peer-review, please respect our anonymity and reference https://openreview.net/forum?id=H1gNOeHKPS and not this repository!** – [Read paper](https://openreview.net/forum?id=H1gNOeHKPS).
+Our main contribution, which includes a theoretical analysis of the optimization challenges with the NALU. Based on these difficulties we propose several improvements. – [Read paper](https://openreview.net/forum?id=H1gNOeHKPS).
 
 ```bib
 @inproceedings{mnu-madsen-johansen-2020,
-    author={Andreas Madsen and Alexander Rosenberg Johansen},
-    title={Neural Arithmetic Units},
-    booktitle={Submitted to International Conference on Learning Representations},
-    year={2020},
-    url={https://openreview.net/forum?id=H1gNOeHKPS},
-    note={under review}
+    author = {Andreas Madsen and Alexander Rosenberg Johansen},
+    title = {{Neural Arithmetic Units}},
+    booktitle = {8th International Conference on Learning Representations, ICLR 2020},
+    volume = {abs/2001.05016},
+    year = {2020},
+    url = {http://arxiv.org/abs/2001.05016},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    arxivId = {2001.05016},
+    eprint={2001.05016}
 }
 ```
 
