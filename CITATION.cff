@@ -1,0 +1,24 @@
+authors:
+  - given-names: Andreas
+    family-names: Madsen
+  - given-names: Alexander
+    family-names: Rosenberg Johansen
+cff-version: 1.2.0
+title: Neural Arithmetic Units
+message: If you use this software, please cite our Neural Arithmetic Units paper.
+preferred-citation:
+  title: "Neural Arithmetic Units"
+  authors:
+    - given-names: Andreas
+      family-names: Madsen
+    - given-names: Alexander
+      family-names: Rosenberg Johansen
+  conference:
+    name: "8th International Conference on Learning Representations, ICLR 2020"
+  date-published: 2016-06-11
+  month: 3
+  year: 2020
+  type: proceedings
+  url: http://arxiv.org/abs/2001.05016
+repository-code: https://github.com/AndreasMadsen/stable-nalu
+license: MIT
